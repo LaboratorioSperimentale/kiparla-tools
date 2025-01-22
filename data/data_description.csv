@@ -1,0 +1,33 @@
+NomeFile	Audio	Annotatore	Revisore	Tipo	Esperto	Accurato	MinutiEsperienza	Sec30	Sec60	Sec90	Sec120	SecAssegnazione
+01_ParlaBOA_E	ParlaBO_A	E	-	From-Scratch	sì			117	268	378	503	-
+01_ParlaBOA_M	ParlaBO_A	M	-	From-Scratch	no			48	90	149	212	-
+01_ParlaBOB_N	ParlaBO_B	N	-	From-Scratch	no			64	117	180	187	-
+01_PastiA_O	Pasti_A	O	-	From-Scratch	sì			90	180	254	304	-
+01_PastiA_R	Pasti_A	R	-	From-Scratch	no			40	72	135	185	-
+01_PastiB_V	Pasti_B	V	-	From-Scratch	no			53	73	138	185	-
+01_StraParlaA_I	Straparla_A	I	-	From-Scratch	sì			71	133	206	290	-
+01_StraParlaA_L	Straparla_A	L	-	From-Scratch	no			41	79	130	175	-
+01_StraParlaB_A	Straparla_B	A	-	From-Scratch	sì			74	110	153	195	-
+01_StraParlaC_S	Straparla_C	S	-	From-Scratch	sì			49	110	155	197	-
+01_StraParlaC_U	Straparla_C	U	-	From-Scratch	no			42	77	110	145	-
+02_ParlaBOA_I	ParlaBO_A	I	-	Whisper-Assisted	sì			69	138	229	254	677
+02_ParlaBOA_L	ParlaBO_A	L	-	Whisper-Assisted	no			51	118	224	280	611
+02_ParlaBOB_S	ParlaBO_B	S	-	Whisper-Assisted	sì			180	300	410	491	747
+02_PastiA_E	Pasti_A	E	-	Whisper-Assisted	sì			113	257	360	465	1666
+02_PastiA_M	Pasti_A	M	-	Whisper-Assisted	no			67	162	239	284	740
+02_PastiB_U	Pasti_B	U	-	Whisper-Assisted	no			82	147	236	265	1237
+02_StraParlaA_A	Straparla_A	A	-	Whisper-Assisted	sì			60	129	193	232	643
+02_StraParlaA_V	Straparla_A	V	-	Whisper-Assisted	no			69	149	217	251	708
+02_StraParlaB_O	Straparla_B	O	-	Whisper-Assisted	sì			120	220	396	406	592
+02_StraParlaB_R	Straparla_B	R	-	Whisper-Assisted	no			64	104	173	191	725
+02_StraParlaC_N	Straparla_C	N	-	Revised	no			70	144	213	242	947
+03_ParlaBOA	ParlaBO_A	esterno	?	Revised	-	-	-	-	-	-	-	-
+03_ParlaBOB	ParlaBO_B	esterno	?	Revised	-	-	-	-	-	-	-	-
+03_PastiA	Pasti_A	esterno	Eleonora	Revised	-	-	-	-	-	-	-	-
+03_PastiB	Pasti_B	esterno	Eleonora	Revised	-	-	-	-	-	-	-	-
+03_StraParlaA_man	Straparla_A	I	Eleonora	Revised	-	-	-	-	-	-	-	-
+03_StraParlaA_whi	Straparla_A	A	Eleonora	Revised	-	-	-	-	-	-	-	-
+03_StraParlaB_man	Straparla_B	A	Eleonora	Revised	-	-	-	-	-	-	-	-
+03_StraParlaB_whi	Straparla_B	O	Eleonora	Revised	-	-	-	-	-	-	-	-
+03_StraParlaC_man	Straparla_C	U	Eleonora	Revised	-	-	-	-	-	-	-	-
+03_StraParlaC_whi	Straparla_C		Eleonora	Revised	-	-	-	-	-	-	-	-

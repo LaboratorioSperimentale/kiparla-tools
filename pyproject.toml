@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.envs.static]
+dev-mode = true
+dev-mode-dirs = ["."]
+
+[project]
+name = "kiparla-tools"
+version = "0.0.1"
+authors = [
+  { name="Ludovica Pannitto", email="ludovica.pannitto@unibo.it" },
+  { name="Martina Simonotti"}
+]
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = ["pandas",
+                "regex",
+                "speach",
+                "pympi-ling",
+                "networkx",
+                "num2words",
+                "sequence_align"]
