@@ -179,6 +179,11 @@ class Token:
 			span_id, id_from, id_to = field_value
 			self.guesses[span_id] = (id_from, id_to)
 
+		if field_name == "SpaceAfter":
+			self.spaceafter = False
+			if self.truncation:
+				self.truncation = False
+
 #TODO: creare funzioni di test
 
 @dataclass
@@ -345,9 +350,6 @@ class TranscriptionUnit:
 
 					subtokens = re.split(r"(\p{L}'\p{L})", tok)
 
-					# if "'" in tok[1:-1]:
-						# subtoken1, _ , subtoken2 = re.split(r"([^']'[^'])", tok)
-						# s
 					if len(subtokens) == 3:
 						subtoken1 = subtokens[0]+subtokens[1][:-1]
 						subtoken2 = subtokens[1][-1]+subtokens[2]
@@ -362,6 +364,7 @@ class TranscriptionUnit:
 						new_token = Token(subtoken1)
 						new_token.add_span(start1, end1)
 						new_token.add_info("SpaceAfter", "No")
+						# TODO: later, remove truncation if SpaceAfter=No
 						self.tokens[token_id] = new_token
 
 						token_id += 1
@@ -455,19 +458,12 @@ class TranscriptionUnit:
 					self.tokens[id].add_info("overlaps", (match_id,
 														char_ranges[id][0],
 														char_ranges[id][1]))
-				# input()
-		# print(self.overlapping_times)
-		# print(self.overlapping_spans)
-		# print(self.overlapping_matches)
-		# print(self.overlap_duration)
-		# input()
 
 		# add position of token in TU
 		if len(self.tokens) > 0:
 			self.tokens[0].position_in_tu = df.position.start
 			self.tokens[max(self.tokens.keys())].position_in_tu = df.position.end
 
-		# self.ntokens = len([x for x in self.tokens if x.token_type == df.tokentype.linguistic])
 
 @dataclass
 class Transcript:
@@ -502,7 +498,7 @@ class Transcript:
 		for speaker in speakers_to_remove:
 			del self.speakers[speaker]
 
-	def find_overlaps(self):
+	def find_overlaps(self, duration_threshold=0):
 
 		G = nx.Graph()
 
@@ -524,21 +520,16 @@ class Transcript:
 						end = min(tu1.end, tu2.end)
 						duration = min(tu1.end, tu2.end)-max(tu1.start, tu2.start)
 
-						if duration < 0.1:
+						if duration < duration_threshold:
 							duration1 = tu1.end-tu1.start
 							duration2 = tu2.end-tu2.start
 
-							# print("moving overlap")
-							# print(tu1.start, tu1.end)
-							# print(tu2.start, tu2.end)
-							# input()
-
 							if duration1 > duration2:
-								tu1.end = tu1.end - 0.1
+								tu1.end = tu1.end - duration_threshold
 								tu1.warnings["MOVED_BOUNDARIES"] += 1
 
 							else:
-								tu2.start = tu2.start + 0.1
+								tu2.start = tu2.start + duration_threshold
 								tu2.warnings["MOVED_BOUNDARIES"] += 1
 
 						else:
@@ -558,18 +549,10 @@ class Transcript:
 		for u, v in self.time_based_overlaps.edges():
 			if all(df.tokentype.metalinguistic in tok.token_type for tok_id, tok in self.transcription_units_dict[u].tokens.items()) or \
 			all(df.tokentype.metalinguistic in tok.token_type for tok_id, tok in self.transcription_units_dict[v].tokens.items()):
-				# print(u, v)
-				# print(self.transcription_units_dict[u].annotation)
-				# print([x.token_type.name for _, x in self.transcription_units_dict[u].tokens.items()])
-				# print(self.transcription_units_dict[v].annotation)
-				# print([x.token_type.name for _, x in self.transcription_units_dict[v].tokens.items()])
 				to_remove.append((u, v))
-
 
 		for u, v in to_remove:
 			self.time_based_overlaps.remove_edge(u, v)
-
-		visited = set()
 
 		cliques = sorted(nx.find_cliques(self.time_based_overlaps), key=lambda x: len(x))
 
@@ -590,8 +573,7 @@ class Transcript:
 					clique_tup = tuple(x for x in clique if not x == node)
 					self.transcription_units_dict[node].overlapping_times[clique_tup] = (overlap_start, overlap_end)
 
-				for node1, node2 in itertools.combinations(clique, 2):
-					visited.add((min(node1, node2), max(node1, node2)))
+		edges_to_move = []
 
 		for tu_id, tu  in self.transcription_units_dict.items():
 			spans = tu.overlapping_spans
@@ -604,26 +586,13 @@ class Transcript:
 
 			elif len(spans) == 0:
 				tu.errors["MISMATCHING_OVERLAPS"] = True
-				# ids = [tu.tu_id]
-				# for el in tu.overlapping_times:
-				# 	for id in el:
-				# 		ids.append(id)
 
 				for el in tu.overlapping_times:
 					tu.overlap_duration["+".join([str(x) for x in el])] = tu.overlapping_times[el][1]-tu.overlapping_times[el][0]
-				# print(ids)
-				# print(tu.overlapping_times)
-				# print(f"{self.time_based_overlaps[ids[0]][ids[1]]['duration']:.3f}")
-				# print(self.overlap_duration)
-				# input()
-				# TODO: add time difference
-
 			elif len(times) == 0:
 				tu.errors["MISMATCHING_OVERLAPS"] = True
 				sorted_overlaps = ["?" for el in tu.overlapping_spans]
 				tu.overlapping_matches = dict(zip(tu.overlapping_spans, sorted_overlaps))
-				# print(tu.overlapping_matches)
-				# input()
 
 			else:
 				tu.errors["MISMATCHING_OVERLAPS"] = True
@@ -634,22 +603,6 @@ class Transcript:
 				for el in tu.overlapping_times:
 					tu.overlap_duration["+".join([str(x) for x in el])] = tu.overlapping_times[el][1]-tu.overlapping_times[el][0]
 
-				# print(tu.overlapping_times)
-				# print(tu.overlapping_spans)
-				# input()
-
-
-			# if len(spans) > 0 and len(times) > 0:
-			# 	if not len(spans) == len(times):
-			# 		tu.errors["MISMATCHING_OVERLAPS"] = True
-			# 	else:
-			# 		sorted_overlaps = list(sorted(tu.overlapping_times.items(), key=lambda x: x[1][0]))
-			# 		print(sorted_overlaps)
-			# 		print(spans)
-			# 		input()
-
-					# tu.overlapping_times = sorted(tu.overlapping_times.items(), key=lambda x: x[1][0])
-					# tu.overlaps = {}
 
 	def create_turns(self):
 
