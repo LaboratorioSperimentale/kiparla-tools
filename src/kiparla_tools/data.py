@@ -45,6 +45,7 @@ class Token:
 	interruption: bool = False
 	truncation: bool = False
 	prosodiclink: bool = False
+	spaceafter: bool = True
 	prolongations: Dict[int, int] = field(default_factory=lambda: {})
 	warnings: Dict[str, int] = field(default_factory=lambda: collections.defaultdict(int))
 	errors: List[str] = field(default_factory=lambda: collections.defaultdict(int))
@@ -58,7 +59,7 @@ class Token:
 		for char in chars:
 			self.text = self.text.replace(char, "")
 
-		self.orig_text = self.text
+		# self.orig_text = self.text
 
 		# # STEP 1: check that token has shape '?([a-z]+:*)+[-']?[.,?]
 		# # otherwise signal error
@@ -364,7 +365,6 @@ class TranscriptionUnit:
 						new_token = Token(subtoken1)
 						new_token.add_span(start1, end1)
 						new_token.add_info("SpaceAfter", "No")
-						# TODO: later, remove truncation if SpaceAfter=No
 						self.tokens[token_id] = new_token
 
 						token_id += 1
@@ -396,9 +396,13 @@ class TranscriptionUnit:
 		token_ids = []
 
 		for tok_id, tok in self.tokens.items():
+			# print(tok_id, tok, tok.span)
+			# print(tok.text, tok.orig_text)
+			# input()
 
 			i=0
-			for char in tok.text:
+			# for char in tok.text:
+			for char in tok.orig_text:
 				if char in [":", ".", ",", "?"]:
 					ids.append(-1)
 					token_ids.append(-1)
@@ -413,13 +417,15 @@ class TranscriptionUnit:
 			ids.append(-3)
 			token_ids.append(-3)
 
-		# print(ids)
-		# print(token_ids)
+		# print(self.annotation)
+		# print(self.orig_annotation)
 
 		for feature_name, spans in [("slow_pace", self.slow_pace_spans),
 									("fast_pace", self.fast_pace_spans),
 									("low_volume", self.low_volume_spans),
 									("guesses", self.guessing_spans)]:
+
+
 
 			for span_id, span in enumerate(spans):
 				a, b = span[0], span[1]
@@ -441,11 +447,11 @@ class TranscriptionUnit:
 
 		if len(self.overlapping_matches) > 0:
 
+			# TODO: handle overlaps only on prolongations
 			for span, match_id in self.overlapping_matches.items():
 				a, b = span[0], span[1]
 
 				data = list(zip(token_ids[a:b], ids[a:b]))
-				# print(data)
 				unique_tokens = set(x for x,y in data if x > -1)
 
 				char_ranges = {x:[] for x in unique_tokens}
