@@ -12,6 +12,7 @@ def test_meta_tag():
 
 def test_replace_po():
     assert pt.replace_po("pò") == (1, "po'")
+    assert pt.replace_po("p:ò") == (1, "p:o'")
 
 def test_replace_che():
     assert pt.replace_che("perchè") == (1, "perché")

@@ -26,7 +26,7 @@ def remove_spaces(transcription):
 # transform "pò" into "po'" (keep count)
 def replace_po(transcription):
 	tot_subs = 0
-	new_string, subs_made = re.subn(r"\bpò\b", "po'", transcription)
+	new_string, subs_made = re.subn(r"\bp([^ =]*)ò\b", r"p\1o'", transcription)
 
 	if subs_made > 0:
 		tot_subs += subs_made
@@ -36,16 +36,43 @@ def replace_po(transcription):
 
 # transform "chè" into "ché" (keep count)
 def replace_che(transcription):
+
+	words_to_replace = {"perchè", "benchè", "finchè", "poichè", "anzichè", "dopodichè", "granchè",
+						"fourchè", "affinchè", "pressochè"}
+
 	tot_subs = 0
-	regex = r"\b(perchè|benchè|finchè|poiché|anziché|dopodiché|granché|fuorché|affinché|pressoché)\b"
-	# chè > ché
-	new_string, subs_made = re.subn(regex, lambda m: m.group(0).replace("chè", "ché"), transcription)
 
-	if subs_made > 0:
-		tot_subs += subs_made
-		transcription = new_string
+	for word in words_to_replace:
 
-	return tot_subs, transcription.strip()
+		new_word = f"\\b{word[0]}"
+		sub_word = f"{word[0]}"
+		for char_id, char in enumerate(word[1:]):
+			new_word += "([^ =]*)" + char
+			sub_word = sub_word + "\\" + str(char_id+1) + char
+		new_word += "\\b"
+
+		sub_word = sub_word[:-1] + "é"
+
+		print(new_word, sub_word)
+
+		new_word = re.compile(new_word)
+		new_string, subs_made = re.subn(new_word, rf"{sub_word}", transcription)
+
+		if subs_made > 0:
+			tot_subs += subs_made
+			transcription = new_string
+		# sub_word = re.compile(sub_word)
+	return tot_subs, transcription
+
+	# regex = r"\b(perchè|benchè|finchè|poichè|anzichè|dopodichè|granchè|fuorchè|affinchè|pressochè)\b"
+	# # chè > ché
+	# new_string, subs_made = re.subn(regex, lambda m: m.group(0).replace("è", "é"), transcription)
+
+	# if subs_made > 0:
+	# 	tot_subs += subs_made
+	# 	transcription = new_string
+
+	# return tot_subs, transcription.strip()
 
 
 # remove initial and final pauses (keep count)
@@ -317,4 +344,4 @@ def check_x(transcription):
 		return "unkown"
 
 if __name__ == "__main__":
-	print(remove_prosodiclinks("=ciao"))
+	print(replace_che("=pe::r[(ch)]è"))

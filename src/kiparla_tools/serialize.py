@@ -155,7 +155,7 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 							"text": " ".join(str(tok) for _, tok in tu.tokens.items()),
 							"W:normalized_spaces": tu.warnings["UNEVEN_SPACES"],
 							"W:numbers": tu.warnings["NUMBERS"],
-							"W:accents": sum(tok.warnings["ACCENTS"] for _, tok in tu.tokens.items()),
+							"W:accents": tu.warnings["ACCENTS"],
 							"W:non_jefferson": tu.warnings["NON_JEFFERSON"],
 							"W:pauses_trim": tu.warnings["TRIM_PAUSES"],
 							"W:prosodic_trim": tu.warnings["TRIM_PROSODICLINKS"],

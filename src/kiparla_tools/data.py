@@ -134,18 +134,6 @@ class Token:
 		if all(c == "x" for c in self.text):
 			self.unknown = True
 
-		# TODO: move in token
-		#pò, perché etc..
-		substitutions, new_text = pt.replace_che(self.text)
-		self.warnings["ACCENTS"] += substitutions
-		self.text = new_text
-
-		# TODO: move in token
-		substitutions, new_text = pt.replace_po(self.text)
-		self.warnings["ACCENTS"] += substitutions
-		self.text = new_text
-
-
 	def add_span(self, start, end):
 		self.span = (start, end)
 
@@ -262,6 +250,15 @@ class TranscriptionUnit:
 		self.errors["UNBALANCED_OVERLAP"] = not pt.check_normal_parentheses(self.annotation, "[", "]")
 		self.errors["UNBALANCED_GUESS"] = not pt.check_normal_parentheses(self.annotation, "(", ")")
 		self.errors["UNBALANCED_PACE"] = not pt.check_angular_parentheses(self.annotation)
+
+		#pò, perché etc..
+		substitutions, new_text = pt.replace_che(self.text)
+		self.warnings["ACCENTS"] += substitutions
+		self.text = new_text
+
+		substitutions, new_text = pt.replace_po(self.text)
+		self.warnings["ACCENTS"] += substitutions
+		self.text = new_text
 
 		# substitute numbers
 		substitutions, new_transcription = pt.check_numbers(self.annotation)
