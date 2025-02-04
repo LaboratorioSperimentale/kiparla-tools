@@ -252,11 +252,11 @@ class TranscriptionUnit:
 		self.errors["UNBALANCED_PACE"] = not pt.check_angular_parentheses(self.annotation)
 
 		#pò, perché etc..
-		substitutions, new_text = pt.replace_che(self.text)
+		substitutions, new_text = pt.replace_che(self.annotation)
 		self.warnings["ACCENTS"] += substitutions
 		self.text = new_text
 
-		substitutions, new_text = pt.replace_po(self.text)
+		substitutions, new_text = pt.replace_po(self.annotation)
 		self.warnings["ACCENTS"] += substitutions
 		self.text = new_text
 
