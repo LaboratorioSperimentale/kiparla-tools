@@ -656,7 +656,7 @@ class Transcript:
         # creating a list for each category of annotators' data
 		annotator = []
 		reviewer = []
-		type = []
+		transcription_type = []
 		expertise = []
 		accuracy = []
 		minutes_experience = []
@@ -667,10 +667,10 @@ class Transcript:
 			for row in reader:
 				annotator.append(row["Annotatore"])
 				reviewer.append(row["Revisore"])
-				type.append(row["Tipo"]) #from scratch / whisper-assisted /revised
+				transcription_type.append(row["Tipo"]) #from scratch / whisper-assisted /revised
 				expertise.append(row["Esperto"]) # expert / non-expert
 				accuracy.append(row["Accurato"])
-				minutes_experience(row["MinutiEsperienza"])
+				minutes_experience.append(row["MinutiEsperienza"])
 				
 
 		stats = {
@@ -681,7 +681,7 @@ class Transcript:
 			"num_turns": num_turns,
 			"annotator": annotator,
 			"reviewer": reviewer,
-			"type": type,
+			"transcription_type": transcription_type,
 			"expertise": expertise,
 			"accuracy": accuracy,
 			"minutes_experience": minutes_experience,
