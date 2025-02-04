@@ -640,20 +640,33 @@ class Transcript:
 		self.turns.append(curr_turn)
 
 	# Statistic calculations
-	def get_stats (self, annotators_data_csv="data/data_description.csv"):
+	def get_stats (self, annotators_data_csv="data/data_description.csv", split_size=60):
 		num_speakers = len(self.speakers) # number of speakers
-		num_tu = len(self.transcription_units) # number of TUs
+		
+		# num_tu = len(self.transcription_units) # number of TUs
+
+		num_tu = [] # number of TUs
+		
+		i=1
+		n_curr = 0
+		for tu in self.transcription_units:
+			if tu.end < split_size*i:
+				n_curr += 1
+			else:
+				num_tu.append(n_curr)
+				n_curr = 1
+				i += 1
+		num_tu.append(n_curr)
+
 		num_total_tokens = sum(len(tu.tokens) for tu in self.transcription_units) # total number of tokens
 
 		# average duration of TUs
 		duration = [tu.duration for tu in self.transcription_units]
-		average_duration = sum(duration)/num_tu
+		# average_duration = sum(duration)/num_tu
+		average_duration = 0
 
 		# number of turns
 		num_turns = len(self.turns)
-
-		# average tokens 
-		# average_tokens = 
 
         # creating an empty dictionary to store statistics
 		stats = {}
@@ -662,72 +675,33 @@ class Transcript:
 		with open(annotators_data_csv, "r") as file:
 			reader = csv.DictReader(file, delimiter="\t")
 			for row in reader:
-				transcript_id = row["Transcript_ID"]
+				transcript_id = row["NomeFile"]
     
-				if transcript_id not in stats:
-					stats[transcript_id] = {
-					"num_speakers": int(row["num_speakers"]),
-                	"num_tu": int(row["num_tu"]),
-               	 	"num_total_tokens": int(row["num_total_tokens"]),
-                	"average_duration": float(row["average_duration"]),
-                	"num_turns": int(row["num_turns"]),
-                	"annotator": [],
-                	"reviewer": [],
-            		"transcription_type": [],
-                	"expertise": [],
-                	"accuracy": [],
-                	"minutes_experience": [], 
-	 				"sec30": [], 
-					"sec60": [], 
-					"sec90": [], 
-					"sec120": [], 
-					"sec_assignment": [], 
+				# if transcript_id not in stats:
+				if transcript_id == self.tr_id:
+					stats = {
+						"Transcript_ID": self.tr_id,
+						"num_speakers": num_speakers,
+						"num_tu": num_tu,
+						"num_total_tokens": num_total_tokens,
+						"average_duration": average_duration,
+						"annotator": row["Annotatore"],
+						"reviewer": row["Revisore"],
+						"transcription_type": row["Tipo"],
+						"expertise": row["Esperto"],
+						"accuracy": row["Accurato"],
+						"minutes_experience": row["MinutiEsperienza"], 
+						"sec30": row["Sec30"], 
+						"sec60": row["Sec60"], 
+						"sec90": row["Sec90"], 
+						"sec120": row["Sec120"], 
+						"sec_assignment": row["SecAssegnazione"], 
 					}
 
-				stats[transcript_id]["annotator"].append(row["Annotatore"])
-				stats[transcript_id]["reviewer"].append(row["Revisore"])
-				stats[transcript_id]["transcription_type"].append(row["Tipo"])
-				stats[transcript_id]["expertise"].append(row["Esperto"])
-				stats[transcript_id]["accuracy"].append(row["Accurato"])
-				stats[transcript_id]["minutes_experience"].append(row["MinutiEsperienza"])
-				stats[transcript_id]["sec30"].append(row["Sec30"])
-				stats[transcript_id]["sec60"].append(row["Sec60"])
-				stats[transcript_id]["sec90"].append(row["Sec90"])
-				stats[transcript_id]["sec120"].append(row["Sec120"])
-				stats[transcript_id]["sec_assignment"].append(row["SecAssegnazione"])
 
-		print(stats) 
+		self.statistics = pd.DataFrame(stats.items(), columns=["Statistic", "Value"])
 
-# preparing data for df	
-		data_for_df = []
-		for transcript_id, data in stats.items():
-			full_df_data = {
-        		"Transcript_ID": data["transcript_id"],
-        		"num_speakers": data["num_speakers"],
-        		"num_tu": data["num_tu"],
-        		"num_total_tokens": data["num_total_tokens"],
-        		"average_duration": data["average_duration"],
-        		"num_turns": data["num_turns"],
-        		"annotator": data["annotator"],
-        		"reviewer": data["reviewer"],
-        		"transcription_type": data["transcription_type"],
-       			"expertise": data["expertise"],
-        		"accuracy": data["accuracy"],
-        		"minutes_experience": data["minutes_experience"],
-				"sec30": data["sec30"],
-				"sec60": data["sec60"],
-				"sec90": data["sec90"],
-				"sec120": data["sec120"],
-				"sec_assignment": data["sec_assignment"],
-    		}
-    		
-			data_for_df.append(full_df_data)
 
-# creating the df 
-		self.statistics = pd.DataFrame(data_for_df)
-
-	# self.statistics = pd.DataFrame(stats.items(), columns=["Statistic", "Value"])
-
-def __iter__(self):
-	for tu in self.transcription_units:
-		yield tu
+	def __iter__(self):
+		for tu in self.transcription_units:
+			yield tu
