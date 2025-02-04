@@ -89,7 +89,9 @@ class Token:
 			self.interruption = True
 			# self.text = self.text[:-1]
 		elif self.text.endswith("'") or self.text.startswith("'"):
-			self.truncation = True
+			if self.text not in {"po'"}:
+				self.truncation = True
+			# TODO: not truncation if text in dictionary of known words (po')
 			# self.text = self.text[:-1]
 
 		# STEP3: at this point we should be left with the bare word with only prolongations
@@ -252,13 +254,13 @@ class TranscriptionUnit:
 		self.errors["UNBALANCED_PACE"] = not pt.check_angular_parentheses(self.annotation)
 
 		#pò, perché etc..
-		substitutions, new_text = pt.replace_che(self.text)
+		substitutions, new_text = pt.replace_che(self.annotation)
 		self.warnings["ACCENTS"] += substitutions
-		self.text = new_text
+		self.annotation = new_text
 
-		substitutions, new_text = pt.replace_po(self.text)
+		substitutions, new_text = pt.replace_po(self.annotation)
 		self.warnings["ACCENTS"] += substitutions
-		self.text = new_text
+		self.annotation = new_text
 
 		# substitute numbers
 		substitutions, new_transcription = pt.check_numbers(self.annotation)

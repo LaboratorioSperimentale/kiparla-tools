@@ -35,6 +35,7 @@ def replace_po(transcription):
 	return tot_subs, transcription.strip()
 
 # transform "chè" into "ché" (keep count)
+# TODO: fix it to handle also pero'>però, perche'>perché and stuff like this
 def replace_che(transcription):
 
 	words_to_replace = {"perchè", "benchè", "finchè", "poichè", "anzichè", "dopodichè", "granchè",
@@ -53,7 +54,7 @@ def replace_che(transcription):
 
 		sub_word = sub_word[:-1] + "é"
 
-		print(new_word, sub_word)
+		# print(new_word, sub_word)
 
 		new_word = re.compile(new_word)
 		new_string, subs_made = re.subn(new_word, rf"{sub_word}", transcription)

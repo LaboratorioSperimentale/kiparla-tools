@@ -63,8 +63,8 @@ def conversation_to_csv(transcript, output_filename, sep = '\t'):
 
 def conversation_to_conll(transcript, output_filename, sep = '\t'):
 	fieldnames = ["speaker", "tu_id", "token", "orig_token", "span",
-				"type", "align", "intonation", "unknown", "interruption", "truncation",
-				"prosodicLink", "prolongations", "slow_pace", "fast_pace",
+				"type", "metalinguistic_category", "align", "intonation", "unknown", "interruption", "truncation",
+				"prosodicLink", "spaceafter", "prolongations", "slow_pace", "fast_pace",
 				"volume", "guesses", "overlaps"]
 
 	with open(output_filename, "w", encoding="utf-8", newline='') as fout:
@@ -84,10 +84,11 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 								"orig_token": tok.orig_text,
 								"type": tok.token_type.name,
 								"intonation": tok.intonation_pattern.name if tok.intonation_pattern else "_",
-								"interruption": tok.interruption,
-								"truncation": tok.truncation,
-								"unknown": tok.unknown,
-								"prosodicLink": tok.prosodiclink
+								"interruption": "Interrupted=Yes" if tok.interruption else "_",
+								"truncation": "Truncated=Yes" if tok.truncation else "_",
+								"unknown": "Unknown=Yes" if tok.unknown else "_",
+								"prosodicLink": "ProsodicLink=Yes" if tok.prosodiclink else "_",
+								"spaceafter": "SpaceAfter=No" if not tok.spaceafter else "_"
 								}
 
 					to_write["span"] = tu.annotation[tok.span[0]:tok.span[1]]
