@@ -9,12 +9,46 @@ from pympi import Elan as EL
 
 # Creating a file that contains statistics for each transcript
 def print_full_statistics(list_of_transcripts, output_filename):
+	
+	max_columns = 0
 	full_statistics = [] # list that contains all transcripts
 	for transcript_id, transcript in list_of_transcripts.items(): # iterating each transcript
 		transcript.get_stats () # calculating statistics
 		stats_dict = transcript.statistics.set_index("Statistic")["Value"].to_dict() # converting statistics into a dictionary
-		stats_dict["Transcript_ID"] = transcript.tr_id	# adding the transcript id
+		if len(stats_dict["num_tu"]) > max_columns:
+			max_columns = len(stats_dict["num_tu"])
+		# print(stats_dict)
+		# input()
+		# stats_dict["Transcript_ID"] = transcript.tr_id	# adding the transcript id
 		full_statistics.append(stats_dict)
+
+	for stats in full_statistics:
+		for el in range(max_columns):
+			stats[f"num_tu::{el}"] = stats["num_tu"][el] if len(stats["num_tu"])>el else 0
+
+		del stats["num_tu"]
+		# data_for_df = []
+		# for transcript_id, data in stats.items():
+		# 	full_df_data = {
+        # 		# "Transcript_ID": data["transcript_id"],
+        # 		"Transcript_ID": transcript_id,
+        # 		"num_speakers": data["num_speakers"],
+        # 		"num_tu": data["num_tu"],
+        # 		"num_total_tokens": data["num_total_tokens"],
+        # 		"average_duration": data["average_duration"],
+        # 		# "num_turns": data["num_turns"],
+        # 		"annotator": data["annotator"],
+        # 		"reviewer": data["reviewer"],
+        # 		"transcription_type": data["transcription_type"],
+       	# 		"expertise": data["expertise"],
+        # 		"accuracy": data["accuracy"],
+        # 		"minutes_experience": data["minutes_experience"],
+		# 		"sec30": data["sec30"],
+		# 		"sec60": data["sec60"],
+		# 		"sec90": data["sec90"],
+		# 		"sec120": data["sec120"],
+		# 		"sec_assignment": data["sec_assignment"],
+    	# 	}
 
 	# Creating a df with all statistics
 	statistics_complete = pd.DataFrame(full_statistics) # creating the dataframe
