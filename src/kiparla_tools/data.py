@@ -674,7 +674,12 @@ class Transcript:
             		"transcription_type": [],
                 	"expertise": [],
                 	"accuracy": [],
-                	"minutes_experiences": [],			
+                	"minutes_experiences": [], 
+	 				"sec30": [], 
+					"sec60": [], 
+					"sec90": [], 
+					"sec120": [], 
+					"sec_assignment": [], 
 					}
 
 				stats[transcript_id]["annotator"].append(row["Annotatore"])
@@ -683,28 +688,38 @@ class Transcript:
 				stats[transcript_id]["expertise"].append(row["Esperto"])
 				stats[transcript_id]["accuracy"].append(row["Accurato"])
 				stats[transcript_id]["minutes_experience"].append(row["MinutiEsperienza"])
+				stats[transcript_id]["sec30"].append(row["Sec30"])
+				stats[transcript_id]["sec60"].append(row["Sec60"])
+				stats[transcript_id]["sec90"].append(row["Sec90"])
+				stats[transcript_id]["sec120"].append(row["Sec120"])
+				stats[transcript_id]["sec_assignment"].append(row["SecAssegnazione"])
 
 		print(stats) 
 
 # preparing data for df	
 		data_for_df = []
 		for transcript_id, data in stats.items():
-			record = {
-        		"Transcript_ID": transcript_id,
+			full_df_data = {
+        		"Transcript_ID": data["transcript_id"],
         		"num_speakers": data["num_speakers"],
         		"num_tu": data["num_tu"],
         		"num_total_tokens": data["num_total_tokens"],
         		"average_duration": data["average_duration"],
         		"num_turns": data["num_turns"],
-        		"annotator": "; ".join(data["annotator"]),
-        		"reviewer": "; ".join(data["reviewer"]),
-        		"transcription_type": "; ".join(data["transcription_type"]),
-       			"expertise": "; ".join(data["expertise"]),
-        		"accuracy": "; ".join(data["accuracy"]),
-        		"minutes_experience": "; ".join(data["minutes_experience"]),
+        		"annotator": data["annotator"],
+        		"reviewer": data["reviewer"],
+        		"transcription_type": data["transcription_type"],
+       			"expertise": data["expertise"],
+        		"accuracy": data["accuracy"],
+        		"minutes_experience": data["minutes_experience"],
+				"sec30": data["sec30"],
+				"sec60": data["sec60"],
+				"sec90": data["sec90"],
+				"sec120": data["sec120"],
+				"sec_assignment": data["sec_assignment"],
     		}
     		
-			data_for_df.append(record)
+			data_for_df.append(full_df_data)
 
 # creating the df 
 		self.statistics = pd.DataFrame(data_for_df)
