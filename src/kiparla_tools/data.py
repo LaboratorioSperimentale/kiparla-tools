@@ -650,20 +650,28 @@ class Transcript:
 		# number of turns
 		num_turns = len(self.turns)
 
-        # open and read the .csv file to extract annotators' data
-		annotators_data = []
+		# average tokens 
+		# average_tokens = 
+
+        # creating a list for each category of annotators' data
+		annotator = []
+		reviewer = []
+		type = []
+		expertise = []
+		accuracy = []
+		minutes_experience = []
+
+		# open and read the .csv file to extract annotators' data
 		with open(annotators_data_csv, "r") as file:
 			reader = csv.DictReader(file, delimiter="\t")
 			for row in reader:
-
-				annotators_data.append({
-					"annotator": row["Annotatore"],
-					"reviewer": row["Revisore"],
-					"type": row["Tipo"], #from scratch / whisper-assisted /revised
-					"expertise": row["Esperto"], # expert / non-expert
-					"accuracy": row["Accurato"],
-					"minutes_experience": row["MinutiEsperienza"]
-				})
+				annotator.append(row["Annotatore"])
+				reviewer.append(row["Revisore"])
+				type.append(row["Tipo"]) #from scratch / whisper-assisted /revised
+				expertise.append(row["Esperto"]) # expert / non-expert
+				accuracy.append(row["Accurato"])
+				minutes_experience(row["MinutiEsperienza"])
+				
 
 		stats = {
 			"num_speakers": num_speakers,
@@ -671,8 +679,13 @@ class Transcript:
 			"num_total_tokens": num_total_tokens,
 			"average_duration": average_duration,
 			"num_turns": num_turns,
-			"annotators_data": annotators_data, # ?? non sono sicura
-		}
+			"annotator": annotator,
+			"reviewer": reviewer,
+			"type": type,
+			"expertise": expertise,
+			"accuracy": accuracy,
+			"minutes_experience": minutes_experience,
+   		}
 
 		self.statistics = pd.DataFrame(stats.items(), columns=["Statistic", "Value"])
 
