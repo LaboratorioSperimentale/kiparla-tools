@@ -674,7 +674,7 @@ class Transcript:
             		"transcription_type": [],
                 	"expertise": [],
                 	"accuracy": [],
-                	"minutes_experiences": [], 
+                	"minutes_experience": [], 
 	 				"sec30": [], 
 					"sec60": [], 
 					"sec90": [], 
