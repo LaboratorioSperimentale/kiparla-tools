@@ -661,7 +661,7 @@ class Transcript:
 		#total number of tokens
 		num_total_tokens = sum(len(tu.tokens) for tu in self.transcription_units) # total number of tokens
     	
-		# num_total_tokens/min
+  		# num_total_tokens/min
 		tokens_per_minute = []
   
 		i=1
@@ -675,15 +675,22 @@ class Transcript:
 				i += 1
 		tokens_per_minute.append(tokens_curr)
   
+		
 		# average duration of TUs
 		duration = [tu.duration for tu in self.transcription_units]
 		# average_duration = sum(duration)/num_tu
 		average_duration = 0
 
 		# number of turns
-		num_turns = len(self.turns)
+		# num_turns = len(self.turns)
 
-        # creating an empty dictionary to store statistics
+		# number of total overlaps
+		num_overlaps = 0
+  
+		for tu in self.transcription_units:
+			num_overlaps += (len(tu.overlapping_times))
+		
+		# creating an empty dictionary to store statistics
 		stats = {}
 
 		# open and read the .csv file to extract annotators' data
@@ -701,6 +708,7 @@ class Transcript:
 						"num_total_tokens": num_total_tokens,
                         "tokens_per_minute": tokens_per_minute,
 						"average_duration": average_duration,
+						"num_overlaps": num_overlaps,
 						"annotator": row["Annotatore"],
 						"reviewer": row["Revisore"],
 						"transcription_type": row["Tipo"],
