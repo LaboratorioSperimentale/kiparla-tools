@@ -658,8 +658,23 @@ class Transcript:
 				i += 1
 		num_tu.append(n_curr)
 
+		#total number of tokens
 		num_total_tokens = sum(len(tu.tokens) for tu in self.transcription_units) # total number of tokens
-
+    	
+		# num_total_tokens/min
+		tokens_per_minute = []
+  
+		i=1
+		tokens_curr = 0
+		for tokens in self.transcription_units:
+			if tokens.end < split_size*i:
+				tokens_curr += len(tu.tokens)
+			else:
+				tokens_per_minute.append(tokens_curr)
+				tokens_curr = len(tu.tokens)
+				i += 1
+		tokens_per_minute.append(tokens_curr)
+  
 		# average duration of TUs
 		duration = [tu.duration for tu in self.transcription_units]
 		# average_duration = sum(duration)/num_tu
@@ -684,6 +699,7 @@ class Transcript:
 						"num_speakers": num_speakers,
 						"num_tu": num_tu,
 						"num_total_tokens": num_total_tokens,
+                        "tokens_per_minute": tokens_per_minute,
 						"average_duration": average_duration,
 						"annotator": row["Annotatore"],
 						"reviewer": row["Revisore"],

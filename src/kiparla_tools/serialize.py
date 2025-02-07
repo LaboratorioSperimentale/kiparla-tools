@@ -17,6 +17,8 @@ def print_full_statistics(list_of_transcripts, output_filename):
 		stats_dict = transcript.statistics.set_index("Statistic")["Value"].to_dict() # converting statistics into a dictionary
 		if len(stats_dict["num_tu"]) > max_columns:
 			max_columns = len(stats_dict["num_tu"])
+		if len(stats_dict["tokens_per_minute"]) > max_columns:
+			max_columns = len(stats_dict["tokens_per_minute"])
 		# print(stats_dict)
 		# input()
 		# stats_dict["Transcript_ID"] = transcript.tr_id	# adding the transcript id
@@ -25,8 +27,10 @@ def print_full_statistics(list_of_transcripts, output_filename):
 	for stats in full_statistics:
 		for el in range(max_columns):
 			stats[f"num_tu::{el}"] = stats["num_tu"][el] if len(stats["num_tu"])>el else 0
+			stats[f"tokens_per_minute::{el}"] = stats["tokens_per_minute"][el] if len(stats["tokens_per_minute"])>el else 0
 
 		del stats["num_tu"]
+		del stats["tokens_per_minute"]
 		# data_for_df = []
 		# for transcript_id, data in stats.items():
 		# 	full_df_data = {
