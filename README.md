@@ -1,0 +1,2 @@
+TODO:
+* questo[::] -> quest[o::]
