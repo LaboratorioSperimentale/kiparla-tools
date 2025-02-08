@@ -658,17 +658,67 @@ class Transcript:
 				i += 1
 		num_tu.append(n_curr)
 
+		#total number of tokens
 		num_total_tokens = sum(len(tu.tokens) for tu in self.transcription_units) # total number of tokens
-
+    	
+  		# num_total_tokens/min
+		tokens_per_minute = []
+  
+		i=1
+		tokens_curr = 0
+		for tokens in self.transcription_units:
+			if tokens.end < split_size*i:
+				tokens_curr += len(tu.tokens)
+			else:
+				tokens_per_minute.append(tokens_curr)
+				tokens_curr = len(tu.tokens)
+				i += 1
+		tokens_per_minute.append(tokens_curr)
+  
+		
 		# average duration of TUs
 		duration = [tu.duration for tu in self.transcription_units]
 		# average_duration = sum(duration)/num_tu
 		average_duration = 0
 
 		# number of turns
-		num_turns = len(self.turns)
+		# num_turns = len(self.turns)
 
-        # creating an empty dictionary to store statistics
+		# number of total overlaps
+		num_overlaps = 0
+  
+		for tu in self.transcription_units:
+			num_overlaps += (len(tu.overlapping_times)) 
+    
+		# number of low volume spans
+  
+		num_low_volume_spans = 0
+  
+		for tu in self.transcription_units:
+			num_low_volume_spans += (len(tu.low_volume_spans))
+		
+		# number of guessing spans
+  
+		num_guessing_spans = 0
+  
+		for tu in self.transcription_units:
+			num_guessing_spans += (len(tu.guessing_spans))
+  		
+		# number of fast pace spans
+  
+		num_fast_pace_spans = 0
+  
+		for tu in self.transcription_units:
+			num_fast_pace_spans += (len(tu.fast_pace_spans))
+   
+		# number of slow pace spans
+  
+		num_slow_pace_spans = 0
+
+		for tu in self.transcription_units:
+			num_slow_pace_spans += (len(tu.slow_pace_spans))
+    
+    	# creating an empty dictionary to store statistics
 		stats = {}
 
 		# open and read the .csv file to extract annotators' data
@@ -684,7 +734,13 @@ class Transcript:
 						"num_speakers": num_speakers,
 						"num_tu": num_tu,
 						"num_total_tokens": num_total_tokens,
+                        "tokens_per_minute": tokens_per_minute,
 						"average_duration": average_duration,
+						"num_overlaps": num_overlaps,
+						"num_low_volume_spans": num_low_volume_spans,
+						"num_guessing_spans": num_guessing_spans,
+						"num_fast_pace_spans": num_fast_pace_spans,
+						"num_slow_pace_spans": num_slow_pace_spans,
 						"annotator": row["Annotatore"],
 						"reviewer": row["Revisore"],
 						"transcription_type": row["Tipo"],
