@@ -146,7 +146,7 @@ class Token:
 		return self.text
 
 	def add_info(self, field_name, field_value):
-		if field_name == "ProsodicLi2nk":
+		if field_name == "ProsodicLink":
 			self.prosodiclink = True
 
 		if field_name == "overlaps":
