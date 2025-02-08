@@ -146,7 +146,7 @@ class Token:
 		return self.text
 
 	def add_info(self, field_name, field_value):
-		if field_name == "ProsodicLink":
+		if field_name == "ProsodicLi2nk":
 			self.prosodiclink = True
 
 		if field_name == "overlaps":
@@ -688,9 +688,37 @@ class Transcript:
 		num_overlaps = 0
   
 		for tu in self.transcription_units:
-			num_overlaps += (len(tu.overlapping_times))
+			num_overlaps += (len(tu.overlapping_times)) 
+    
+		# number of low volume spans
+  
+		num_low_volume_spans = 0
+  
+		for tu in self.transcription_units:
+			num_low_volume_spans += (len(tu.low_volume_spans))
 		
-		# creating an empty dictionary to store statistics
+		# number of guessing spans
+  
+		num_guessing_spans = 0
+  
+		for tu in self.transcription_units:
+			num_guessing_spans += (len(tu.guessing_spans))
+  		
+		# number of fast pace spans
+  
+		num_fast_pace_spans = 0
+  
+		for tu in self.transcription_units:
+			num_fast_pace_spans += (len(tu.fast_pace_spans))
+   
+		# number of slow pace spans
+  
+		num_slow_pace_spans = 0
+
+		for tu in self.transcription_units:
+			num_slow_pace_spans += (len(tu.slow_pace_spans))
+    
+    	# creating an empty dictionary to store statistics
 		stats = {}
 
 		# open and read the .csv file to extract annotators' data
@@ -709,6 +737,10 @@ class Transcript:
                         "tokens_per_minute": tokens_per_minute,
 						"average_duration": average_duration,
 						"num_overlaps": num_overlaps,
+						"num_low_volume_spans": num_low_volume_spans,
+						"num_guessing_spans": num_guessing_spans,
+						"num_fast_pace_spans": num_fast_pace_spans,
+						"num_slow_pace_spans": num_slow_pace_spans,
 						"annotator": row["Annotatore"],
 						"reviewer": row["Revisore"],
 						"transcription_type": row["Tipo"],
