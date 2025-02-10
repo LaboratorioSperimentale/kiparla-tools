@@ -105,13 +105,16 @@ if __name__ == "__main__":
 
 	transcripts = process_all_transcripts("data/csv_puliti_demo", "data/output_sample")
 
-	tokens_a, tokens_b = alignment.align_transcripts(transcripts["01_ParlaBOA_E"],
-													transcripts["01_ParlaBOA_M"])
+	for i, t_a in enumerate(list(transcripts.keys())[:-1]):
+		t_a_name = t_a.split("_")[1]
+		for t_b in list(transcripts.keys())[i+1:]:
+			t_b_name = t_b.split("_")[1]
 
-	print([x.text if not x is None else "_" for x in tokens_a ][:20])
-	print([x.text if not x is None else "_" for x in tokens_b ][:20])
-	# print(transcripts.keys())
-	# input()
+			if t_a_name == t_b_name:
+				tokens_a, tokens_b = alignment.align_transcripts(transcripts[t_a],
+																transcripts[t_b])
+
+				serialize.print_aligned(tokens_a, tokens_b, f"data/alignments/{t_a}_{t_b}.tsv")
 
 	for file in pathlib.Path(f"data/output_sample").glob("*.tsv"):
 		serialize.csv2eaf(file, f"data/output_sample/{file.stem}.eaf")
