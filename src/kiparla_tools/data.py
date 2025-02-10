@@ -30,6 +30,7 @@ class Turn:
 @dataclass
 class Token:
 	text: str
+	id: str
 	span: Tuple[int,int] = (0,0)
 	token_type: df.tokentype = df.tokentype.linguistic
 	orig_text: str = ""
@@ -361,13 +362,13 @@ class TranscriptionUnit:
 						end2 = end_pos
 
 						token_id += 1
-						new_token = Token(subtoken1)
+						new_token = Token(subtoken1, f"{self.tu_id}-{token_id}")
 						new_token.add_span(start1, end1)
 						new_token.add_info("SpaceAfter", "No")
 						self.tokens[token_id] = new_token
 
 						token_id += 1
-						new_token = Token(subtoken2)
+						new_token = Token(subtoken2, f"{self.tu_id}-{token_id}")
 						new_token.add_span(start2, end2)
 						self.tokens[token_id] = new_token
 
@@ -380,7 +381,7 @@ class TranscriptionUnit:
 
 					else:
 						token_id += 1
-						new_token = Token(tok)
+						new_token = Token(tok, f"{self.tu_id}-{token_id}")
 						new_token.add_span(start_pos, end_pos)
 						self.tokens[token_id] = new_token
 					start_pos = end_pos+1
