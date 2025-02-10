@@ -27,3 +27,6 @@ dependencies = ["pandas",
                 "networkx",
                 "num2words",
                 "sequence_align"]
+
+[project.scripts]
+kiparla = "kiparla_tools:CLI"
