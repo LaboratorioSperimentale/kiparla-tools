@@ -253,6 +253,14 @@ def csv2eaf(input_filename, output_filename, sep="\t"):
 
 
 def eaf2csv(input_filename, output_filename, sep="\t"):
+	"""
+	Reads data from an ELAN (.eaf) file and writes it to a CSV file with specified 	fieldnames and separator.
+
+	:param input_filename: name of the input file that contains the data in `eaf` format
+	:param output_filename: name of the file where the output CSV data will be written.
+	This file will be created or overwritten if it already exists.
+	:param sep: delimiter that will be used in the output CSV file.
+	"""
 
 	fieldnames = ["tu_id", "speaker", "start", "end", "duration", "text"]
 	full_file = []
