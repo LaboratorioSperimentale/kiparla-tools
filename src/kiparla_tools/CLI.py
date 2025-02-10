@@ -1,7 +1,9 @@
+"""Command Line Interface for the toolkit"""
 import argparse
 
 from kiparla_tools import args_check as ac
-from kiparla_tools import serialize as serialize
+from kiparla_tools import serialize
+from kiparla_tools import main
 
 def _eaf2csv(args):
 	input_files = []
@@ -11,7 +13,7 @@ def _eaf2csv(args):
 		input_files = args.input_files
 
 	for filename in input_files:
-		output_fname = args.output_dir.joinpath(filename.stem, ".csv")
+		output_fname = args.output_dir.joinpath(f"{filename.stem}.csv")
 		serialize.eaf2csv(filename, output_fname)
 
 def _csv2eaf(args):
@@ -22,7 +24,7 @@ def _csv2eaf(args):
 		input_files = args.input_files
 
 	for filename in input_files:
-		output_fname = args.output_dir.joinpath(filename.stem, ".eaf")
+		output_fname = args.output_dir.joinpath(f"{filename.stem}.eaf")
 		serialize.csv2eaf(filename, output_fname)
 
 
