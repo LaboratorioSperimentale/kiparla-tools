@@ -35,34 +35,10 @@ def print_full_statistics(list_of_transcripts, output_filename):
 		full_statistics.append(stats_dict)
 
 	for stats in full_statistics:
-		for el in range(max_columns):
-			stats[f"num_tu::{el}"] = stats["num_tu"][el] if len(stats["num_tu"])>el else 0
-			stats[f"tokens_per_minute::{el}"] = stats["tokens_per_minute"][el] if len(stats["tokens_per_minute"])>el else 0
-
-		del stats["num_tu"]
-		del stats["tokens_per_minute"]
-		# data_for_df = []
-		# for transcript_id, data in stats.items():
-		# 	full_df_data = {
-        # 		# "Transcript_ID": data["transcript_id"],
-        # 		"Transcript_ID": transcript_id,
-        # 		"num_speakers": data["num_speakers"],
-        # 		"num_tu": data["num_tu"],
-        # 		"num_total_tokens": data["num_total_tokens"],
-        # 		"average_duration": data["average_duration"],
-        # 		# "num_turns": data["num_turns"],
-        # 		"annotator": data["annotator"],
-        # 		"reviewer": data["reviewer"],
-        # 		"transcription_type": data["transcription_type"],
-       	# 		"expertise": data["expertise"],
-        # 		"accuracy": data["accuracy"],
-        # 		"minutes_experience": data["minutes_experience"],
-		# 		"sec30": data["sec30"],
-		# 		"sec60": data["sec60"],
-		# 		"sec90": data["sec90"],
-		# 		"sec120": data["sec120"],
-		# 		"sec_assignment": data["sec_assignment"],
-    	# 	}
+		for field in ["num_tu", "tokens_per_minute"]:
+			for el in range(max_columns):
+				stats[f"{field}::{el}"] = stats[f"{field}"][el] if len(stats[f"{field}"])>el else 0
+			del stats[f"{field}"]
 
 	# Creating a df with all statistics
 	statistics_complete = pd.DataFrame(full_statistics) # creating the dataframe
@@ -89,60 +65,59 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 		writer = csv.DictWriter(fout, fieldnames=fieldnames, delimiter=sep, restval="_")
 		writer.writeheader()
 
-		for turn_id, turn in enumerate(transcript.turns):
-			turn_speaker = turn.speaker
-			for tu_id in turn.transcription_units_ids:
-				tu = transcript.transcription_units_dict[tu_id]
+		for tu in transcript.transcription_units:
+			tu_id = tu.tu_id
 
-				for tok_id, tok in tu.tokens.items():
+			for _, tok in tu.tokens.items():
 
-					to_write = {"speaker": tu.speaker,
-								"tu_id": tu_id,
-								"token": tok.text,
-								"orig_token": tok.orig_text,
-								"type": tok.token_type.name,
-								"intonation": tok.intonation_pattern.name if tok.intonation_pattern else "_",
-								"interruption": "Interrupted=Yes" if tok.interruption else "_",
-								"truncation": "Truncated=Yes" if tok.truncation else "_",
-								"unknown": "Unknown=Yes" if tok.unknown else "_",
-								"prosodicLink": "ProsodicLink=Yes" if tok.prosodiclink else "_",
-								"spaceafter": "SpaceAfter=No" if not tok.spaceafter else "_"
-								}
+				to_write = {"token_id": tok.id,
+							"speaker": tu.speaker,
+							"tu_id": tu_id,
+							"token": tok.text,
+							"orig_token": tok.orig_text,
+							"type": tok.token_type.name,
+							"intonation": tok.intonation_pattern.name if tok.intonation_pattern else "_",
+							"interruption": "Interrupted=Yes" if tok.interruption else "_",
+							"truncation": "Truncated=Yes" if tok.truncation else "_",
+							"unknown": "Unknown=Yes" if tok.unknown else "_",
+							"prosodicLink": "ProsodicLink=Yes" if tok.prosodiclink else "_",
+							"spaceafter": "SpaceAfter=No" if not tok.spaceafter else "_"
+							}
 
-					to_write["span"] = tu.annotation[tok.span[0]:tok.span[1]]
+				to_write["span"] = tu.annotation[tok.span[0]:tok.span[1]]
 
-					align = []
-					if df.position.start in tok.position_in_tu:
-						align.append(("Begin", tu.start))
-					if df.position.end in tok.position_in_tu:
-						align.append(("End", tu.end))
-					to_write["align"] = "|".join([f"{x[0]}={x[1]}" for x in align])
+				align = []
+				if df.position.start in tok.position_in_tu:
+					align.append(("Begin", tu.start))
+				if df.position.end in tok.position_in_tu:
+					align.append(("End", tu.end))
+				to_write["align"] = "|".join([f"{x[0]}={x[1]}" for x in align])
 
-					to_write["prolongations"] = ",".join([f"{x[0]}x{x[1]}" for x in tok.prolongations.items()])
+				to_write["prolongations"] = ",".join([f"{x[0]}x{x[1]}" for x in tok.prolongations.items()])
 
-					slow_pace = []
-					for span_id, span in tok.slow_pace.items():
-						slow_pace.append(f"{span[0]}-{span[1]}({span_id})")
-					to_write["slow_pace"] = ",".join(slow_pace)
+				slow_pace = []
+				for span_id, span in tok.slow_pace.items():
+					slow_pace.append(f"{span[0]}-{span[1]}({span_id})")
+				to_write["slow_pace"] = ",".join(slow_pace)
 
-					fast_pace = []
-					for span_id, span in tok.fast_pace.items():
-						fast_pace.append(f"{span[0]}-{span[1]}({span_id})")
-					to_write["fast_pace"] = ",".join(fast_pace)
+				fast_pace = []
+				for span_id, span in tok.fast_pace.items():
+					fast_pace.append(f"{span[0]}-{span[1]}({span_id})")
+				to_write["fast_pace"] = ",".join(fast_pace)
 
-					to_write["volume"] = tok.volume.name if tok.volume else "_"
+				to_write["volume"] = tok.volume.name if tok.volume else "_"
 
-					guesses = []
-					for span_id, span in tok.guesses.items():
-						guesses.append(f"{span[0]}-{span[1]}({span_id})")
-					to_write["guesses"] = ",".join(guesses)
+				guesses = []
+				for span_id, span in tok.guesses.items():
+					guesses.append(f"{span[0]}-{span[1]}({span_id})")
+				to_write["guesses"] = ",".join(guesses)
 
-					overlaps = []
-					for span_id, span in tok.overlaps.items():
-						overlaps.append(f"{span[0]}-{span[1]}({span_id})")
-					to_write["overlaps"] = ",".join(overlaps)
+				overlaps = []
+				for span_id, span in tok.overlaps.items():
+					overlaps.append(f"{span[0]}-{span[1]}({span_id})")
+				to_write["overlaps"] = ",".join(overlaps)
 
-					writer.writerow(to_write)
+				writer.writerow(to_write)
 
 
 def conversation_to_linear(transcript, output_filename, sep = '\t'):
@@ -158,53 +133,43 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 		writer = csv.DictWriter(fout, fieldnames=fieldnames, delimiter=sep, restval="_")
 		writer.writeheader()
 
-		for turn_id, turn in enumerate(transcript.turns):
-			turn_speaker = turn.speaker
-			for tu_id in turn.transcription_units_ids:
-				tu = transcript.transcription_units_dict[tu_id]
+		for tu in transcript.transcription_units:
+			tu_id = tu.tu_id
 
-				to_write = {"tu_id": tu.tu_id,
-							"speaker": tu.speaker,
-							"start": tu.start,
-							"end": tu.end,
-							"duration": tu.duration,
-							"include": tu.include,
-							"annotation": tu.orig_annotation,
-							"correct": tu.annotation,
-							"text": " ".join(str(tok) for _, tok in tu.tokens.items()),
-							"W:normalized_spaces": tu.warnings["UNEVEN_SPACES"],
-							"W:numbers": tu.warnings["NUMBERS"],
-							"W:accents": tu.warnings["ACCENTS"],
-							"W:non_jefferson": tu.warnings["NON_JEFFERSON"],
-							"W:pauses_trim": tu.warnings["TRIM_PAUSES"],
-							"W:prosodic_trim": tu.warnings["TRIM_PROSODICLINKS"],
-							"W:moved_boundaries": tu.warnings["MOVED_BOUNDARIES"],
-							"E:volume": tu.errors["UNBALANCED_DOTS"],
-							"E:pace": tu.errors["UNBALANCED_PACE"],
-							"E:guess": tu.errors["UNBALANCED_GUESS"],
-							"E:overlap": tu.errors["UNBALANCED_OVERLAP"],
-							"E:overlap_mismatch": tu.errors["MISMATCHING_OVERLAPS"],
-							"T:shortpauses": sum([df.tokentype.shortpause in tok.token_type for _, tok in tu.tokens.items()]),
-							"T:metalinguistic": sum([df.tokentype.metalinguistic in tok.token_type for _, tok in tu.tokens.items()]),
-							"T:errors": sum([df.tokentype.error in tok.token_type for _, tok in tu.tokens.items()]),
-							"T:linguistic": sum([df.tokentype.linguistic in tok.token_type for _, tok in tu.tokens.items()])}
+			to_write = {"tu_id": tu.tu_id,
+						"speaker": tu.speaker,
+						"start": tu.start,
+						"end": tu.end,
+						"duration": tu.duration,
+						"include": tu.include,
+						"annotation": tu.orig_annotation,
+						"correct": tu.annotation,
+						"text": " ".join(str(tok) for _, tok in tu.tokens.items()),
+						"W:normalized_spaces": tu.warnings["UNEVEN_SPACES"],
+						"W:numbers": tu.warnings["NUMBERS"],
+						"W:accents": tu.warnings["ACCENTS"],
+						"W:non_jefferson": tu.warnings["NON_JEFFERSON"],
+						"W:pauses_trim": tu.warnings["TRIM_PAUSES"],
+						"W:prosodic_trim": tu.warnings["TRIM_PROSODICLINKS"],
+						"W:moved_boundaries": tu.warnings["MOVED_BOUNDARIES"],
+						"E:volume": tu.errors["UNBALANCED_DOTS"],
+						"E:pace": tu.errors["UNBALANCED_PACE"],
+						"E:guess": tu.errors["UNBALANCED_GUESS"],
+						"E:overlap": tu.errors["UNBALANCED_OVERLAP"],
+						"E:overlap_mismatch": tu.errors["MISMATCHING_OVERLAPS"],
+						"T:shortpauses": sum([df.tokentype.shortpause in tok.token_type for _, tok in tu.tokens.items()]),
+						"T:metalinguistic": sum([df.tokentype.metalinguistic in tok.token_type for _, tok in tu.tokens.items()]),
+						"T:errors": sum([df.tokentype.error in tok.token_type for _, tok in tu.tokens.items()]),
+						"T:linguistic": sum([df.tokentype.linguistic in tok.token_type for _, tok in tu.tokens.items()])}
 
-				if len(tu.overlap_duration) > 0:
-					overlaps = []
-					for unit_id, duration in tu.overlap_duration.items():
-						overlaps.append(f"{unit_id}={duration:.3f}")
+			if len(tu.overlap_duration) > 0:
+				overlaps = []
+				for unit_id, duration in tu.overlap_duration.items():
+					overlaps.append(f"{unit_id}={duration:.3f}")
 
-					to_write["E:overlap_duration"] = ",".join(overlaps)
-					# overlapping_units = []
-					# for x, y in tu.overlapping_times.items():
-					# 	x = [str(el) for el in x]
-					# 	overlapping_units.append("+".join(x))
-					# to_write["overlapping_units"] = ",".join(overlapping_units)
-					# print(tu.overlapping_spans)
-					# print(tu.overlapping_times)
-					# input()
+				to_write["E:overlap_duration"] = ",".join(overlaps)
 
-				writer.writerow(to_write)
+			writer.writerow(to_write)
 
 
 def csv2eaf(input_filename, output_filename, sep="\t"):
@@ -289,10 +254,12 @@ def read_csv(input_filename, sep="\t"):
 	"""
 
 	with open(input_filename, encoding="utf-8", newline='') as csvfile:
-		reader = csv.DictReader(csvfile, delimiter="\t")
+		reader = csv.DictReader(csvfile, delimiter=sep)
 
 		for row in reader:
-			yield int(row["tu_id"]), row["speaker"], float(row["start"]), float(row["end"]), float(row["duration"]), row["text"]
+			yield int(row["tu_id"]), row["speaker"], \
+					float(row["start"]), float(row["end"]), float(row["duration"]), \
+					row["text"]
 
 
 def print_aligned(tokens_a, tokens_b, output_filename, sep="\t"):

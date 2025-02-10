@@ -189,7 +189,6 @@ class TranscriptionUnit:
 	orig_annotation: str = ""
 	include: bool = True
 	dialect: bool = False
-	# split: bool = False
 	overlapping_spans: List[Tuple[int, int]] = field(default_factory=lambda: [])
 	overlapping_times: Dict[str, Tuple[float, float]] = field(default_factory=lambda: {})
 	overlapping_matches: Dict[Tuple[int, int], str] = field(default_factory=lambda: [])
@@ -640,7 +639,7 @@ class Transcript:
 				n_curr += 1
 			else:
 				num_tu.append(n_curr)
-				n_curr = 1
+				n_curr += 1
 				i += 1
 		num_tu.append(n_curr)
 
@@ -652,12 +651,12 @@ class Transcript:
 
 		i=1
 		tokens_curr = 0
-		for tokens in self.transcription_units:
-			if tokens.end < split_size*i:
+		for tu in self.transcription_units:
+			if tu.end < split_size*i:
 				tokens_curr += len(tu.tokens)
 			else:
 				tokens_per_minute.append(tokens_curr)
-				tokens_curr = len(tu.tokens)
+				tokens_curr += len(tu.tokens)
 				i += 1
 		tokens_per_minute.append(tokens_curr)
 
@@ -667,9 +666,6 @@ class Transcript:
 		# average_duration = sum(duration)/num_tu
 		average_duration = 0
 
-		# number of turns
-		# num_turns = len(self.turns)
-
 		# number of total overlaps
 		num_overlaps = 0
 
@@ -677,28 +673,24 @@ class Transcript:
 			num_overlaps += (len(tu.overlapping_times))
 
 		# number of low volume spans
-
 		num_low_volume_spans = 0
 
 		for tu in self.transcription_units:
 			num_low_volume_spans += (len(tu.low_volume_spans))
 
 		# number of guessing spans
-
 		num_guessing_spans = 0
 
 		for tu in self.transcription_units:
 			num_guessing_spans += (len(tu.guessing_spans))
 
 		# number of fast pace spans
-
 		num_fast_pace_spans = 0
 
 		for tu in self.transcription_units:
 			num_fast_pace_spans += (len(tu.fast_pace_spans))
 
 		# number of slow pace spans
-
 		num_slow_pace_spans = 0
 
 		for tu in self.transcription_units:
