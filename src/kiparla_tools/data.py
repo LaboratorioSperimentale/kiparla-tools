@@ -479,6 +479,7 @@ class Transcript:
 	last_speaker_id: int = 0
 	transcription_units_dict: Dict[str, TranscriptionUnit] = field(default_factory=lambda: collections.defaultdict(list))
 	transcription_units: List[TranscriptionUnit] = field(default_factory=lambda: [])
+	tot_length: float = 0
 	turns: List[Turn] = field(default_factory=lambda: [])
 	time_based_overlaps: nx.Graph = field(default_factory=lambda: nx.Graph())
 	statistics: pd.DataFrame = None
@@ -494,6 +495,7 @@ class Transcript:
 	def sort(self):
 		self.transcription_units = sorted(self.transcription_units_dict.items(), key=lambda x: x[1].start)
 		self.transcription_units = [y for x, y in self.transcription_units]
+		self.tot_length = self.transcription_units[-1].end
 
 	def purge_speakers(self):
 		speakers_to_remove = []
@@ -643,11 +645,11 @@ class Transcript:
 	# Statistic calculations
 	def get_stats (self, annotators_data_csv="data/data_description.csv", split_size=60):
 		num_speakers = len(self.speakers) # number of speakers
-		
+
 		# num_tu = len(self.transcription_units) # number of TUs
 
 		num_tu = [] # number of TUs
-		
+
 		i=1
 		n_curr = 0
 		for tu in self.transcription_units:
@@ -661,10 +663,10 @@ class Transcript:
 
 		#total number of tokens
 		num_total_tokens = sum(len(tu.tokens) for tu in self.transcription_units) # total number of tokens
-    	
+
   		# num_total_tokens/min
 		tokens_per_minute = []
-  
+
 		i=1
 		tokens_curr = 0
 		for tokens in self.transcription_units:
@@ -675,8 +677,8 @@ class Transcript:
 				tokens_curr = len(tu.tokens)
 				i += 1
 		tokens_per_minute.append(tokens_curr)
-  
-		
+
+
 		# average duration of TUs
 		duration = [tu.duration for tu in self.transcription_units]
 		# average_duration = sum(duration)/num_tu
@@ -687,38 +689,38 @@ class Transcript:
 
 		# number of total overlaps
 		num_overlaps = 0
-  
+
 		for tu in self.transcription_units:
-			num_overlaps += (len(tu.overlapping_times)) 
-    
+			num_overlaps += (len(tu.overlapping_times))
+
 		# number of low volume spans
-  
+
 		num_low_volume_spans = 0
-  
+
 		for tu in self.transcription_units:
 			num_low_volume_spans += (len(tu.low_volume_spans))
-		
+
 		# number of guessing spans
-  
+
 		num_guessing_spans = 0
-  
+
 		for tu in self.transcription_units:
 			num_guessing_spans += (len(tu.guessing_spans))
-  		
+
 		# number of fast pace spans
-  
+
 		num_fast_pace_spans = 0
-  
+
 		for tu in self.transcription_units:
 			num_fast_pace_spans += (len(tu.fast_pace_spans))
-   
+
 		# number of slow pace spans
-  
+
 		num_slow_pace_spans = 0
 
 		for tu in self.transcription_units:
 			num_slow_pace_spans += (len(tu.slow_pace_spans))
-    
+
     	# creating an empty dictionary to store statistics
 		stats = {}
 
@@ -727,7 +729,7 @@ class Transcript:
 			reader = csv.DictReader(file, delimiter="\t")
 			for row in reader:
 				transcript_id = row["NomeFile"]
-    
+
 				# if transcript_id not in stats:
 				if transcript_id == self.tr_id:
 					stats = {
@@ -747,12 +749,12 @@ class Transcript:
 						"transcription_type": row["Tipo"],
 						"expertise": row["Esperto"],
 						"accuracy": row["Accurato"],
-						"minutes_experience": row["MinutiEsperienza"], 
-						"sec30": row["Sec30"], 
-						"sec60": row["Sec60"], 
-						"sec90": row["Sec90"], 
-						"sec120": row["Sec120"], 
-						"sec_assignment": row["SecAssegnazione"], 
+						"minutes_experience": row["MinutiEsperienza"],
+						"sec30": row["Sec30"],
+						"sec60": row["Sec60"],
+						"sec90": row["Sec90"],
+						"sec120": row["Sec120"],
+						"sec_assignment": row["SecAssegnazione"],
 					}
 
 
