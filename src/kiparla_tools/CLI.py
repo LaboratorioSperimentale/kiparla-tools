@@ -48,6 +48,24 @@ def _process(args):
 	if args.produce_stats:
 		serialize.print_full_statistics(transcripts, args.output_dir.joinpath("stats.csv"))
 
+
+def _align(args):
+	input_files = []
+	if args.input_dir:
+		input_files = args.input_dir.glob("*.tus.csv")
+	else:
+		input_files = args.input_files
+
+	transcripts = {}
+	for filename in input_files:
+		transcript_name = filename.stem
+		transcript = serialize.transcript_from_csv(filename)
+
+		transcripts[transcript_name] = transcript
+
+	main.align_transcripts(transcripts, args.output_dir)
+
+
 ### MAIN ###
 
 parent_parser = argparse.ArgumentParser(add_help=False)
@@ -109,6 +127,22 @@ parser_process.add_argument("-s", "--produce-stats", action="store_true",
 							help="") # TODO: write help
 parser_process.set_defaults(func=_process)
 
+# ALIGN
+parser_align = subparsers.add_parser("align", parents=[parent_parser],
+										description='align transcripts',
+										help='align transcripts')
+parser_align.add_argument("-o", "--output-dir", default="output_aligned/",
+							type=ac.valid_dirpath,
+							help="path to output directory")
+group = parser_align.add_argument_group('Input files')
+command_group = group.add_mutually_exclusive_group(required=True)
+command_group.add_argument("--input-files", nargs="+",
+							type=ac.valid_filepath,
+							help="path(s) to conllu file(s)")
+command_group.add_argument("--input-dir", default="input_conllu/",
+							type=ac.valid_dirpath,
+							help="path to input directory. All .conllu files will be transformed")
+parser_align.set_defaults(func=_align)
 
 args = root_parser.parse_args()
 

@@ -1,11 +1,12 @@
 import csv
 import regex as re
 from ast import literal_eval
-from kiparla_tools import data as d
-from kiparla_tools import dataflags as df
 import pandas as pd
 from speach import elan
 from pympi import Elan as EL
+
+from kiparla_tools import data
+from kiparla_tools import dataflags as df
 
 
 def print_full_statistics(list_of_transcripts, output_filename):
@@ -25,7 +26,7 @@ def print_full_statistics(list_of_transcripts, output_filename):
 
 	max_columns = 0
 	full_statistics = [] # list that contains all transcripts
-	for transcript_id, transcript in list_of_transcripts.items(): # iterating each transcript
+	for _, transcript in list_of_transcripts.items(): # iterating each transcript
 		transcript.get_stats() # calculating statistics
 		stats_dict = transcript.statistics.set_index("Statistic")["Value"].to_dict() # converting statistics into a dictionary
 		if len(stats_dict["num_tu"]) > max_columns:
@@ -134,7 +135,7 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 		writer.writeheader()
 
 		for tu in transcript.transcription_units:
-			tu_id = tu.tu_id
+			# tu_id = tu.tu_id
 
 			to_write = {"tu_id": tu.tu_id,
 						"speaker": tu.speaker,
@@ -262,12 +263,40 @@ def read_csv(input_filename, sep="\t"):
 					row["text"]
 
 
+def tokens_from_conll(input_filename, sep="\t"):
+	with open(input_filename, encoding="utf-8", newline='') as csvfile:
+		reader = csv.DictReader(csvfile, delimiter=sep)
+
+		for row in reader:
+			yield data.Token(row["token"], row["token_id"])
+
+
+def transcript_from_csv(input_filename, sep="\t"):
+
+	transcript = data.Transcript(input_filename.stem)
+	with open(input_filename, encoding="utf-8", newline='') as csvfile:
+		reader = csv.DictReader(csvfile, delimiter=sep)
+
+		for row in reader:
+			new_tu = data.TranscriptionUnit(row["tu_id"],
+											row["speaker"],
+											float(row["start"]),
+											float(row["end"]),
+											float(row["duration"]),
+											row["correct"])
+			transcript.add(new_tu)
+
+	transcript.sort()
+
+	for tu in transcript:
+		tu.tokenize()
+
+	return transcript
+
 def print_aligned(tokens_a, tokens_b, output_filename, sep="\t"):
 
 	fieldnames = ["match", "id_A", "token_A", "id_B", "token_B"]
 
-	id_a = 0
-	id_b = 0
 	with open(output_filename, "w", encoding="utf-8") as fout:
 		writer = csv.DictWriter(fout, fieldnames=fieldnames, delimiter=sep, restval="_")
 		writer.writeheader()

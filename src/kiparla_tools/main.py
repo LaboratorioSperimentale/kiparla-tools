@@ -38,6 +38,17 @@ def process_transcript(filename, duration_threshold = 0.1):
 	return transcript
 
 
+def align_transcripts(transcripts_dict, output_folder):
+	for i, t_a in enumerate(list(transcripts_dict.keys())[:-1]):
+		t_a_name = t_a.split("_")[1]
+		for t_b in list(transcripts_dict.keys())[i+1:]:
+			t_b_name = t_b.split("_")[1]
+
+			if t_a_name == t_b_name:
+				tokens_a, tokens_b = alignment.align_transcripts(transcripts_dict[t_a],
+																transcripts_dict[t_b])
+
+				serialize.print_aligned(tokens_a, tokens_b, output_folder.joinpath(f"{t_a}_{t_b}.tsv"))
 
 
 # Funzione che apre tutti i file transcript e genera un file di output per ognuno
@@ -72,15 +83,8 @@ def process_all_transcripts(input_dir="data/csv_puliti", output_dir="data/output
 			for tu in transcript:
 				tu.add_token_features()
 
-	# if not all(y for x, y in tu.errors.items()):
-	# print(tu)
-	# input()
-
-#serialize.conversation_to_csv(transcript, "data/output/01_ParlaBOA_E.conll")
-
 			output_filename = os.path.join(output_dir,f"{transcript_name}.conll")
 			serialize.conversation_to_conll(transcript, output_filename)
-			# serialize.conversation_to_csv(transcript, output_filename)
 			serialize.conversation_to_linear(transcript, os.path.join(output_dir,f"{transcript_name}.tsv"))
 			transcripts_dict[transcript_name] = transcript
 
@@ -107,18 +111,6 @@ def process_all_transcripts(input_dir="data/csv_puliti", output_dir="data/output
 if __name__ == "__main__":
 	import pathlib
 
-	# for folder in ["KIP", "KIPasti", "ParlaBO", "ParlaTO"]:
-
-	# 	for file in pathlib.Path(f"dati/{folder}_eaf").glob("*.eaf"):
-	# 		basename = file.stem
-
-	# 		serialize.eaf2csv(file, f"dati/{folder}_csv/{basename}.csv")
-
-
-	# transcripts_list = process_all_transcripts("dati/sample_step1", "dati/output")
-	# for file in pathlib.Path(f"dati/output").glob("*.tsv"):
-	# 	serialize.csv2eaf(file, f"dati/output/{file.stem}.eaf")
-
 	transcripts = process_all_transcripts("data/csv_puliti_demo", "data/output_sample")
 
 	for i, t_a in enumerate(list(transcripts.keys())[:-1]):
@@ -134,7 +126,5 @@ if __name__ == "__main__":
 
 	for file in pathlib.Path(f"data/output_sample").glob("*.tsv"):
 		serialize.csv2eaf(file, f"data/output_sample/{file.stem}.eaf")
-
-	# TODO: inserire dati trascrittori nelle statistiche
 
 	serialize.print_full_statistics(transcripts, "data/output_sample/statistics.csv")

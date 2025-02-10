@@ -1,7 +1,23 @@
-from sequence_align.pairwise import hirschberg, needleman_wunsch
+"""Functions to handle sequence alignment"""
+from sequence_align.pairwise import needleman_wunsch
+#hirschberg
+from typing import List
 
+from kiparla_tools import data
 
-def align_transcripts(transcript_a, transcript_b):
+def align_transcripts(transcript_a:List[data.Token], transcript_b:List[data.Token]):
+	"""
+	The function `align_transcripts` aligns two transcripts by their tokens based on a minimum length
+	and returns the aligned tokens for each transcript.
+
+	:param transcript_a: List of Tokens from transcript A
+	:type transcript_a: List[data.Token]
+	:param transcript_b: List of Tokens from transcript B
+	:type transcript_b: List[data.Token]
+	:return: The function `align_transcripts` returns two lists: `aligned_tokens_a` and
+	`aligned_tokens_b`, which contain aligned tokens from the input transcripts `transcript_a` and
+	`transcript_b`, respectively.
+	"""
 
 	min_length = min(transcript_a.tot_length, transcript_b.tot_length)
 

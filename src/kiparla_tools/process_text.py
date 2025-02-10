@@ -336,14 +336,5 @@ def remove_prosodiclinks(transcription):
 
 	return tot_subs, transcription.strip()
 
-# def check_dialect_sign(transcription):
-# 	if transcription[0] == "#":
-# 		return transcription[1:], True
-# 	return transcription, False
-
-# def check_x(transcription):
-# 	if 'x' in transcription:
-# 		return "unkown"
-
 if __name__ == "__main__":
 	print(overlap_prolongations("questo:[::]"))
