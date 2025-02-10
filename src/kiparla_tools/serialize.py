@@ -9,7 +9,7 @@ from pympi import Elan as EL
 
 # Creating a file that contains statistics for each transcript
 def print_full_statistics(list_of_transcripts, output_filename):
-	
+
 	max_columns = 0
 	full_statistics = [] # list that contains all transcripts
 	for transcript_id, transcript in list_of_transcripts.items(): # iterating each transcript
@@ -228,11 +228,19 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 
 
 def csv2eaf(input_filename, output_filename, sep="\t"):
+	"""
+	Reads data from a tab-separated CSV (.eaf) file and writes it to a ELAN file.
+
+	:param input_filename: name of the input file that contains the data in `csv` format
+	:param output_filename: name of the file where the output EAF data will be written.
+	This file will be created or overwritten if it already exists.
+	:param sep: delimiter that will be used to parse the input CSV file.
+	"""
 
 	tus = []
 	tiers = set()
 	with open(input_filename, encoding="utf-8") as csvfile:
-		reader = csv.DictReader(csvfile, delimiter='\t')
+		reader = csv.DictReader(csvfile, delimiter=sep)
 		for row in reader:
 			tiers.add(row["speaker"])
 			tus.append(row)
@@ -254,7 +262,7 @@ def csv2eaf(input_filename, output_filename, sep="\t"):
 
 def eaf2csv(input_filename, output_filename, sep="\t"):
 	"""
-	Reads data from an ELAN (.eaf) file and writes it to a CSV file with specified 	fieldnames and separator.
+	Reads data from an ELAN (.eaf) file and writes it to a CSV file with specified fieldnames and separator.
 
 	:param input_filename: name of the input file that contains the data in `eaf` format
 	:param output_filename: name of the file where the output CSV data will be written.
