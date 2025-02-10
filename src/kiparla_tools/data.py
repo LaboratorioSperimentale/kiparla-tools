@@ -494,8 +494,6 @@ class Transcript:
 
 		G = nx.Graph()
 
-		toshift = []
-
 		for tu1 in self.transcription_units:
 			for tu2 in self.transcription_units:
 				if tu1.include and tu2.include and tu2.tu_id > tu1.tu_id:
