@@ -292,6 +292,40 @@ def read_csv(input_filename):
 			yield int(row["tu_id"]), row["speaker"], float(row["start"]), float(row["end"]), float(row["duration"]), row["text"]
 
 
+def print_aligned(tokens_a, tokens_b, output_filename, sep="\t"):
+
+	fieldnames = ["match", "id_A", "token_A", "id_B", "token_B"]
+
+	id_a = 0
+	id_b = 0
+	with open(output_filename, "w", encoding="utf-8") as fout:
+		writer = csv.DictWriter(fout, fieldnames=fieldnames, delimiter=sep, restval="_")
+		writer.writeheader()
+
+		for toka, tokb in zip(tokens_a, tokens_b):
+			to_write = {"match": 2,
+						"id_A": "_",
+						"token_A": "_",
+						"id_B": "_",
+						"token_B": "_"}
+			if toka:
+				to_write["token_A"] = toka.text
+				to_write["id_A"] = toka.id
+				to_write["match"] = 1
+
+			if tokb:
+				to_write["token_B"] = tokb.text
+				to_write["id_B"] = tokb.id
+				if to_write["match"] == 1:
+					to_write["match"] = 2
+				else:
+					to_write["match"] = 1
+
+			if to_write["token_A"] == to_write["token_B"]:
+				to_write["match"] = 0
+
+			writer.writerow(to_write)
+
 if __name__ == "__main__":
 	eaf2csv("/home/ludop/Documents/kiparla-treebank/dati/output/BOA3017.eaf", "/home/ludop/Documents/kiparla-treebank/dati/output/BOA3017.csv")
 	# csv2eaf("/home/ludop/Documents/kiparla-treebank/dati/output/BOA3017.tsv", "/home/ludop/Documents/kiparla-treebank/dati/output/BOA3017.eaf")
