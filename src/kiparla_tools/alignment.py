@@ -3,16 +3,20 @@ from sequence_align.pairwise import hirschberg, needleman_wunsch
 
 def align_transcripts(transcript_a, transcript_b):
 
+	min_length = min(transcript_a.tot_length, transcript_b.tot_length)
+
 	tokens_a = []
 	tokens_b = []
 
 	for tu_id, tu in transcript_a.transcription_units_dict.items():
-		for token_id, token in tu.tokens.items():
-			tokens_a.append(token)
+		if tu.end <= min_length:
+			for token_id, token in tu.tokens.items():
+				tokens_a.append(token)
 
 	for tu_id, tu in transcript_b.transcription_units_dict.items():
-		for token_id, token in tu.tokens.items():
-			tokens_b.append(token)
+		if tu.end <= min_length:
+			for token_id, token in tu.tokens.items():
+				tokens_b.append(token)
 
 	aligned_seq_a, aligned_seq_b, score_seq, tot_score = align([x.text for x in tokens_a],
 																[x.text for x in tokens_b])
