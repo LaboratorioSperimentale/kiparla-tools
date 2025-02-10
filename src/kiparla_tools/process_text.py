@@ -65,16 +65,6 @@ def replace_che(transcription):
 		# sub_word = re.compile(sub_word)
 	return tot_subs, transcription
 
-	# regex = r"\b(perchè|benchè|finchè|poichè|anzichè|dopodichè|granchè|fuorchè|affinchè|pressochè)\b"
-	# # chè > ché
-	# new_string, subs_made = re.subn(regex, lambda m: m.group(0).replace("è", "é"), transcription)
-
-	# if subs_made > 0:
-	# 	tot_subs += subs_made
-	# 	transcription = new_string
-
-	# return tot_subs, transcription.strip()
-
 
 # remove initial and final pauses (keep count)
 def remove_pauses(transcription):
@@ -346,14 +336,14 @@ def remove_prosodiclinks(transcription):
 
 	return tot_subs, transcription.strip()
 
-def check_dialect_sign(transcription):
-	if transcription[0] == "#":
-		return transcription[1:], True
-	return transcription, False
+# def check_dialect_sign(transcription):
+# 	if transcription[0] == "#":
+# 		return transcription[1:], True
+# 	return transcription, False
 
-def check_x(transcription):
-	if 'x' in transcription:
-		return "unkown"
+# def check_x(transcription):
+# 	if 'x' in transcription:
+# 		return "unkown"
 
 if __name__ == "__main__":
 	print(overlap_prolongations("questo:[::]"))

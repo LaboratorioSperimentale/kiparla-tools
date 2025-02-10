@@ -69,46 +69,6 @@ def print_full_statistics(list_of_transcripts, output_filename):
 	statistics_complete.to_csv(output_filename, index=False, sep="\t") # converting the df to csv
 
 
-def conversation_to_csv(transcript, output_filename, sep = '\t'):
-
-	with open(output_filename, "w", encoding="utf-8") as fout:
-
-		for turn_id, turn in enumerate(transcript.turns):
-			turn_speaker = turn.speaker
-			# turn_id = None
-			for tu_id in turn.transcription_units_ids:
-				# print(tu_id)
-				transcription_unit = transcript.transcription_units_dict[tu_id]
-				# print(transcription_unit)
-				tu_start = transcription_unit.start
-				tu_end = transcription_unit.end
-				# print(transcription_unit.tokens)
-
-				for token_id, token in transcription_unit.tokens.items():
-
-					infos = [str(turn_id),
-							str(tu_id),
-							turn_speaker,
-							str(token_id+1),
-							token.token_type.name,
-							token.text,
-							token.orig_text,
-							str(tu_start) if token_id==0 else "_",
-							str(tu_end) if token_id == len(transcription_unit.tokens)-1 else "_",
-							token.intonation_pattern.name if token.intonation_pattern else "_",
-							token.position_in_tu.name if token.position_in_tu else "_",
-							# token.pace,
-							# token.volume,
-							# str(token.prolongations),
-							# "|".join(token.prolonged_sounds),
-							# token.interrupted,
-							# token.guess,
-							# token.overlap
-							]
-
-					print(sep.join(infos), file=fout)
-
-
 def conversation_to_conll(transcript, output_filename, sep = '\t'):
 	"""
 	The function `conversation_to_conll` converts a conversation transcript into a CoNLL format and

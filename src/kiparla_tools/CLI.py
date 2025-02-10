@@ -27,12 +27,34 @@ def _csv2eaf(args):
 		output_fname = args.output_dir.joinpath(f"{filename.stem}.eaf")
 		serialize.csv2eaf(filename, output_fname)
 
+def _process(args):
+	input_files = []
+	if args.input_dir:
+		input_files = args.input_dir.glob("*.csv")
+	else:
+		input_files = args.input_files
 
+	transcripts = {}
+	for filename in input_files:
+		transcript_name = filename.stem
+		transcript = main.process_transcript(filename)
+		transcripts[transcript_name] = transcript
+
+		output_filename_vert = args.output_dir.joinpath(f"{transcript_name}.conll")
+		output_filename_tus = args.output_dir.joinpath(f"{transcript_name}.tus.csv")
+		serialize.conversation_to_conll(transcript, output_filename_vert)
+		serialize.conversation_to_linear(transcript, output_filename_tus)
+
+	if args.produce_stats:
+		serialize.print_full_statistics(transcripts, args.output_dir.joinpath("stats.csv"))
+
+### MAIN ###
 
 parent_parser = argparse.ArgumentParser(add_help=False)
 root_parser = argparse.ArgumentParser(prog='kiparla-tools', add_help=True)
 subparsers = root_parser.add_subparsers(title="actions", dest="actions")
 
+# EAF2CSV
 parser_eaf2csv = subparsers.add_parser("eaf2csv", parents=[parent_parser],
 										description='transform eaf file into csv',
 										help='transform eaf file into csv')
@@ -49,6 +71,7 @@ command_group.add_argument("--input-dir", default="input_eaf/",
 							help="path to input directory. All .eaf files will be transformed")
 parser_eaf2csv.set_defaults(func=_eaf2csv)
 
+# CSV2EAF
 parser_csv2eaf = subparsers.add_parser("csv2eaf", parents=[parent_parser],
 										description='transform csv file into eaf',
 										help='transform csv file into eaf')
@@ -64,6 +87,28 @@ command_group.add_argument("--input-dir", default="input_eaf/",
 							type=ac.valid_dirpath,
 							help="path to input directory. All .eaf files will be transformed")
 parser_csv2eaf.set_defaults(func=_csv2eaf)
+
+# PROCESS
+parser_process = subparsers.add_parser("process", parents=[parent_parser],
+										description='process transcripts',
+										help='process transcripts')
+parser_process.add_argument("-o", "--output-dir", default="output_eaf/",
+							type=ac.valid_dirpath,
+							help="path to output directory")
+group = parser_process.add_argument_group('Input files')
+command_group = group.add_mutually_exclusive_group(required=True)
+command_group.add_argument("--input-files", nargs="+",
+							type=ac.valid_filepath,
+							help="path(s) to eaf file(s)")
+command_group.add_argument("--input-dir", default="input_csv/",
+							type=ac.valid_dirpath,
+							help="path to input directory. All .csv files will be transformed")
+parser_process.add_argument("-t", "--duration-threshold", type=float, default=0.1,
+							help="") # TODO: write help
+parser_process.add_argument("-s", "--produce-stats", action="store_true",
+							help="") # TODO: write help
+parser_process.set_defaults(func=_process)
+
 
 args = root_parser.parse_args()
 

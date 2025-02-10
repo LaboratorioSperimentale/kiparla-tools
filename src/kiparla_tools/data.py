@@ -227,10 +227,6 @@ class TranscriptionUnit:
 		new_transcription = pt.meta_tag(self.annotation)
 		self.annotation = new_transcription
 
-		# dialect
-		new_transcription, self.dialect = pt.check_dialect_sign(self.annotation)
-		self.annotation = new_transcription
-
 		# spaces before and after parentheses
 		substitutions, new_transcription = pt.check_spaces(self.annotation)
 		self.warnings["UNEVEN_SPACES"] += substitutions

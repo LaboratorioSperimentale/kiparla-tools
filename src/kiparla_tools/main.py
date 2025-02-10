@@ -4,6 +4,42 @@ import kiparla_tools.alignment as alignment
 import pandas as pd
 import os
 
+
+def process_transcript(filename, duration_threshold = 0.1):
+	"""
+	The function `process_transcript` reads a CSV file containing transcript data, creates transcription
+	units, tokenizes them, and adds token features before returning the processed transcript.
+
+	:param filename: name of the file that contains the transcript data to be processed.
+	It is expected to be a file path pointing to the transcript file
+	:param duration_threshold: minimum duration threshold for identifying overlapping transcription units in
+	the transcript. If the duration of overlap between two transcription units is greater than or equal
+	to the `duration_threshold`, they are considered as overlapping.
+	:return: processed transcript object.
+	"""
+	transcript_name = filename.stem
+	transcript = data.Transcript(transcript_name)
+
+	for tu_id, speaker, start, end, duration, annotation in serialize.read_csv(filename):
+		new_tu = data.TranscriptionUnit(tu_id, speaker, start, end, duration, annotation)
+		transcript.add(new_tu)
+
+	transcript.sort()
+	transcript.find_overlaps(duration_threshold=duration_threshold)
+
+	for tu in transcript:
+		tu.tokenize()
+
+	transcript.check_overlaps()
+
+	for tu in transcript:
+		tu.add_token_features()
+
+	return transcript
+
+
+
+
 # Funzione che apre tutti i file transcript e genera un file di output per ognuno
 def process_all_transcripts(input_dir="data/csv_puliti", output_dir="data/output"):
 	transcripts_dict = {}
@@ -49,26 +85,6 @@ def process_all_transcripts(input_dir="data/csv_puliti", output_dir="data/output
 			transcripts_dict[transcript_name] = transcript
 
 	return transcripts_dict
-
-
-# print(transcript)
-# input()
-# transcript.create_turns()
-
-# print(len(transcript.turns))
-# for turn in transcript.turns:
-# 	print(turn.speaker, turn.start, turn.end, turn.transcription_units_ids)
-# 	input()
-
-# for tu in transcript:
-# 	tu.strip_parentheses()
-# 	tu.tokenize()
-# 	# if not all(y for x, y in tu.errors.items()):
-# 	print(tu)
-# 	input()
-
-#
-# print(transcript)
 
 # DONE: read transcript from csv
 # DONE: remove spaces (see init function --- done)
