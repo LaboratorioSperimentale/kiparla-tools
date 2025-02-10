@@ -13,9 +13,8 @@ This repository contains a set of tools to process, maintain and analyze files f
 3. Install the package
    `pip install .`
 
-
 ## Recipes
 
 * `eaf2csv` - transform an eaf file or a series of eaf files into csv
 * `csv2eaf` - transform a csv file or a series of csv files into eaf format
-
+* `process` -

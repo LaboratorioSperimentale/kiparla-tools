@@ -7,21 +7,31 @@ import pandas as pd
 from speach import elan
 from pympi import Elan as EL
 
-# Creating a file that contains statistics for each transcript
+
 def print_full_statistics(list_of_transcripts, output_filename):
+	"""
+	The function processes a list of transcripts to calculate statistics and outputs them to a
+	specified file in tab-separated format.
+
+	:param list_of_transcripts: `list_of_transcripts` is a dictionary where the keys are transcript IDs
+	and the values are objects representing transcripts. Each transcript object has a method
+	`get_stats()` that calculates statistics for that transcript and stores them in a DataFrame
+	attribute called `statistics`
+	:param output_filename: The `output_filename` parameter in the `print_full_statistics` function is a
+	string that represents the name of the file where the statistics for each transcript will be saved.
+	This file will be in CSV format and will contain the calculated statistics for each transcript in a
+	structured manner.
+	"""
 
 	max_columns = 0
 	full_statistics = [] # list that contains all transcripts
 	for transcript_id, transcript in list_of_transcripts.items(): # iterating each transcript
-		transcript.get_stats () # calculating statistics
+		transcript.get_stats() # calculating statistics
 		stats_dict = transcript.statistics.set_index("Statistic")["Value"].to_dict() # converting statistics into a dictionary
 		if len(stats_dict["num_tu"]) > max_columns:
 			max_columns = len(stats_dict["num_tu"])
 		if len(stats_dict["tokens_per_minute"]) > max_columns:
 			max_columns = len(stats_dict["tokens_per_minute"])
-		# print(stats_dict)
-		# input()
-		# stats_dict["Transcript_ID"] = transcript.tr_id	# adding the transcript id
 		full_statistics.append(stats_dict)
 
 	for stats in full_statistics:
@@ -100,7 +110,17 @@ def conversation_to_csv(transcript, output_filename, sep = '\t'):
 
 
 def conversation_to_conll(transcript, output_filename, sep = '\t'):
-	fieldnames = ["speaker", "tu_id", "token", "orig_token", "span",
+	"""
+	The function `conversation_to_conll` converts a conversation transcript into a CoNLL format and
+	writes it to an output file.
+
+	:param transcript: transcript object to be serialized.
+	:param output_filename: name of the file where the output CONLL data will be written.
+	This file will be created or overwritten if it already exists.
+	:param sep: delimiter that separates the fields in the output file.
+	"""
+
+	fieldnames = ["token_id", "speaker", "tu_id", "token", "orig_token", "span",
 				"type", "metalinguistic_category", "align", "intonation", "unknown", "interruption", "truncation",
 				"prosodicLink", "spaceafter", "prolongations", "slow_pace", "fast_pace",
 				"volume", "guesses", "overlaps"]
@@ -299,7 +319,14 @@ def eaf2csv(input_filename, output_filename, sep="\t"):
 			writer.writerow(to_write)
 
 
-def read_csv(input_filename):
+def read_csv(input_filename, sep="\t"):
+	"""
+	Reads a CSV file representing a transcript and yields specific columns as tuples.
+
+	:param input_filename: name of the CSV containing the transcript.
+	The columns being extracted are "tu_id", "speaker", "start", "end", "duration", "text"
+	:param sep: delimiter that separates the fields in the CSV file.
+	"""
 
 	with open(input_filename, encoding="utf-8", newline='') as csvfile:
 		reader = csv.DictReader(csvfile, delimiter="\t")
