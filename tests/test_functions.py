@@ -58,15 +58,10 @@ def test_check_spaces_angular():
     assert pt.check_spaces_angular("bla >bla bla < bla < bla bla> bla") == (2, "bla >bla bla< bla <bla bla> bla")
 
 
-# def test_check_intonation_patterns(): # TODO
-#     assert pt.check_intonation_patterns("ciao.") == ("discendente")
-#     assert pt.check_intonation_patterns("ciao,") == ("debolmente_ascendente")
-#     assert pt.check_intonation_patterns("ciao?") == ("ascendente")
-#     assert pt.check_intonation_patterns("ciao:") == ("suono_prolungato")
-#     assert pt.check_intonation_patterns("cia-") == ("parola_interrotta")
+def test_overlap_prolongations():
+    assert pt.overlap_prolongations("questo:[::") == (1, "quest[o:::")
+    assert pt.overlap_prolongations("quest[o::") == (0, "quest[o::")
 
-def test_check_number_sign():
-    assert pt.check_number_sign("#") == ("dialect")
 
 def test_check_x():
     assert pt.check_x("x") == ("unkown")

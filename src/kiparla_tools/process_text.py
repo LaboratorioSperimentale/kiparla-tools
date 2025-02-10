@@ -89,6 +89,20 @@ def remove_pauses(transcription):
 
 	return tot_subs, transcription.strip()
 
+def overlap_prolongations(transcription):
+	tot_subs = 0
+
+	new_string, subs_made = re.subn(r"(\w:*)\[:",
+									r"[\1:",
+									transcription)
+
+	if subs_made > 0:
+		tot_subs += subs_made
+		transcription = new_string
+
+	return tot_subs, transcription
+
+
 # remove symbols that are not part of jefferson (keep count)
 # TODO: numeri?
 def clean_non_jefferson_symbols(transcription):
@@ -127,9 +141,6 @@ def check_normal_parentheses(annotation, open_char, close_char):
 				isopen = False
 			else:
 				return False
-			# count -= 1
-			# if count < 0:
-			# 	return True
 
 	return isopen is False
 
@@ -345,4 +356,4 @@ def check_x(transcription):
 		return "unkown"
 
 if __name__ == "__main__":
-	print(replace_che("=pe::r[(ch)]è"))
+	print(overlap_prolongations("questo:[::]"))

@@ -186,8 +186,6 @@ class TranscriptionUnit:
 	end: float
 	duration: float
 	annotation: str
-	# TODO: handle dialect presence
-	# dialect: bool = False
 	orig_annotation: str = ""
 	include: bool = True
 	dialect: bool = False
@@ -216,6 +214,10 @@ class TranscriptionUnit:
 			self.include = False
 			return
 
+		if self.annotation[0] == "#":
+			self.dialect = True
+			self.annotation = self.annotation[1:]
+
 		# non jefferson
 		substitutions, new_transcription = pt.clean_non_jefferson_symbols(self.annotation)
 		self.warnings["NON_JEFFERSON"] = substitutions
@@ -242,6 +244,11 @@ class TranscriptionUnit:
 		# leading and trailing prosodic links
 		substitutions, new_transcription = pt.remove_prosodiclinks(self.annotation)
 		self.warnings["TRIM_PROSODICLINKS"] += substitutions
+		self.annotation = new_transcription
+
+		# fix \w+:*[:
+		substitutions, new_transcription = pt.overlap_prolongations(self.annotation)
+		self.warnings["OVERLAP_PROLONGATION"] += substitutions
 		self.annotation = new_transcription
 
 		# remove double spaces
@@ -321,7 +328,6 @@ class TranscriptionUnit:
 		if len(self.annotation) == 0:
 			self.include = False
 
-		# TODO: gestire cancelletto
 
 	def tokenize(self):
 
@@ -372,13 +378,6 @@ class TranscriptionUnit:
 						new_token.add_span(start2, end2)
 						self.tokens[token_id] = new_token
 
-						# start_pos = end_pos+1
-						# end_pos+=1
-
-
-						# print(subtoken1, subtoken2)
-						# input()
-
 					else:
 						token_id += 1
 						new_token = Token(tok, f"{self.tu_id}-{token_id}")
@@ -387,21 +386,14 @@ class TranscriptionUnit:
 					start_pos = end_pos+1
 					end_pos+=1
 
-		# print(self.tokens)
-		# input()
-
 	def add_token_features(self):
 
 		ids = []
 		token_ids = []
 
 		for tok_id, tok in self.tokens.items():
-			# print(tok_id, tok, tok.span)
-			# print(tok.text, tok.orig_text)
-			# input()
 
 			i=0
-			# for char in tok.text:
 			for char in tok.orig_text:
 				if char in [":", ".", ",", "?"]:
 					ids.append(-1)
@@ -416,9 +408,6 @@ class TranscriptionUnit:
 
 			ids.append(-3)
 			token_ids.append(-3)
-
-		# print(self.annotation)
-		# print(self.orig_annotation)
 
 		for feature_name, spans in [("slow_pace", self.slow_pace_spans),
 									("fast_pace", self.fast_pace_spans),
@@ -645,8 +634,6 @@ class Transcript:
 	# Statistic calculations
 	def get_stats (self, annotators_data_csv="data/data_description.csv", split_size=60):
 		num_speakers = len(self.speakers) # number of speakers
-
-		# num_tu = len(self.transcription_units) # number of TUs
 
 		num_tu = [] # number of TUs
 
