@@ -11,7 +11,7 @@ This repository contains a set of tools to process, maintain and analyze files f
    `source .venv/bin/activate`
 
 3. Install the package
-   `pip install .`
+   `pip install git+https://github.com/LaboratorioSperimentale/kiparla-tools`
 
 ## Recipes
 
