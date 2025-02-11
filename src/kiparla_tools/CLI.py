@@ -24,8 +24,12 @@ def _csv2eaf(args):
 		input_files = args.input_files
 
 	for filename in input_files:
-		output_fname = args.output_dir.joinpath(f"{filename.stem}.eaf")
-		serialize.csv2eaf(filename, output_fname)
+		basename = filename.stem
+		if basename.endswith(".tus"):
+			basename = basename[:-4]
+		output_fname = args.output_dir.joinpath(f"{basename}.eaf")
+		audio_fname = args.audio_dir.joinpath(f"{basename}.wav")
+		serialize.csv2eaf(filename, audio_fname, output_fname)
 
 def _process(args):
 	input_files = []
@@ -96,6 +100,9 @@ parser_csv2eaf = subparsers.add_parser("csv2eaf", parents=[parent_parser],
 parser_csv2eaf.add_argument("-o", "--output-dir", default="output_eaf/",
 							type=ac.valid_dirpath,
 							help="path to output directory")
+parser_csv2eaf.add_argument("-a", "--audio-dir", default="audio/",
+							type=ac.valid_dirpath,
+							help="path to directory containing audio files")
 group = parser_csv2eaf.add_argument_group('Input files')
 command_group = group.add_mutually_exclusive_group(required=True)
 command_group.add_argument("--input-files", nargs="+",

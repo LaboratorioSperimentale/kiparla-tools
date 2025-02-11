@@ -173,7 +173,7 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 			writer.writerow(to_write)
 
 
-def csv2eaf(input_filename, output_filename, sep="\t"):
+def csv2eaf(input_filename, linked_file, output_filename, sep="\t"):
 	"""
 	Reads data from a tab-separated CSV (.eaf) file and writes it to a ELAN file.
 
@@ -192,6 +192,8 @@ def csv2eaf(input_filename, output_filename, sep="\t"):
 			tus.append(row)
 
 	doc = EL.Eaf(author="automatic_pipeline")
+
+	doc.add_linked_file(linked_file)
 
 	for tier_id in tiers:
 		doc.add_tier(tier_id=tier_id)
@@ -230,7 +232,7 @@ def eaf2csv(input_filename, output_filename, sep="\t"):
 						"start": _from_ts,
 						"end": _to_ts,
 						"duration": _duration,
-						"text": re.sub(r"^id:[0-9]+", "", anno.value.strip())
+						"text": re.sub(r"^id:[0-9]+", "", anno.value.strip()) # TODO: substitute {} with (())
 						}
 			full_file.append(to_write)
 
