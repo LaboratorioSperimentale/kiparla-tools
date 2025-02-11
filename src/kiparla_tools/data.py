@@ -209,7 +209,7 @@ class TranscriptionUnit:
 	def __post_init__(self):
 		self.orig_annotation = self.annotation
 
-		if self.annotation is None:
+		if self.annotation is None or len(self.annotation)<1:
 			self.include = False
 			return
 
