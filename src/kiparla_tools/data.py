@@ -289,10 +289,11 @@ class TranscriptionUnit:
 			tot_spans = (self.annotation.count("<") + self.annotation.count(">"))/2
 
 			if not len(matches_left) + len(matches_right) == tot_spans:
-				print(self.annotation)
-				print(matches_left)
-				print(matches_right)
-				input()
+				print("Issue with matches in", self.annotation)
+				# print(self.annotation)
+				# print(matches_left)
+				# print(matches_right)
+				# input()
 
 			# TODO @Martina check se ho beccato slow e fast bene!
 			self.slow_pace_spans = [match.span() for match in matches_left]
