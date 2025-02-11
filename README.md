@@ -18,3 +18,8 @@ This repository contains a set of tools to process, maintain and analyze files f
 * `eaf2csv` - transform an eaf file or a series of eaf files into csv
 * `csv2eaf` - transform a csv file or a series of csv files into eaf format
 * `process` -
+
+
+# TODO
+* parametrize get_stats() in order to produce stats even when annotators_data is not available
+* add tqdm

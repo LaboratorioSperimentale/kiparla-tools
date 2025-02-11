@@ -29,7 +29,7 @@ def _csv2eaf(args):
 			basename = basename[:-4]
 		output_fname = args.output_dir.joinpath(f"{basename}.eaf")
 		audio_fname = args.audio_dir.joinpath(f"{basename}.wav")
-		serialize.csv2eaf(filename, audio_fname, output_fname)
+		serialize.csv2eaf(filename, str(audio_fname), output_fname)
 
 def _process(args):
 	input_files = []

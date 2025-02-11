@@ -188,12 +188,16 @@ def csv2eaf(input_filename, linked_file, output_filename, sep="\t"):
 	with open(input_filename, encoding="utf-8") as csvfile:
 		reader = csv.DictReader(csvfile, delimiter=sep)
 		for row in reader:
-			tiers.add(row["speaker"])
-			tus.append(row)
+			if "speaker" in row:
+				tiers.add(row["speaker"])
+				tus.append(row)
+			else:
+				print(row)
+				input()
 
 	doc = EL.Eaf(author="automatic_pipeline")
 
-	doc.add_linked_file(linked_file)
+	doc.add_linked_file(linked_file, relpath=linked_file)
 
 	for tier_id in tiers:
 		doc.add_tier(tier_id=tier_id)
