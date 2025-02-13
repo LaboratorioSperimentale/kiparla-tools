@@ -173,7 +173,8 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 			writer.writerow(to_write)
 
 
-def csv2eaf(input_filename, linked_file, output_filename, sep="\t"):
+def csv2eaf(input_filename, linked_file, output_filename,
+			sep="\t", multiplier=1000, include_ids = False):
 	"""
 	Reads data from a tab-separated CSV (.eaf) file and writes it to a ELAN file.
 
@@ -191,9 +192,6 @@ def csv2eaf(input_filename, linked_file, output_filename, sep="\t"):
 			if "speaker" in row:
 				tiers.add(row["speaker"])
 				tus.append(row)
-			else:
-				print(row)
-				input()
 
 	doc = EL.Eaf(author="automatic_pipeline")
 
@@ -203,11 +201,15 @@ def csv2eaf(input_filename, linked_file, output_filename, sep="\t"):
 		doc.add_tier(tier_id=tier_id)
 
 	for annotation in tus:
-		if literal_eval(annotation["include"]):
+		if not "include" in annotation or literal_eval(annotation["include"]):
+
+			value = annotation['text']
+			if include_ids:
+				value=f"id:{annotation['tu_id']} {annotation['correct']}"
 			doc.add_annotation(id_tier = annotation["speaker"],
-							start=int(float(annotation["start"])*1000),
-							end=int(float(annotation["end"])*1000),
-							value=f"id:{annotation['tu_id']} {annotation['correct']}"
+								start=int(float(annotation["start"])*multiplier),
+								end=int(float(annotation["end"])*multiplier),
+								value=value
 							)
 	doc.to_file(output_filename)
 
