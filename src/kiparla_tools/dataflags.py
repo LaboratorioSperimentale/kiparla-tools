@@ -24,3 +24,4 @@ class tokentype(Flag):
 	shortpause = auto()
 	metalinguistic = auto()
 	error = auto()
+	unknown = auto()
