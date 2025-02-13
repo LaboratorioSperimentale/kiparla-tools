@@ -60,7 +60,7 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 	fieldnames = ["token_id", "speaker", "tu_id", "token", "orig_token", "span",
 				"type", "metalinguistic_category", "align", "intonation", "interruption", "truncation",
 				"prosodicLink", "spaceafter", "prolongations", "slow_pace", "fast_pace",
-				"volume", "guesses", "overlaps"]
+				"volume", "guesses", "overlaps", "dialect"]
 
 	with open(output_filename, "w", encoding="utf-8", newline='') as fout:
 		writer = csv.DictWriter(fout, fieldnames=fieldnames, delimiter=sep, restval="_")
@@ -81,7 +81,8 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 							"interruption": "Interrupted=Yes" if tok.interruption else "_",
 							"truncation": "Truncated=Yes" if tok.truncation else "_",
 							"prosodicLink": "ProsodicLink=Yes" if tok.prosodiclink else "_",
-							"spaceafter": "SpaceAfter=No" if not tok.spaceafter else "_"
+							"spaceafter": "SpaceAfter=No" if not tok.spaceafter else "_",
+							"dialect": "Dialect=Yes" if tok.dialect else "_"
 							}
 
 				to_write["span"] = tu.annotation[tok.span[0]:tok.span[1]]
@@ -123,7 +124,7 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 def conversation_to_linear(transcript, output_filename, sep = '\t'):
 
 	fieldnames = ["tu_id", "speaker", "start", "end", "duration", "include",
-				"W:normalized_spaces", "W:numbers", "W:accents", "W:non_jefferson", "W:pauses_trim", "W:prosodic_trim", "W:moved_boundaries",
+				"W:normalized_spaces", "W:numbers", "W:accents", "W:non_jefferson", "W:pauses_trim", "W:prosodic_trim", "W:moved_boundaries", "W:switches",
 				"E:volume", "E:pace", "E:guess", "E:overlap", "E:overlap_mismatch",
 				"E:overlap_duration",
 				"T:shortpauses", "T:metalinguistic", "T:errors", "T:linguistic",
@@ -152,6 +153,7 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 						"W:pauses_trim": tu.warnings["TRIM_PAUSES"],
 						"W:prosodic_trim": tu.warnings["TRIM_PROSODICLINKS"],
 						"W:moved_boundaries": tu.warnings["MOVED_BOUNDARIES"],
+						"W:switches": tu.warnings["SWITCHES"],
 						"E:volume": tu.errors["UNBALANCED_DOTS"],
 						"E:pace": tu.errors["UNBALANCED_PACE"],
 						"E:guess": tu.errors["UNBALANCED_GUESS"],

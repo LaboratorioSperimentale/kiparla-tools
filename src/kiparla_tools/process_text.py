@@ -79,6 +79,20 @@ def remove_pauses(transcription):
 
 	return tot_subs, transcription.strip()
 
+
+def switch_symbols(transcription):
+	tot_subs = 0
+	new_string, subs_made = re.subn(r"([.,?])([:-~])",
+									r"\2\1",
+									transcription)
+
+	if subs_made > 0:
+		tot_subs += subs_made
+		transcription = new_string
+
+	return tot_subs, transcription.strip()
+
+
 def overlap_prolongations(transcription):
 	tot_subs = 0
 

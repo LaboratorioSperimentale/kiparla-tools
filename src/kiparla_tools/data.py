@@ -47,6 +47,7 @@ class Token:
 	truncation: bool = False
 	prosodiclink: bool = False
 	spaceafter: bool = True
+	dialect: bool = False
 	prolongations: Dict[int, int] = field(default_factory=lambda: {})
 	warnings: Dict[str, int] = field(default_factory=lambda: collections.defaultdict(int))
 	errors: List[str] = field(default_factory=lambda: collections.defaultdict(int))
@@ -120,9 +121,6 @@ class Token:
 			char_id = tmp_text[char_id][0]
 			span_len = end-begin
 			self.prolongations[char_id] = span_len
-			# print(char_id, span_len)
-		# 	print(match)
-		# input()
 
 		new_text, substitutions = re.subn(r":+", "", self.text)
 		if substitutions > 0:
@@ -135,7 +133,6 @@ class Token:
 		self.text = self.text.lower()
 
 		if all(c == "x" for c in self.text):
-			# self.text = "{X}"
 			self.token_type = df.tokentype.unknown
 
 	def add_span(self, start, end):
@@ -177,6 +174,9 @@ class Token:
 			if self.truncation:
 				self.truncation = False
 
+		if field_name == "Dialect":
+			self.dialect = True
+
 #TODO: creare funzioni di test
 
 @dataclass
@@ -210,13 +210,13 @@ class TranscriptionUnit:
 	def __post_init__(self):
 		self.orig_annotation = self.annotation
 
+		self.annotation = self.annotation.strip()
+
 		if self.annotation is None or len(self.annotation)<1:
 			self.include = False
 			return
 
 		if self.annotation[0] == "#":
-			print(self.annotation)
-			input()
 			self.dialect = True
 			self.annotation = self.annotation[1:]
 
@@ -320,7 +320,10 @@ class TranscriptionUnit:
 			if len(matches)>0:
 				self.guessing_spans = [match.span() for match in matches]
 
-
+		# invert [.,?][:-~]
+		substitutions, new_transcription = pt.switch_symbols(self.annotation)
+		self.warnings["SWITCHES"] += substitutions
+		self.annotation = new_transcription
 
 		# remove unit if it only includes non-alphabetic symbols
 		if all(c in ["[", "]", "(", ")", "°", ">", "<", "-", "'", "#"] for c in self.annotation):
@@ -386,6 +389,11 @@ class TranscriptionUnit:
 						self.tokens[token_id] = new_token
 					start_pos = end_pos+1
 					end_pos+=1
+
+
+		if self.dialect:
+			for tok_id, tok in self.tokens.items():
+				tok.add_info("OrigLang", "dialect")
 
 	def add_token_features(self):
 
