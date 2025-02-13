@@ -26,7 +26,7 @@ def remove_spaces(transcription):
 # transform "pò" into "po'" (keep count)
 def replace_po(transcription):
 	tot_subs = 0
-	new_string, subs_made = re.subn(r"\bp([^ =]*)ò\b", r"p\1o'", transcription)
+	new_string, subs_made = re.subn(r"\bp([^ =\p{L}]*)ò\b", r"p\1o'", transcription)
 
 	if subs_made > 0:
 		tot_subs += subs_made

@@ -28,4 +28,3 @@ This repository contains a set of tools to process, maintain and analyze files f
 * substitute xxx
 
 # ISSUES
-* why is però transformed into pero'?
