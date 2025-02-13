@@ -1,5 +1,6 @@
 """Command Line Interface for the toolkit"""
 import argparse
+import tqdm
 
 from kiparla_tools import args_check as ac
 from kiparla_tools import serialize
@@ -12,7 +13,9 @@ def _eaf2csv(args):
 	else:
 		input_files = args.input_files
 
-	for filename in input_files:
+	pbar = tqdm.tqdm(input_files)
+	for filename in pbar:
+		pbar.set_description(f"Processing {filename.stem}")
 		output_fname = args.output_dir.joinpath(f"{filename.stem}.csv")
 		serialize.eaf2csv(filename, output_fname)
 
@@ -23,7 +26,9 @@ def _csv2eaf(args):
 	else:
 		input_files = args.input_files
 
-	for filename in input_files:
+	pbar = tqdm.tqdm(input_files)
+	for filename in pbar:
+		pbar.set_description(f"Processing {filename.stem}")
 		basename = filename.stem
 		if basename.endswith(".tus"):
 			basename = basename[:-4]
@@ -41,7 +46,9 @@ def _process(args):
 		input_files = args.input_files
 
 	transcripts = {}
-	for filename in input_files:
+	pbar = tqdm.tqdm(input_files)
+	for filename in pbar:
+		pbar.set_description(f"Processing {filename.stem}")
 		transcript_name = filename.stem
 		transcript = main.process_transcript(filename)
 		transcripts[transcript_name] = transcript
@@ -63,7 +70,9 @@ def _align(args):
 		input_files = args.input_files
 
 	transcripts = {}
-	for filename in input_files:
+	pbar = tqdm.tqdm(input_files)
+	for filename in pbar:
+		pbar.set_description(f"Processing {filename.stem}")
 		transcript_name = filename.stem
 		transcript = serialize.transcript_from_csv(filename)
 
