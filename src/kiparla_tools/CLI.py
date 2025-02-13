@@ -177,3 +177,5 @@ if "func" not in args:
 	exit()
 
 args.func(args)
+
+return 0
