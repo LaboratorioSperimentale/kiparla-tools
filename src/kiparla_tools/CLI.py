@@ -4,7 +4,7 @@ import tqdm
 
 from kiparla_tools import args_check as ac
 from kiparla_tools import serialize
-from kiparla_tools import main_tools
+from kiparla_tools import main as main_tools
 
 def _eaf2csv(args):
 	input_files = []
