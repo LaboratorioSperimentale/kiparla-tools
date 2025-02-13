@@ -58,7 +58,7 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 	"""
 
 	fieldnames = ["token_id", "speaker", "tu_id", "token", "orig_token", "span",
-				"type", "metalinguistic_category", "align", "intonation", "unknown", "interruption", "truncation",
+				"type", "metalinguistic_category", "align", "intonation", "interruption", "truncation",
 				"prosodicLink", "spaceafter", "prolongations", "slow_pace", "fast_pace",
 				"volume", "guesses", "overlaps"]
 
@@ -80,7 +80,6 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 							"intonation": tok.intonation_pattern.name if tok.intonation_pattern else "_",
 							"interruption": "Interrupted=Yes" if tok.interruption else "_",
 							"truncation": "Truncated=Yes" if tok.truncation else "_",
-							"unknown": "Unknown=Yes" if tok.unknown else "_",
 							"prosodicLink": "ProsodicLink=Yes" if tok.prosodiclink else "_",
 							"spaceafter": "SpaceAfter=No" if not tok.spaceafter else "_"
 							}
@@ -163,6 +162,9 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 						"T:errors": sum([df.tokentype.error in tok.token_type for _, tok in tu.tokens.items()]),
 						"T:linguistic": sum([df.tokentype.linguistic in tok.token_type for _, tok in tu.tokens.items()])}
 
+
+			errors = " ".join([tok.text for _, tok in tu.tokens.items() if df.tokentype.error in tok.token_type])
+			to_write["T:errors"] = f"{to_write['T:errors']}, {errors}"
 			if len(tu.overlap_duration) > 0:
 				overlaps = []
 				for unit_id, duration in tu.overlap_duration.items():
