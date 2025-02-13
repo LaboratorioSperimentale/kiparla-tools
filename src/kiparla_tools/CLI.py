@@ -4,7 +4,7 @@ import tqdm
 
 from kiparla_tools import args_check as ac
 from kiparla_tools import serialize
-from kiparla_tools import main
+from kiparla_tools import main_tools
 
 def _eaf2csv(args):
 	input_files = []
@@ -50,7 +50,7 @@ def _process(args):
 	for filename in pbar:
 		pbar.set_description(f"Processing {filename.stem}")
 		transcript_name = filename.stem
-		transcript = main.process_transcript(filename)
+		transcript = main_tools.process_transcript(filename)
 		transcripts[transcript_name] = transcript
 
 		output_filename_vert = args.output_dir.joinpath(f"{transcript_name}.conll")
@@ -78,7 +78,7 @@ def _align(args):
 
 		transcripts[transcript_name] = transcript
 
-	main.align_transcripts(transcripts, args.output_dir)
+	main_tools.align_transcripts(transcripts, args.output_dir)
 
 
 def main():

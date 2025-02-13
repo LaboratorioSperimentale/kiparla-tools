@@ -30,4 +30,4 @@ dependencies = ["tqdm",
                 "sequence_align"]
 
 [project.scripts]
-kiparla = "kiparla_tools:CLI"
+kiparla = "kiparla_tools:CLI.main"
