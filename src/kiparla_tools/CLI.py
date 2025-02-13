@@ -81,10 +81,8 @@ def _align(args):
 	main.align_transcripts(transcripts, args.output_dir)
 
 
-
-if __name__ == "__main__":
+def main():
 	### MAIN ###
-
 	parent_parser = argparse.ArgumentParser(add_help=False)
 	root_parser = argparse.ArgumentParser(prog='kiparla-tools', add_help=True)
 	subparsers = root_parser.add_subparsers(title="actions", dest="actions")
@@ -177,3 +175,6 @@ if __name__ == "__main__":
 		exit()
 
 	args.func(args)
+
+if __name__ == "__main__":
+	main()
