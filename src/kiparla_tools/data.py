@@ -64,7 +64,7 @@ class Token:
 
 		# # STEP 1: check that token has shape '?([a-z]+:*)+[-']?[.,?]
 		# # otherwise signal error
-		matching_instance = re.fullmatch(r"'?(\p{L}+:*)*\p{L}+[-'~]?:*[.,?]?", self.text)
+		matching_instance = re.fullmatch(r"'?(\p{L}+:*)*\p{L}+:*[-'~]?[.,?]?", self.text)
 
 		if matching_instance is None:
 			if self.text == "{P}":
@@ -135,7 +135,8 @@ class Token:
 		self.text = self.text.lower()
 
 		if all(c == "x" for c in self.text):
-			self.unknown = True
+			# self.text = "{X}"
+			self.token_type = df.tokentype.unknown
 
 	def add_span(self, start, end):
 		self.span = (start, end)
@@ -214,6 +215,8 @@ class TranscriptionUnit:
 			return
 
 		if self.annotation[0] == "#":
+			print(self.annotation)
+			input()
 			self.dialect = True
 			self.annotation = self.annotation[1:]
 
@@ -317,6 +320,8 @@ class TranscriptionUnit:
 			if len(matches)>0:
 				self.guessing_spans = [match.span() for match in matches]
 
+
+
 		# remove unit if it only includes non-alphabetic symbols
 		if all(c in ["[", "]", "(", ")", "°", ">", "<", "-", "'", "#"] for c in self.annotation):
 			self.include = False
@@ -351,14 +356,14 @@ class TranscriptionUnit:
 					start_pos = end_pos+1
 				else:
 
-					subtokens = re.split(r"(\p{L}'\p{L})", tok)
+					subtokens = re.split(r"(\p{L}[\)\]°><]?'[\(\[°><]?\p{L})", tok)
 
 					if len(subtokens) == 3:
 						subtoken1 = subtokens[0]+subtokens[1][:-1]
 						subtoken2 = subtokens[1][-1]+subtokens[2]
 
 						start1 = start_pos
-						end1 = end_pos - len(tok) + len(subtoken1)
+						end1 = end_pos - len(tok) + len(subtoken1) -1
 
 						start2 = end1+1
 						end2 = end_pos
