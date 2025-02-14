@@ -129,6 +129,7 @@ if __name__ == "__main__":
 				serialize.print_aligned(tokens_a, tokens_b, f"data/alignments/{t_a}_{t_b}.tsv")
 
 	for file in pathlib.Path(f"data/output_sample").glob("*.tsv"):
-		serialize.csv2eaf(file, f"data/output_sample/{file.stem}.eaf")
+		serialize.csv2eaf(file, f"data/audio/{file.stem}.wav", f"data/output_sample/{file.stem}.eaf")
+
 
 	serialize.print_full_statistics(transcripts, "data/output_sample/statistics.csv")
