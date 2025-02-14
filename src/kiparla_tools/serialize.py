@@ -57,10 +57,10 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 	:param sep: delimiter that separates the fields in the output file.
 	"""
 
-	fieldnames = ["token_id", "speaker", "tu_id", "token", "orig_token", "span",
-				"type", "metalinguistic_category", "align", "intonation", "interruption", "truncation",
-				"prosodicLink", "spaceafter", "prolongations", "slow_pace", "fast_pace",
-				"volume", "guesses", "overlaps", "dialect"]
+	fieldnames = ["token_id", "speaker", "tu_id", "token", "span",
+				"type", "metalinguistic_category", "jefferson_feats",
+				"align", "prolongations", "slow_pace", "fast_pace",
+				"guesses", "overlaps"]
 
 	with open(output_filename, "w", encoding="utf-8", newline='') as fout:
 		writer = csv.DictWriter(fout, fieldnames=fieldnames, delimiter=sep, restval="_")
@@ -75,15 +75,20 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 							"speaker": tu.speaker,
 							"tu_id": tu_id,
 							"token": tok.text,
-							"orig_token": tok.orig_text,
+							# "orig_token": tok.orig_text,
 							"type": tok.token_type.name,
-							"intonation": tok.intonation_pattern.name if tok.intonation_pattern else "_",
-							"interruption": "Interrupted=Yes" if tok.interruption else "_",
-							"truncation": "Truncated=Yes" if tok.truncation else "_",
-							"prosodicLink": "ProsodicLink=Yes" if tok.prosodiclink else "_",
-							"spaceafter": "SpaceAfter=No" if not tok.spaceafter else "_",
-							"dialect": "Dialect=Yes" if tok.dialect else "_"
+							# "intonation": tok.intonation_pattern.name if tok.intonation_pattern else "_"
 							}
+
+				jefferson_feats = {"intonation": f"Intonation={tok.intonation_pattern.name}" if tok.intonation_pattern else "_",
+									"interruption": "Interrupted=Yes" if tok.interruption else "_",
+									"truncation": "Truncated=Yes" if tok.truncation else "_",
+									"prosodicLink": "ProsodicLink=Yes" if tok.prosodiclink else "_",
+									"spaceafter": "SpaceAfter=No" if not tok.spaceafter else "_",
+									"dialect": "Dialect=Yes" if tok.dialect else "_",
+									"volume": f"Volume={tok.volume.name}" if tok.volume else "_"}
+
+				to_write["jefferson_feats"] = "|".join([x for x in jefferson_feats.values() if not x == "_"]) #TODO: rewrite
 
 				to_write["span"] = tu.annotation[tok.span[0]:tok.span[1]]
 
@@ -99,24 +104,24 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 				slow_pace = []
 				for span_id, span in tok.slow_pace.items():
 					slow_pace.append(f"{span[0]}-{span[1]}({span_id})")
-				to_write["slow_pace"] = ",".join(slow_pace)
+				to_write["slow_pace"] = ",".join(slow_pace) if len(slow_pace) > 0 else "_"
 
 				fast_pace = []
 				for span_id, span in tok.fast_pace.items():
 					fast_pace.append(f"{span[0]}-{span[1]}({span_id})")
-				to_write["fast_pace"] = ",".join(fast_pace)
+				to_write["fast_pace"] = ",".join(fast_pace) if len(fast_pace) > 0 else "_"
 
-				to_write["volume"] = tok.volume.name if tok.volume else "_"
+
 
 				guesses = []
 				for span_id, span in tok.guesses.items():
 					guesses.append(f"{span[0]}-{span[1]}({span_id})")
-				to_write["guesses"] = ",".join(guesses)
+				to_write["guesses"] = ",".join(guesses) if len(guesses) > 0 else "_"
 
 				overlaps = []
 				for span_id, span in tok.overlaps.items():
 					overlaps.append(f"{span[0]}-{span[1]}({span_id})")
-				to_write["overlaps"] = ",".join(overlaps)
+				to_write["overlaps"] = ",".join(overlaps) if len(overlaps) > 0 else "_"
 
 				writer.writerow(to_write)
 

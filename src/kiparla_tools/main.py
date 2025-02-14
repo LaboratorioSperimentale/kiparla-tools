@@ -90,30 +90,12 @@ def process_all_transcripts(input_dir="data/csv_puliti", output_dir="data/output
 
 	return transcripts_dict
 
-# DONE: read transcript from csv
-# DONE: remove spaces (see init function --- done)
-
-###### PRELIMINAR CLEANING STEPS -- > AIM: get to tokenization with tagged information
-
-# DONE: transform "pò" into "po'" (keep count)
-# DONE: transform "perchè" into "perché" (keep count)
-# DONE: remove initial and final pauses (keep count)
-# DONE: remove symbols that are not part of jefferson (keep count)
-# DONE: correct unbalanced parentheses (keep count)
-# DONE: remove "=" symbol, transform into space (--manual??)
-# TODO: check orphan symbols
-# DONE: correzione spazi (keep count) ( es. sempre spazio prima di "{" e dopo"}" )
-# DONE: tokenize
-
-
-
-
 if __name__ == "__main__":
 	import pathlib
-	
+
 	output_dir = 'data/alignments'
 	if not os.path.exists(output_dir):
-		os.makedirs(output_dir) 
+		os.makedirs(output_dir)
 
 	transcripts = process_all_transcripts("data/csv_puliti_demo", "data/output_sample")
 
@@ -130,6 +112,5 @@ if __name__ == "__main__":
 
 	for file in pathlib.Path(f"data/output_sample").glob("*.tsv"):
 		serialize.csv2eaf(file, f"data/audio/{file.stem}.wav", f"data/output_sample/{file.stem}.eaf")
-
 
 	serialize.print_full_statistics(transcripts, "data/output_sample/statistics.csv")
