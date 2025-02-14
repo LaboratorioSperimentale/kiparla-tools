@@ -211,6 +211,7 @@ class TranscriptionUnit:
 		self.orig_annotation = self.annotation
 
 		self.annotation = self.annotation.strip()
+		print(self.annotation)
 
 		if self.annotation is None or len(self.annotation)<1:
 			self.include = False
@@ -259,6 +260,8 @@ class TranscriptionUnit:
 		self.errors["UNBALANCED_GUESS"] = not pt.check_normal_parentheses(self.annotation, "(", ")")
 		self.errors["UNBALANCED_PACE"] = not pt.check_angular_parentheses(self.annotation)
 
+		print(self.annotation)
+
 		#pò, perché etc..
 		substitutions, new_text = pt.replace_che(self.annotation)
 		self.warnings["ACCENTS"] += substitutions
@@ -285,6 +288,8 @@ class TranscriptionUnit:
 			self.warnings["UNEVEN_SPACES"] += substitutions
 			self.annotation = new_transcription
 
+		print(self.annotation)
+
 		# check how many varying pace spans have been transcribed
 		if "<" in self.annotation and not self.errors["UNBALANCED_PACE"]:
 			matches_left = list(re.finditer(r"<[^ ][^ )\]]?[^><]*[^ (\[]?>", self.annotation))
@@ -296,7 +301,7 @@ class TranscriptionUnit:
 				# print(self.annotation)
 				# print(matches_left)
 				# print(matches_right)
-				# input()
+				input()
 
 			# TODO @Martina check se ho beccato slow e fast bene!
 			self.slow_pace_spans = [match.span() for match in matches_left]
