@@ -110,6 +110,10 @@ def process_all_transcripts(input_dir="data/csv_puliti", output_dir="data/output
 
 if __name__ == "__main__":
 	import pathlib
+	
+	output_dir = 'data/alignments'
+	if not os.path.exists(output_dir):
+		os.makedirs(output_dir) 
 
 	transcripts = process_all_transcripts("data/csv_puliti_demo", "data/output_sample")
 
