@@ -653,12 +653,14 @@ class Transcript:
 				i += 1
 		num_tu.append(n_curr)
 
+		## ALLA FINE num_tu = [10, 20, 25]
+
 		#total number of tokens
 		num_total_tokens = sum(len(tu.tokens) for tu in self.transcription_units) # total number of tokens
 
-  		# num_total_tokens/min
+  		# number of tokens per minute
 		tokens_per_minute = []
-
+		
 		i=1
 		tokens_curr = 0
 		for tu in self.transcription_units:
@@ -670,17 +672,43 @@ class Transcript:
 				i += 1
 		tokens_per_minute.append(tokens_curr)
 
+		## ALLA FINE tokens_per_minute = [100, 150, 200]
 
-		# average duration of TUs
-		duration = [tu.duration for tu in self.transcription_units]
-		# average_duration = sum(duration)/num_tu
-		average_duration = 0
+		# average number of token/minute
+  		# avg_tokens_per_min = sum(tokens_per_minute) / len(tokens_per_minute)
+		avg_tokens_per_min = []
+		for n_tokens, n_tus in zip(tokens_per_minute, num_tu):
+			avg_tokens_per_min.append(n_tokens / n_tus)
 
-		# number of total overlaps
+		## ALLA FINE avg_tokens_per_min = [100/10, 150/20, 200/25]
+		# lista1 = ["a", "b", "c"]
+		# lista2 = [1, 2, 3]
+		# zip(lista1, lista2) -> [("a", 1), ("b", 2), ("c", 3)]
+     
+		duration_per_minute = []
+		i=1
+		duration_curr = 0
+		for tu in self.transcription_units:
+			if tu.end < split_size*i:
+				duration_curr += tu.duration
+			else:
+				duration_per_minute.append(duration_curr)
+				duration_curr += tu.duration
+				i += 1
+		duration_per_minute.append(duration_curr)
+     
+		avg_duration_per_min = []
+		for n_duration, n_tus in zip(duration_per_minute, num_tu):
+			avg_duration_per_min.append(n_duration / n_tus)
+
+
+     	# number of total overlaps
 		num_overlaps = 0
 
 		for tu in self.transcription_units:
 			num_overlaps += (len(tu.overlapping_times))
+
+		
 
 		# number of low volume spans
 		num_low_volume_spans = 0
@@ -705,6 +733,15 @@ class Transcript:
 
 		for tu in self.transcription_units:
 			num_slow_pace_spans += (len(tu.slow_pace_spans))
+   
+		# number of prolongations
+		# prolongations: Dict[int, int] = field(default_factory=lambda: {}) --> attributo della classe token
+		num_prolongations = 0
+
+		for tu in self.transcription_units:
+			for token in tu.tokens.values():
+				num_prolongations += (len(token.prolongations))
+		
 
     	# creating an empty dictionary to store statistics
 		stats = {}
@@ -723,7 +760,8 @@ class Transcript:
 						"num_tu": num_tu,
 						"num_total_tokens": num_total_tokens,
                         "tokens_per_minute": tokens_per_minute,
-						"average_duration": average_duration,
+                        "avg_tokens_per_min": avg_tokens_per_min,
+						"avg_duration_per_min": avg_duration_per_min,
 						"num_overlaps": num_overlaps,
 						"num_low_volume_spans": num_low_volume_spans,
 						"num_guessing_spans": num_guessing_spans,
