@@ -82,6 +82,8 @@ def _align(args):
 
 
 def main():
+	print("ciao")
+
 	### MAIN ###
 	parent_parser = argparse.ArgumentParser(add_help=False)
 	root_parser = argparse.ArgumentParser(prog='kiparla-tools', add_help=True)
