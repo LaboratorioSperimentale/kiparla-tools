@@ -210,12 +210,11 @@ class TranscriptionUnit:
 	def __post_init__(self):
 		self.orig_annotation = self.annotation
 
-		self.annotation = self.annotation.strip()
-		print(self.annotation)
-
 		if self.annotation is None or len(self.annotation)<1:
 			self.include = False
 			return
+
+		self.annotation = self.annotation.strip()
 
 		if self.annotation[0] == "#":
 			self.dialect = True
@@ -260,8 +259,6 @@ class TranscriptionUnit:
 		self.errors["UNBALANCED_GUESS"] = not pt.check_normal_parentheses(self.annotation, "(", ")")
 		self.errors["UNBALANCED_PACE"] = not pt.check_angular_parentheses(self.annotation)
 
-		print(self.annotation)
-
 		#pò, perché etc..
 		substitutions, new_text = pt.replace_che(self.annotation)
 		self.warnings["ACCENTS"] += substitutions
@@ -288,24 +285,20 @@ class TranscriptionUnit:
 			self.warnings["UNEVEN_SPACES"] += substitutions
 			self.annotation = new_transcription
 
-		print(self.annotation)
-
 		# check how many varying pace spans have been transcribed
 		if "<" in self.annotation and not self.errors["UNBALANCED_PACE"]:
-			matches_left = list(re.finditer(r"<[^ ][^ )\]]?[^><]*[^ (\[]?>", self.annotation))
-			matches_right = list(re.finditer(r">[^ ][^ )\]]?[^><]*[^ (\[]?<", self.annotation))
-			tot_spans = (self.annotation.count("<") + self.annotation.count(">"))/2
 
-			if not len(matches_left) + len(matches_right) == tot_spans:
-				print("Issue with matches in", self.annotation)
-				# print(self.annotation)
-				# print(matches_left)
-				# print(matches_right)
-				input()
+			tot_spans = (self.annotation.count("<") + self.annotation.count(">"))/2
+			# OLD VERSION
+			# matches_left = list(re.finditer(r"<[^ ][^ )\]]?[^><]*[^ (\[]?>", self.annotation))
+			# matches_right = list(re.finditer(r">[^ ][^ )\]]?[^><]*[^ (\[]?<", self.annotation))
+			matches_left, matches_right = pt.matches_angular(self.annotation)
 
 			# TODO @Martina check se ho beccato slow e fast bene!
-			self.slow_pace_spans = [match.span() for match in matches_left]
-			self.fast_pace_spans = [match.span() for match in matches_right]
+			# self.slow_pace_spans = [match.span() for match in matches_left]
+			# self.fast_pace_spans = [match.span() for match in matches_right]
+			self.slow_pace_spans = [x[1] for x in matches_left]
+			self.fast_pace_spans = [x[1] for x in matches_right]
 
 		# check how many low volume spans have been transcribed
 		if "°" in self.annotation and not self.errors["UNBALANCED_DOTS"]:

@@ -281,6 +281,68 @@ def check_spaces_angular(transcription):
 
 	return subs, transcription.strip()
 
+def matches_angular(transcription):
+
+	matches_left = []
+	matches_right = []
+
+	fastsequence = False   # >....<
+	slowsequence = False    # <.....>
+
+	cur_split = []
+	for i, char in enumerate(transcription):
+		if char == "<":
+			if fastsequence:
+				cur_split.append((char, i))
+				matches_right.append(cur_split)
+				cur_split = []
+				fastsequence = False
+			elif not slowsequence:
+				# matches_right.append(cur_split)
+				cur_split = []
+				cur_split.append((char, i))
+				slowsequence = True
+
+		elif char == ">":
+			if slowsequence:
+				cur_split.append((char, i))
+				matches_left.append(cur_split)
+				cur_split = []
+				slowsequence = False
+			elif not fastsequence:
+				# matches_left.append(cur_split)
+				cur_split = []
+				cur_split.append((char, i))
+				fastsequence = True
+
+		else:
+			cur_split.append((char, i))
+
+	# if len(cur_split) > 0:
+	# 	matches_left.append(cur_split)
+
+
+	matches_left_ret = []
+	for match in matches_left:
+		if len(match)>0:
+			text = "".join([x for x, y in match])
+			span = (match[0][1], match[-1][1]+1)
+			matches_left_ret.append((text, span))
+
+	matches_right_ret = []
+	for match in matches_right:
+		if len(match)>0:
+			text = "".join([x for x, y in match])
+			span = (match[0][1], match[-1][1]+1)
+			matches_right_ret.append((text, span))
+
+
+	# matches_right = [x for x in matches_right if len(x) > 0]
+	# print("left", ["".join([x for x, y in item]) for item in matches_left])
+	# print("right", [ for item in matches_right])
+
+	return matches_left_ret, matches_right_ret
+
 
 def check_numbers(transcription):
 
