@@ -85,23 +85,26 @@ def replace_pero(transcription):
 
 		# new_word = f"\\b{word[0]}"
 		# sub_word = f"{word[0]}
-		new_word = f"\\b"
-		sub_word = f""
-		for char_id, char in enumerate(word[:-1]):
+		new_word = f"\\b{word[0]}"
+		sub_word = f"{word[0]}"
+		for char_id, char in enumerate(word[1:-1]):
 			new_word += "([^ =]*)" + char
 			sub_word = sub_word + "\\" + str(char_id+1) + char
 
 		new_word += "([^ =]*)" + word[-1]
-		new_word += "\\b"
+		# new_word += "\\b"
 
 		sub_word = sub_word[:-1] + substitute[-1]
-
-		# print(new_word, sub_word)
 
 		new_word = re.compile(new_word)
 		new_string, subs_made = re.subn(new_word, rf"{sub_word}", transcription)
 
 		if subs_made > 0:
+			# print(transcription)
+			# print(new_word, sub_word)
+			# print(new_string)
+			# input()
+
 			tot_subs += subs_made
 			transcription = new_string
 		# sub_word = re.compile(sub_word)
