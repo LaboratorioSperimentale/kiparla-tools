@@ -268,6 +268,10 @@ class TranscriptionUnit:
 		self.warnings["ACCENTS"] += substitutions
 		self.annotation = new_text
 
+		substitutions, new_text = pt.replace_pero(self.annotation)
+		self.warnings["ACCENTS"] += substitutions
+		self.annotation = new_text
+
 		# substitute numbers
 		substitutions, new_transcription = pt.check_numbers(self.annotation)
 		self.warnings["NUMBERS"] = substitutions
@@ -660,7 +664,7 @@ class Transcript:
 
   		# number of tokens per minute
 		tokens_per_minute = []
-		
+
 		i=1
 		tokens_curr = 0
 		for tu in self.transcription_units:
@@ -684,7 +688,7 @@ class Transcript:
 		# lista1 = ["a", "b", "c"]
 		# lista2 = [1, 2, 3]
 		# zip(lista1, lista2) -> [("a", 1), ("b", 2), ("c", 3)]
-     
+
 		duration_per_minute = []
 		i=1
 		duration_curr = 0
@@ -696,7 +700,7 @@ class Transcript:
 				duration_curr += tu.duration
 				i += 1
 		duration_per_minute.append(duration_curr)
-     
+
 		avg_duration_per_min = []
 		for n_duration, n_tus in zip(duration_per_minute, num_tu):
 			avg_duration_per_min.append(n_duration / n_tus)
@@ -708,7 +712,7 @@ class Transcript:
 		for tu in self.transcription_units:
 			num_overlaps += (len(tu.overlapping_times))
 
-		
+
 
 		# number of low volume spans
 		num_low_volume_spans = 0
@@ -733,7 +737,7 @@ class Transcript:
 
 		for tu in self.transcription_units:
 			num_slow_pace_spans += (len(tu.slow_pace_spans))
-   
+
 		# number of prolongations
 		# prolongations: Dict[int, int] = field(default_factory=lambda: {}) --> attributo della classe token
 		num_prolongations = 0
@@ -741,7 +745,7 @@ class Transcript:
 		for tu in self.transcription_units:
 			for token in tu.tokens.values():
 				num_prolongations += (len(token.prolongations))
-		
+
 
     	# creating an empty dictionary to store statistics
 		stats = {}

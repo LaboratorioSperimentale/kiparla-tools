@@ -38,21 +38,63 @@ def replace_po(transcription):
 # TODO: fix it to handle also pero'>però, perche'>perché and stuff like this
 def replace_che(transcription):
 
-	words_to_replace = {"perchè", "benchè", "finchè", "poichè", "anzichè", "dopodichè", "granchè",
-						"fourchè", "affinchè", "pressochè"}
+	words_to_replace = {"perchè": "perché",
+						"benchè": "benché",
+						"finchè": "finché",
+						"poichè": "poché",
+						"anzichè": "anziché",
+						"dopodichè": "dopodiché",
+						"granchè": "granché",
+						"fourchè": "fuoché",
+						"affinchè": "affinché",
+						"pressochè": "pressoché"}
 
 	tot_subs = 0
 
-	for word in words_to_replace:
+	for word, substitute in words_to_replace.items():
 
-		new_word = f"\\b{word[0]}"
-		sub_word = f"{word[0]}"
-		for char_id, char in enumerate(word[1:]):
+		# new_word = f"\\b{word[0]}"
+		# sub_word = f"{word[0]}
+		new_word = f"\\b"
+		sub_word = f""
+		for char_id, char in enumerate(word):
 			new_word += "([^ =]*)" + char
 			sub_word = sub_word + "\\" + str(char_id+1) + char
 		new_word += "\\b"
 
 		sub_word = sub_word[:-1] + "é"
+
+		# print(new_word, sub_word)
+
+		new_word = re.compile(new_word)
+		new_string, subs_made = re.subn(new_word, rf"{sub_word}", transcription)
+
+		if subs_made > 0:
+			tot_subs += subs_made
+			transcription = new_string
+		# sub_word = re.compile(sub_word)
+	return tot_subs, transcription
+
+def replace_però(transcription):
+
+	words_to_replace = {"pero'": "però",
+						"perche'": "perché"}
+
+	tot_subs = 0
+	for word, substitute in words_to_replace.items():
+
+		# new_word = f"\\b{word[0]}"
+		# sub_word = f"{word[0]}
+		new_word = f"\\b"
+		sub_word = f""
+		for char_id, char in enumerate(word[:-1]):
+			new_word += "([^ =]*)" + char
+			sub_word = sub_word + "\\" + str(char_id+1) + char
+
+		new_word += "([^ =]*)" + word[-1]
+		new_word += "\\b"
+
+		sub_word = sub_word[:-1] + substitute[-1]
 
 		# print(new_word, sub_word)
 
