@@ -24,8 +24,8 @@ This repository contains a set of tools to process, maintain and analyze files f
 
 # TODO
 * parametrize get_stats() in order to produce stats even when annotators_data is not available
-* add tqdm
 * add lemmatization and postagging module
 * substitute xxx
+* conll2csv
 
 # ISSUES
