@@ -75,7 +75,7 @@ def replace_che(transcription):
 		# sub_word = re.compile(sub_word)
 	return tot_subs, transcription
 
-def replace_però(transcription):
+def replace_pero(transcription):
 
 	words_to_replace = {"pero'": "però",
 						"perche'": "perché"}
