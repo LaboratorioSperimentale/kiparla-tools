@@ -81,6 +81,52 @@ def _align(args):
 	main_tools.align_transcripts(transcripts, args.output_dir)
 
 
+def _cicle(args):
+
+	# STEP1 eaf -> csv
+	input_files = args.eaf_dir.glob("*.eaf")
+
+	pbar = tqdm.tqdm(input_files)
+	for filename in pbar:
+		pbar.set_description(f"Processing {filename.stem}")
+		output_fname = args.csv_dir.joinpath(f"{filename.stem}.csv")
+		serialize.eaf2csv(filename, output_fname)
+
+
+	input_files = args.csv_dir.glob("*.csv")
+	# STEP2 process csv
+	transcripts = {}
+	pbar = tqdm.tqdm(input_files)
+	for filename in pbar:
+		pbar.set_description(f"Processing {filename.stem}")
+		transcript_name = filename.stem
+		transcript = main_tools.process_transcript(filename)
+		transcripts[transcript_name] = transcript
+
+		output_filename_vert = args.output_dir.joinpath(f"{transcript_name}.conll")
+		output_filename_tus = args.output_dir.joinpath(f"{transcript_name}.tus.csv")
+		serialize.conversation_to_conll(transcript, output_filename_vert)
+		serialize.conversation_to_linear(transcript, output_filename_tus)
+
+	# if args.produce_stats:
+	# 	serialize.print_full_statistics(transcripts, args.output_dir.joinpath("stats.csv"))
+
+	# STEP3 csv -> eaf
+
+	input_files = args.output_dir.glob("*.csv")
+	pbar = tqdm.tqdm(input_files)
+	for filename in pbar:
+		pbar.set_description(f"Processing {filename.stem}")
+		basename = filename.stem
+		if basename.endswith(".tus"):
+			basename = basename[:-4]
+		output_fname = args.eaf_dir.joinpath(f"{basename}.eaf")
+		# audio_fname = args.audio_dir.joinpath(f"{basename}.wav")
+		serialize.csv2eaf(filename, "data/audio/PARLABOA.wav", output_fname,
+						"\t", 1000, True)
+
+
+
 def main():
 
 	### MAIN ###
@@ -154,8 +200,8 @@ def main():
 
 	# ALIGN
 	parser_align = subparsers.add_parser("align", parents=[parent_parser],
-											description='align transcripts',
-											help='align transcripts')
+										description='align transcripts',
+										help='align transcripts')
 	parser_align.add_argument("-o", "--output-dir", default="output_aligned/",
 								type=ac.valid_dirpath,
 								help="path to output directory")
@@ -168,6 +214,21 @@ def main():
 								type=ac.valid_dirpath,
 								help="path to input directory. All .conllu files will be transformed")
 	parser_align.set_defaults(func=_align)
+
+	# CICLE
+	parser_cicle = subparsers.add_parser("cicle", parents=[parent_parser],
+										description='perform full transformation cicle: manually corrected eaf -> new csv -> new eaf',
+										help='perform full transformation cicle')
+	parser_cicle.add_argument("-e", "--eaf-dir", default="output_cicleed/",
+								type=ac.valid_dirpath,
+								help="path to directory containing eaf files")
+	parser_cicle.add_argument("-c", "--csv-dir",
+							type=ac.valid_dirpath,
+							help="path to directory containing csv files")
+	parser_cicle.add_argument("-o", "--output-dir",
+							type=ac.valid_dirpath,
+							help="path to directory containing csv and conllu files")
+	parser_cicle.set_defaults(func=_cicle)
 
 	args = root_parser.parse_args()
 
