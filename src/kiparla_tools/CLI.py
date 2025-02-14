@@ -82,7 +82,6 @@ def _align(args):
 
 
 def main():
-	print("ciao")
 
 	### MAIN ###
 	parent_parser = argparse.ArgumentParser(add_help=False)

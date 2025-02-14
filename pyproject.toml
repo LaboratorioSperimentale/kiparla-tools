@@ -8,7 +8,7 @@ dev-mode-dirs = ["."]
 
 [project]
 name = "kiparla-tools"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Ludovica Pannitto", email="ludovica.pannitto@unibo.it" },
   { name="Martina Simonotti"}
