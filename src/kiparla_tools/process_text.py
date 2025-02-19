@@ -47,7 +47,8 @@ def replace_che(transcription):
 						"granchè": "granché",
 						"fourchè": "fuoché",
 						"affinchè": "affinché",
-						"pressochè": "pressoché"}
+						"pressochè": "pressoché",
+						"nè": "né"}
 
 	tot_subs = 0
 
@@ -435,14 +436,17 @@ def meta_tag(transcription):
 				"))": "}",
 				"(.)": "{P}"}
 
+	subs = 0
+
 	for old_string, new_string in subs_map.items():
 		sub_annotation, subs_made = re.subn(re.escape(old_string), new_string, transcription)
 		transcription = sub_annotation
+		subs += subs_made
 
 		# replace spaces with _ in comments
 		transcription = re.sub(r"\{([\w ]+)\}", replace_spaces, transcription)
 
-	return transcription
+	return subs, transcription
 
 
 def remove_prosodiclinks(transcription):

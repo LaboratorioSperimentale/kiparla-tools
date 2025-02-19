@@ -11,21 +11,21 @@ import kiparla_tools.process_text as pt
 import kiparla_tools.dataflags as df
 import csv # for annotators' statistics
 
-@dataclass
-class Turn:
-	speaker: str
-	transcription_units_ids: List[str] = field(default_factory=lambda: [])
-	start: float = 0
-	end: float = 0
+# @dataclass
+# class Turn:
+# 	speaker: str
+# 	transcription_units_ids: List[str] = field(default_factory=lambda: [])
+# 	start: float = 0
+# 	end: float = 0
 
-	def add_tu(self, tu_id):
-		self.transcription_units_ids.append(tu_id)
+# 	def add_tu(self, tu_id):
+# 		self.transcription_units_ids.append(tu_id)
 
-	def set_start(self, start):
-		self.start = start
+# 	def set_start(self, start):
+# 		self.start = start
 
-	def set_end(self, end):
-		self.end = end
+# 	def set_end(self, end):
+# 		self.end = end
 
 @dataclass
 class Token:
@@ -210,44 +210,59 @@ class TranscriptionUnit:
 	def __post_init__(self):
 		self.orig_annotation = self.annotation
 
+		self.annotation = self.annotation.strip()
+
 		if self.annotation is None or len(self.annotation)<1:
 			self.include = False
 			return
-
-		self.annotation = self.annotation.strip()
 
 		if self.annotation[0] == "#":
 			self.dialect = True
 			self.annotation = self.annotation[1:]
 
-		# non jefferson
-		substitutions, new_transcription = pt.clean_non_jefferson_symbols(self.annotation)
-		self.warnings["NON_JEFFERSON"] = substitutions
-		self.annotation = new_transcription
+		functions_to_apply = [
+			("SYMBOL_NOT_ALLOWED", pt.clean_non_jefferson_symbols),   # remove non jefferson symbols
+			("META_TAGS", pt.meta_tag),                               # transform metalinguistic annotations and shortpauses
+			("UNEVEN_SPACES", pt.check_spaces),                       # remove spaces before and after parentheses
+			("TRIM_PAUSES", pt.remove_pauses),                        # remove leading and trailing shortpauses
+			("TRIM_PROSODICLINKS", pt.remove_prosodiclinks),          # remove leading and trailing prosodiclinks
+			("OVERLAP_PROLONGATION", pt.overlap_prolongations),       # fix \w+:*[:
+		]
 
-		# transform metalinguistic annotations and pauses
-		new_transcription = pt.meta_tag(self.annotation)
-		self.annotation = new_transcription
+		for warning_label, function in functions_to_apply:
+			substitutions, new_transcription = function(self.annotation)
+			self.warnings[warning_label] = substitutions
+			self.annotation = new_transcription
 
-		# spaces before and after parentheses
-		substitutions, new_transcription = pt.check_spaces(self.annotation)
-		self.warnings["UNEVEN_SPACES"] += substitutions
-		self.annotation = new_transcription
+		# # non jefferson
+		# substitutions, new_transcription = pt.clean_non_jefferson_symbols(self.annotation)
+		# self.warnings["NON_JEFFERSON"] = substitutions
+		# self.annotation = new_transcription
 
-		# leading and trailing pauses
-		substitutions, new_transcription = pt.remove_pauses(self.annotation)
-		self.warnings["TRIM_PAUSES"] += substitutions
-		self.annotation = new_transcription
+		# # transform metalinguistic annotations and pauses
+		# substitutions, new_transcription = pt.meta_tag(self.annotation)
+		# self.warnings["META_TAGS"] = substitutions
+		# self.annotation = new_transcription
 
-		# leading and trailing prosodic links
-		substitutions, new_transcription = pt.remove_prosodiclinks(self.annotation)
-		self.warnings["TRIM_PROSODICLINKS"] += substitutions
-		self.annotation = new_transcription
+		# # spaces before and after parentheses
+		# substitutions, new_transcription = pt.check_spaces(self.annotation)
+		# self.warnings["UNEVEN_SPACES"] += substitutions
+		# self.annotation = new_transcription
 
-		# fix \w+:*[:
-		substitutions, new_transcription = pt.overlap_prolongations(self.annotation)
-		self.warnings["OVERLAP_PROLONGATION"] += substitutions
-		self.annotation = new_transcription
+		# # leading and trailing pauses
+		# substitutions, new_transcription = pt.remove_pauses(self.annotation)
+		# self.warnings["TRIM_PAUSES"] += substitutions
+		# self.annotation = new_transcription
+
+		# # leading and trailing prosodic links
+		# substitutions, new_transcription = pt.remove_prosodiclinks(self.annotation)
+		# self.warnings["TRIM_PROSODICLINKS"] += substitutions
+		# self.annotation = new_transcription
+
+		# # fix \w+:*[:
+		# substitutions, new_transcription = pt.overlap_prolongations(self.annotation)
+		# self.warnings["OVERLAP_PROLONGATION"] += substitutions
+		# self.annotation = new_transcription
 
 		# remove double spaces
 		substitutions, new_transcription = pt.remove_spaces(self.annotation)
