@@ -495,7 +495,7 @@ class Transcript:
 	transcription_units_dict: Dict[str, TranscriptionUnit] = field(default_factory=lambda: collections.defaultdict(list))
 	transcription_units: List[TranscriptionUnit] = field(default_factory=lambda: [])
 	tot_length: float = 0
-	turns: List[Turn] = field(default_factory=lambda: [])
+	# turns: List[Turn] = field(default_factory=lambda: [])
 	time_based_overlaps: nx.Graph = field(default_factory=lambda: nx.Graph())
 	statistics: pd.DataFrame = None
 
@@ -625,35 +625,35 @@ class Transcript:
 					tu.overlap_duration["+".join([str(x) for x in el])] = tu.overlapping_times[el][1]-tu.overlapping_times[el][0]
 
 
-	def create_turns(self):
+	# def create_turns(self):
 
-		# calculate turns
-		# SP1 : [(T1)-][--][--] ----- [(T3)]-[----]------
-		# SP2 : .........      [(T2)  ]............
+	# 	# calculate turns
+	# 	# SP1 : [(T1)-][--][--] ----- [(T3)]-[----]------
+	# 	# SP2 : .........      [(T2)  ]............
 
-		prev_speaker = self.transcription_units[0].speaker
-		curr_turn = Turn(prev_speaker)
-		curr_turn.add_tu(self.transcription_units[0].tu_id)
-		curr_turn.set_start(self.transcription_units[0].start)
-		curr_turn.set_end(self.transcription_units[0].end) # per ottenere anche la fine del primo turno, altrimenti in mancanza di questo ci restituisce solo lo start
+	# 	prev_speaker = self.transcription_units[0].speaker
+	# 	curr_turn = Turn(prev_speaker)
+	# 	curr_turn.add_tu(self.transcription_units[0].tu_id)
+	# 	curr_turn.set_start(self.transcription_units[0].start)
+	# 	curr_turn.set_end(self.transcription_units[0].end) # per ottenere anche la fine del primo turno, altrimenti in mancanza di questo ci restituisce solo lo start
 
-		for tu in self.transcription_units[1:]:
+	# 	for tu in self.transcription_units[1:]:
 
-			if tu.include:
-				speaker = tu.speaker
+	# 		if tu.include:
+	# 			speaker = tu.speaker
 
-				if speaker == prev_speaker:
-					curr_turn.add_tu(tu.tu_id)
-				else:
-					self.turns.append(curr_turn)
-					curr_turn = Turn(tu.speaker)
-					curr_turn.add_tu(tu.tu_id)
-					curr_turn.set_start(tu.start)
-					prev_speaker = speaker
+	# 			if speaker == prev_speaker:
+	# 				curr_turn.add_tu(tu.tu_id)
+	# 			else:
+	# 				self.turns.append(curr_turn)
+	# 				curr_turn = Turn(tu.speaker)
+	# 				curr_turn.add_tu(tu.tu_id)
+	# 				curr_turn.set_start(tu.start)
+	# 				prev_speaker = speaker
 
-				curr_turn.set_end(tu.end)
+	# 			curr_turn.set_end(tu.end)
 
-		self.turns.append(curr_turn)
+	# 	self.turns.append(curr_turn)
 
 	# Statistic calculations
 	def get_stats (self, annotators_data_csv="data/data_description.csv", split_size=60):
