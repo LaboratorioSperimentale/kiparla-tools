@@ -65,17 +65,36 @@ class Token:
 
 		# # STEP 1: check that token has shape '?([a-z]+:*)+[-']?[.,?]
 		# # otherwise signal error
-		matching_instance = re.fullmatch(r"'?(\p{L}+:*)*\p{L}+:*[-'~]?[.,?]?", self.text)
+		matching_po = re.fullmatch(r"po':*[.,?]?", self.text)
+		matching_instance = re.fullmatch(r"['~-]?(\p{L}+:*)*\p{L}+:*[-'~]?[.,?]?", self.text)
+
+		# if "po" in self.text:
+		# 	print(self.text)
+		# 	print(matching_po)
+		# 	print(matching_instance)
+		# 	input()
 
 		if matching_instance is None:
 			if self.text == "{P}":
 				self.token_type = df.tokentype.shortpause
+				return
 			elif self.text[0] == "{":
 				self.token_type = df.tokentype.metalinguistic
-			else:
+				return
+			elif matching_po is None:
 				self.token_type = df.tokentype.error
+				return
+			# return
 
-			return
+
+		if matching_po:
+			# print(self.text)
+			self.text, subs_made = re.subn(r"'(:*)",
+									r"\1'",
+									self.text)
+			# print(self.text)
+			# input()
+			# self.text = self.text.replace("'")
 
 		# STEP2: find final prosodic features: intonation, truncation and interruptions
 		if self.text.endswith("."):
@@ -89,12 +108,12 @@ class Token:
 			self.text = self.text[:-1]
 		elif self.text.endswith("-") or self.text.endswith("~"):
 			self.interruption = True
-			# self.text = self.text[:-1]
+		elif self.text.startswith("-") or self.text.startswith("~"):
+			self.interruption = True
 		elif self.text.endswith("'") or self.text.startswith("'"):
 			if self.text not in {"po'"}:
 				self.truncation = True
 			# TODO: not truncation if text in dictionary of known words (po')
-			# self.text = self.text[:-1]
 
 		# STEP3: at this point we should be left with the bare word with only prolongations
 

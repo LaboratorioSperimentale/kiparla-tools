@@ -8,7 +8,7 @@ def test_removespaces():
     assert pt.remove_spaces("  ciao") == (1, "ciao")
     assert pt.remove_spaces("ciao  ") == (1, "ciao")
     assert pt.remove_spaces("ciao   ") == (1, "ciao")
-    assert pt.remove_spaces("ci  ao  ") == (2, "ci ao")
+    assert pt.remove_spaces("ci  si  ") == (2, "ci si")
 
 
 def test_meta_tag():

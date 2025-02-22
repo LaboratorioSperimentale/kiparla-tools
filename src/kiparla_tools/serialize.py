@@ -171,7 +171,9 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 
 
 			errors = " ".join([tok.text for _, tok in tu.tokens.items() if df.tokentype.error in tok.token_type])
-			to_write["T:errors"] = f"{to_write['T:errors']}, {errors}"
+			to_write["T:errors"] = f"{to_write['T:errors']}"
+			if len(errors):
+				to_write["T:errors"]+=f", {errors}"
 			if len(tu.overlap_duration) > 0:
 				overlaps = []
 				for unit_id, duration in tu.overlap_duration.items():
