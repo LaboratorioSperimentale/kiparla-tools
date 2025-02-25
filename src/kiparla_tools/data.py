@@ -780,7 +780,13 @@ class Transcript:
 		for tu in self.transcription_units:
 			for token in tu.tokens.values():
 				num_prolongations += (len(token.prolongations))
-
+		
+  		# num_metalinguistic token type
+		num_metaling_tokens = 0
+		for tu in self.transcription_units:
+			for token in tu.tokens.values():
+				if token.token_type & df.tokentype.metalinguistic:
+					num_metaling_tokens += 1
 
     	# creating an empty dictionary to store statistics
 		stats = {}
@@ -806,6 +812,8 @@ class Transcript:
 						"num_guessing_spans": num_guessing_spans,
 						"num_fast_pace_spans": num_fast_pace_spans,
 						"num_slow_pace_spans": num_slow_pace_spans,
+						"num_prolongations": num_prolongations,
+						"num_metaling_tokens": num_metaling_tokens,
 						"annotator": row["Annotatore"],
 						"reviewer": row["Revisore"],
 						"transcription_type": row["Tipo"],
