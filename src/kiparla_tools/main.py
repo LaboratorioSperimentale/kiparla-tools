@@ -72,7 +72,6 @@ def process_all_transcripts(input_dir="data/csv_puliti", output_dir="data/output
 				transcript.add(new_tu)
 
 			transcript.sort()
-			transcript.create_turns()
 			transcript.find_overlaps(duration_threshold=0.1)
 
 			for tu in transcript:
