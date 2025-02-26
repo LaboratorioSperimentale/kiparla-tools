@@ -232,7 +232,7 @@ def main():
 	command_group.add_argument("--input-files", nargs="+",
 								type=ac.valid_filepath,
 								help="path(s) to eaf file(s)")
-	command_group.add_argument("--input-dir", default="input_csv/",
+	command_group.add_argument("--input-dir",
 								type=ac.valid_dirpath,
 								help="path to input directory. All .csv files will be transformed")
 	parser_process.add_argument("-t", "--duration-threshold", type=float, default=0.1,
