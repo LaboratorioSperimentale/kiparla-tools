@@ -1,10 +1,15 @@
 """Command Line Interface for the toolkit"""
 import argparse
 import tqdm
+import pathlib
+
+import spacy_udpipe
+from wtpsplit import SaT
 
 from kiparla_tools import args_check as ac
 from kiparla_tools import serialize
 from kiparla_tools import main as main_tools
+from kiparla_tools import linguistic_pipeline as pipeline
 
 def _eaf2csv(args):
 	input_files = []
@@ -13,11 +18,19 @@ def _eaf2csv(args):
 	else:
 		input_files = args.input_files
 
+	if args.units_annotations_dir:
+		annotations_fpaths = {}
+		for file in input_files:
+			supposed_annotation_path = pathlib.Path(args.units_annotations_dir).joinpath(f"{file.stem}.txt")
+			if supposed_annotation_path.is_file():
+				annotations_fpaths[file.stem] = supposed_annotation_path
+
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
 		pbar.set_description(f"Processing {filename.stem}")
 		output_fname = args.output_dir.joinpath(f"{filename.stem}.csv")
-		serialize.eaf2csv(filename, output_fname)
+		serialize.eaf2csv(filename, output_fname, annotations_fpaths[filename.stem])
+
 
 def _csv2eaf(args):
 	input_files = []
@@ -38,6 +51,7 @@ def _csv2eaf(args):
 						args.delimiter, args.multiplier_factor,
 						args.include_ids)
 
+
 def _process(args):
 	input_files = []
 	if args.input_dir:
@@ -45,12 +59,19 @@ def _process(args):
 	else:
 		input_files = args.input_files
 
+	if args.units_annotations_dir:
+		annotations_fpaths = {}
+		for file in input_files:
+			supposed_annotation_path = pathlib.Path(args.units_annotations_dir).joinpath(f"{file.stem}.txt")
+			if supposed_annotation_path.is_file():
+				annotations_fpaths[file.stem] = supposed_annotation_path
+
 	transcripts = {}
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
 		pbar.set_description(f"Processing {filename.stem}")
 		transcript_name = filename.stem
-		transcript = main_tools.process_transcript(filename)
+		transcript = main_tools.process_transcript(filename, annotations_fpaths[filename.stem])
 		transcripts[transcript_name] = transcript
 
 		output_filename_vert = args.output_dir.joinpath(f"{transcript_name}.conll")
@@ -126,6 +147,26 @@ def _cicle(args):
 						"\t", 1000, True)
 
 
+def _segment(args):
+	input_files = []
+	if args.input_dir:
+		input_files = args.input_dir.glob("*.conll")
+	else:
+		input_files = args.input_files
+
+	sat_sm = SaT("sat-12l-sm")
+
+	nlp = spacy_udpipe.load_from_path(lang="it",
+                                path="/home/ludop/Downloads/italian-postwita-ud-2.5-191206.udpipe",
+                                meta={"description": "Custom 'it' model"})
+
+	for filename in input_files:
+		basename = filename.stem
+		output_fname = args.output_dir.joinpath(f"{basename}.txt")
+
+		pipeline.segment(sat_sm, nlp, filename, output_fname, args.remove_metalinguistic)
+
+
 
 def main():
 
@@ -149,6 +190,8 @@ def main():
 	command_group.add_argument("--input-dir",
 								type=ac.valid_dirpath,
 								help="path to input directory. All .eaf files will be transformed")
+	parser_eaf2csv.add_argument("--units-annotations-dir", type=ac.valid_dirpath,
+								help="") #TODO: write help
 	parser_eaf2csv.set_defaults(func=_eaf2csv)
 
 	# CSV2EAF
@@ -196,6 +239,8 @@ def main():
 								help="") # TODO: write help
 	parser_process.add_argument("-s", "--produce-stats", action="store_true",
 								help="") # TODO: write help
+	parser_process.add_argument("--units-annotations-dir", type=ac.valid_dirpath,
+								help="") #TODO: write help
 	parser_process.set_defaults(func=_process)
 
 	# ALIGN
@@ -229,6 +274,30 @@ def main():
 							type=ac.valid_dirpath,
 							help="path to directory containing csv and conllu files")
 	parser_cicle.set_defaults(func=_cicle)
+
+	# SPLIT
+	parser_split = subparsers.add_parser("segment", parents=[parent_parser],
+										description='segment into maximal units',
+										help='segment into maximal units')
+	group = parser_split.add_argument_group('Input files')
+	command_group = group.add_mutually_exclusive_group(required=True)
+	command_group.add_argument("--input-files", nargs="+",
+								type=ac.valid_filepath,
+								help="path(s) to conllu file(s)")
+	command_group.add_argument("--input-dir",
+								type=ac.valid_dirpath,
+								help="path to input directory. All .conllu files will be transformed")
+	parser_split.add_argument("-o", "--output-dir",
+							type=ac.valid_dirpath,
+							help="path to directory containing csv and conllu files")
+	parser_split.add_argument("--remove-metalinguistic", action="store_true",
+								help="") #TODO write help
+	parser_split.add_argument("--annotate", action="store_true",
+							help="") #TODO write help
+	parser_split.add_argument("--udpipe-model", type=ac.valid_filepath,
+							help="") #TODO write help
+	parser_split.set_defaults(func=_segment)
+
 
 	args = root_parser.parse_args()
 

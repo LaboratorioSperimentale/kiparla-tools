@@ -5,7 +5,7 @@ import pandas as pd
 import os
 
 
-def process_transcript(filename, duration_threshold = 0.1):
+def process_transcript(filename, annotations_filename, duration_threshold = 0.1):
 	"""
 	The function `process_transcript` reads a CSV file containing transcript data, creates transcription
 	units, tokenizes them, and adds token features before returning the processed transcript.
@@ -17,6 +17,10 @@ def process_transcript(filename, duration_threshold = 0.1):
 	to the `duration_threshold`, they are considered as overlapping.
 	:return: processed transcript object.
 	"""
+
+	ignore_overlaps = open(annotations_filename, encoding="utf-8").readlines()
+	ignore_overlaps = [line.strip().split() for line in ignore_overlaps]
+
 	transcript_name = filename.stem
 	transcript = data.Transcript(transcript_name)
 

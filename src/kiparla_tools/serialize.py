@@ -225,7 +225,7 @@ def csv2eaf(input_filename, linked_file, output_filename,
 	doc.to_file(output_filename)
 
 
-def eaf2csv(input_filename, output_filename, sep="\t"):
+def eaf2csv(input_filename, output_filename, annotations_filename, sep="\t"):
 	"""
 	Reads data from an ELAN (.eaf) file and writes it to a CSV file with specified fieldnames and separator.
 
@@ -236,6 +236,9 @@ def eaf2csv(input_filename, output_filename, sep="\t"):
 	"""
 
 	fieldnames = ["tu_id", "speaker", "start", "end", "duration", "text"]
+
+	file_to_rewrite = open(annotations_filename, encoding="utf-8").readlines()
+
 	full_file = []
 
 	eaf = elan.read_eaf(input_filename)
@@ -249,19 +252,36 @@ def eaf2csv(input_filename, output_filename, sep="\t"):
 						"start": _from_ts,
 						"end": _to_ts,
 						"duration": _duration,
-						"text": re.sub(r"^id:[0-9]+", "", anno.value.strip()) # TODO: substitute {} with (())
+						"id": None
+						# "text": re.sub(r"^id:[0-9]+", "", anno.value.strip()) # TODO: substitute {} with (())
 						}
+			text_matches = re.split(r"^(id:)([0-9]+) ", anno.value.strip())
+
+			to_write["text"] = text_matches[-1]
+			if len(text_matches)>1:
+				to_write["id"] = text_matches[2] # due to crazy python: re.split(r"^(id:)([0-9]+) ", "id:15 ciao ciao") ->  ['', 'id:', '15', 'ciao ciao']
 			full_file.append(to_write)
+
+	to_remap = {}
 
 	full_file = sorted(full_file, key=lambda x: float(x["start"]))
 
 	with open(output_filename, "w", encoding="utf-8", newline='') as fout:
-		writer = csv.DictWriter(fout, fieldnames=fieldnames, delimiter=sep)
+		writer = csv.DictWriter(fout, fieldnames=fieldnames, delimiter=sep, extrasaction='ignore')
 		writer.writeheader()
 
 		for el_no, to_write in enumerate(full_file):
 			to_write["tu_id"] = el_no
+			# if to_write["id"] in to_remap:
+			to_remap[to_write["id"]] = el_no
+
 			writer.writerow(to_write)
+
+	with open(annotations_filename, "w", encoding="utf-8") as fout:
+		for line in file_to_rewrite:
+			linesplit = line.strip().split()
+			newline = [to_remap[x] for x in linesplit]
+			print("\t".join([str(x) for x in newline]), file=fout)
 
 
 def read_csv(input_filename, sep="\t"):

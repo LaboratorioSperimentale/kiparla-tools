@@ -27,7 +27,8 @@ dependencies = ["tqdm",
                 "pympi-ling",
                 "networkx",
                 "num2words",
-                "sequence_align"]
+                "sequence_align",
+                "wtpsplit"]
 
 [project.scripts]
 kiparla = "kiparla_tools:CLI.main"
