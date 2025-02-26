@@ -18,8 +18,18 @@ def process_transcript(filename, annotations_filename, duration_threshold = 0.1)
 	:return: processed transcript object.
 	"""
 
-	ignore_overlaps = open(annotations_filename, encoding="utf-8").readlines()
-	ignore_overlaps = [line.strip().split() for line in ignore_overlaps]
+	relations_to_ignore = []
+	if annotations_filename:
+		ignore_overlaps = open(annotations_filename, encoding="utf-8").readlines()
+		ignore_overlaps = [line.strip().split() for line in ignore_overlaps]
+
+		for line in ignore_overlaps:
+			for x in line:
+				for y in line:
+					x = int(x)
+					y = int(y)
+					if y > x:
+						relations_to_ignore.append((x, y))
 
 	transcript_name = filename.stem
 	transcript = data.Transcript(transcript_name)
@@ -34,7 +44,7 @@ def process_transcript(filename, annotations_filename, duration_threshold = 0.1)
 	for tu in transcript:
 		tu.tokenize()
 
-	transcript.check_overlaps()
+	transcript.check_overlaps(relations_to_ignore)
 
 	for tu in transcript:
 		tu.add_token_features()

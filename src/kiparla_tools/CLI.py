@@ -2,6 +2,7 @@
 import argparse
 import tqdm
 import pathlib
+import collections
 
 import spacy_udpipe
 from wtpsplit import SaT
@@ -55,12 +56,13 @@ def _csv2eaf(args):
 def _process(args):
 	input_files = []
 	if args.input_dir:
-		input_files = args.input_dir.glob("*.csv")
+		input_files = list(args.input_dir.glob("*.csv"))
+		# print(input_files)
 	else:
 		input_files = args.input_files
 
+	annotations_fpaths = collections.defaultdict(lambda: 0)
 	if args.units_annotations_dir:
-		annotations_fpaths = {}
 		for file in input_files:
 			supposed_annotation_path = pathlib.Path(args.units_annotations_dir).joinpath(f"{file.stem}.txt")
 			if supposed_annotation_path.is_file():
@@ -69,6 +71,7 @@ def _process(args):
 	transcripts = {}
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
+		# print(filename)
 		pbar.set_description(f"Processing {filename.stem}")
 		transcript_name = filename.stem
 		transcript = main_tools.process_transcript(filename, annotations_fpaths[filename.stem])

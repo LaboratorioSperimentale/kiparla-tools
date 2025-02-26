@@ -583,7 +583,7 @@ class Transcript:
 		self.time_based_overlaps = G
 
 
-	def check_overlaps(self):
+	def check_overlaps(self, relations_to_ignore = []):
 
 		to_remove = []
 		for u, v in self.time_based_overlaps.edges():
@@ -593,6 +593,10 @@ class Transcript:
 
 		for u, v in to_remove:
 			self.time_based_overlaps.remove_edge(u, v)
+
+		if len(relations_to_ignore):
+			for u, v in relations_to_ignore:
+				self.time_based_overlaps.remove_edge(u, v)
 
 		cliques = sorted(nx.find_cliques(self.time_based_overlaps), key=lambda x: len(x))
 
@@ -711,10 +715,10 @@ class Transcript:
 				i += 1
 		tokens_per_minute.append(tokens_curr)
 		## ALLA FINE tokens_per_minute = [100, 150, 200]
-  
+
 		# totale dei minuti trascritti
 		transcribed_minutes = sum(tu.duration for tu in self.transcription_units) / split_size
-		
+
 		# average number of token/minute
   		# avg_tokens_per_min = sum(tokens_per_minute) / len(tokens_per_minute)
 		avg_tokens_per_min = []
@@ -782,15 +786,15 @@ class Transcript:
 		for tu in self.transcription_units:
 			for token in tu.tokens.values():
 				num_prolongations += (len(token.prolongations))
-		
+
   		#num_linguistic token type
 		num_linguistic_tokens = 0
 		for tu in self.transcription_units:
 			for token in tu.tokens.values():
 				if token.token_type & df.tokentype.linguistic:
 					num_linguistic_tokens +=1
-					
-  
+
+
   		# num_metalinguistic token type
 		num_metaling_tokens = 0
 		for tu in self.transcription_units:
@@ -805,20 +809,20 @@ class Transcript:
 				if token.token_type & df.tokentype.shortpause:
 					num_shortpauses += 1
 
-		#num_unknown 
+		#num_unknown
 		num_unknown = 0
 		for tu in self.transcription_units:
 			for token in tu.tokens.values():
 				if token.token_type & df.tokentype.unknown:
 					num_unknown += 1
-     
+
 		#num_errors
 		num_errors = 0
 		for tu in self.transcription_units:
 			for token in tu.tokens.values():
 				if token.token_type & df.tokentype.error:
 					num_errors += 1
-     
+
     	# creating an empty dictionary to store statistics
 		stats = {}
 
