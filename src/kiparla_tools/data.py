@@ -710,9 +710,11 @@ class Transcript:
 				tokens_curr += len(tu.tokens)
 				i += 1
 		tokens_per_minute.append(tokens_curr)
-
 		## ALLA FINE tokens_per_minute = [100, 150, 200]
-
+  
+		# totale dei minuti trascritti
+		transcribed_minutes = sum(tu.duration for tu in self.transcription_units) / split_size
+		
 		# average number of token/minute
   		# avg_tokens_per_min = sum(tokens_per_minute) / len(tokens_per_minute)
 		avg_tokens_per_min = []
@@ -832,6 +834,7 @@ class Transcript:
 						"Transcript_ID": self.tr_id,
 						"num_speakers": num_speakers,
 						"num_tu": num_tu,
+						"transcribed_minutes": transcribed_minutes,
 						"num_total_tokens": num_total_tokens,
 						"num_linguistic_tokens": num_linguistic_tokens,
 						"num_metaling_tokens": num_metaling_tokens,
