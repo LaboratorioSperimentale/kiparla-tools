@@ -710,9 +710,11 @@ class Transcript:
 				tokens_curr += len(tu.tokens)
 				i += 1
 		tokens_per_minute.append(tokens_curr)
-
 		## ALLA FINE tokens_per_minute = [100, 150, 200]
-
+  
+		# totale dei minuti trascritti
+		transcribed_minutes = sum(tu.duration for tu in self.transcription_units) / split_size
+		
 		# average number of token/minute
   		# avg_tokens_per_min = sum(tokens_per_minute) / len(tokens_per_minute)
 		avg_tokens_per_min = []
@@ -780,8 +782,43 @@ class Transcript:
 		for tu in self.transcription_units:
 			for token in tu.tokens.values():
 				num_prolongations += (len(token.prolongations))
+		
+  		#num_linguistic token type
+		num_linguistic_tokens = 0
+		for tu in self.transcription_units:
+			for token in tu.tokens.values():
+				if token.token_type & df.tokentype.linguistic:
+					num_linguistic_tokens +=1
+					
+  
+  		# num_metalinguistic token type
+		num_metaling_tokens = 0
+		for tu in self.transcription_units:
+			for token in tu.tokens.values():
+				if token.token_type & df.tokentype.metalinguistic:
+					num_metaling_tokens += 1
 
+		# num_shortpauses
+		num_shortpauses = 0
+		for tu in self.transcription_units:
+			for token in tu.tokens.values():
+				if token.token_type & df.tokentype.shortpause:
+					num_shortpauses += 1
 
+		#num_unknown 
+		num_unknown = 0
+		for tu in self.transcription_units:
+			for token in tu.tokens.values():
+				if token.token_type & df.tokentype.unknown:
+					num_unknown += 1
+     
+		#num_errors
+		num_errors = 0
+		for tu in self.transcription_units:
+			for token in tu.tokens.values():
+				if token.token_type & df.tokentype.error:
+					num_errors += 1
+     
     	# creating an empty dictionary to store statistics
 		stats = {}
 
@@ -797,7 +834,13 @@ class Transcript:
 						"Transcript_ID": self.tr_id,
 						"num_speakers": num_speakers,
 						"num_tu": num_tu,
+						"transcribed_minutes": transcribed_minutes,
 						"num_total_tokens": num_total_tokens,
+						"num_linguistic_tokens": num_linguistic_tokens,
+						"num_metaling_tokens": num_metaling_tokens,
+						"num_shortpauses": num_shortpauses,
+						"num_unknown": num_unknown,
+						"num_errors": num_errors,
                         "tokens_per_minute": tokens_per_minute,
                         "avg_tokens_per_min": avg_tokens_per_min,
 						"avg_duration_per_min": avg_duration_per_min,
@@ -806,6 +849,7 @@ class Transcript:
 						"num_guessing_spans": num_guessing_spans,
 						"num_fast_pace_spans": num_fast_pace_spans,
 						"num_slow_pace_spans": num_slow_pace_spans,
+						"num_prolongations": num_prolongations,
 						"annotator": row["Annotatore"],
 						"reviewer": row["Revisore"],
 						"transcription_type": row["Tipo"],

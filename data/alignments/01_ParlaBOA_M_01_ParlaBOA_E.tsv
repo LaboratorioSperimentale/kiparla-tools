@@ -53,7 +53,7 @@ match	id_A	token_A	id_B	token_B
 0	11-4	di	11-4	di
 0	11-5	lì	11-5	lì
 0	12-0	eh	12-0	eh
-0	13-0	pero'	13-0	pero'
+0	13-0	però	13-0	però
 1	13-1	a	_	_
 2	13-2	parte	13-1	apparte
 2	13-3	sono	13-2	insomma
@@ -150,7 +150,7 @@ match	id_A	token_A	id_B	token_B
 1	28-0	neanche	_	_
 1	28-1	io	_	_
 1	28-2	mai	_	_
-0	29-0	pero'	23-0	pero'
+0	29-0	però	23-0	però
 1	29-1	ho	_	_
 2	29-2	detto	23-1	in
 2	29-3	sì	23-2	questi
@@ -241,7 +241,7 @@ match	id_A	token_A	id_B	token_B
 0	35-17	lucio	28-16	lucio
 0	35-18	dalla	28-17	dalla
 0	35-19	ovviamente	28-18	ovviamente
-0	35-20	pero'	28-19	pero'
+0	35-20	però	28-19	però
 0	36-0	bello	29-0	bello
 0	37-0	sì	30-0	sì
 0	38-0	che	31-0	che
@@ -265,7 +265,7 @@ match	id_A	token_A	id_B	token_B
 1	40-0	si	_	_
 2	40-1	si	33-0	sìsì
 0	41-0	eh	34-0	eh
-0	42-0	pero'	34-1	pero'
+0	42-0	però	34-1	però
 0	42-1	ci	34-2	ci
 0	42-2	sta	34-3	sta
 2	42-3	eh	34-4	è
@@ -446,7 +446,7 @@ match	id_A	token_A	id_B	token_B
 0	65-16	le	56-16	le
 0	65-17	famiglie	56-17	famiglie
 0	65-18	chiaramente	56-18	chiaramente
-0	66-0	pero'	57-0	pero'
+0	66-0	però	57-0	però
 0	66-1	mi	57-1	mi
 0	66-2	sembra	57-2	sembra
 0	66-3	un	57-3	un
