@@ -1,12 +1,38 @@
 import csv
-import regex as re
 from ast import literal_eval
+import regex as re
 import pandas as pd
 from speach import elan
 from pympi import Elan as EL
 
 from kiparla_tools import data
 from kiparla_tools import dataflags as df
+
+from kiparla_tools.config_parameters import (
+	CONLL_FIELDNAMES
+)
+
+
+def units_from_conll(fobj):
+	curr_sent = []
+	curr_unit = "0"
+	reader = csv.DictReader(fobj, delimiter="\t")
+	for row in reader:
+		token_id = row["token_id"]
+		type = row["type"]
+		text = row["form"]
+		unit = row["unit"]
+
+		if unit == curr_unit:
+			curr_sent.append(row)
+		else:
+			if len(curr_sent):
+				yield curr_sent
+			curr_unit = unit
+			curr_sent = [row]
+
+	if len(curr_sent):
+		yield curr_sent
 
 
 def print_full_statistics(list_of_transcripts, output_filename):
@@ -57,13 +83,8 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 	:param sep: delimiter that separates the fields in the output file.
 	"""
 
-	fieldnames = ["token_id", "speaker", "tu_id", "token", "span",
-				"type", "metalinguistic_category", "jefferson_feats",
-				"align", "prolongations", "slow_pace", "fast_pace",
-				"guesses", "overlaps"]
-
 	with open(output_filename, "w", encoding="utf-8", newline='') as fout:
-		writer = csv.DictWriter(fout, fieldnames=fieldnames, delimiter=sep, restval="_")
+		writer = csv.DictWriter(fout, fieldnames=CONLL_FIELDNAMES, delimiter=sep, restval="_")
 		writer.writeheader()
 
 		for tu in transcript.transcription_units:
@@ -74,10 +95,8 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 				to_write = {"token_id": tok.id,
 							"speaker": tu.speaker,
 							"tu_id": tu_id,
-							"token": tok.text,
-							# "orig_token": tok.orig_text,
+							"form": tok.text,
 							"type": tok.token_type.name,
-							# "intonation": tok.intonation_pattern.name if tok.intonation_pattern else "_"
 							}
 
 				jefferson_feats = {"intonation": f"Intonation={tok.intonation_pattern.name}" if tok.intonation_pattern else "_",
@@ -97,31 +116,41 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 					align.append(("Begin", tu.start))
 				if df.position.end in tok.position_in_tu:
 					align.append(("End", tu.end))
-				to_write["align"] = "|".join([f"{x[0]}={x[1]}" for x in align])
+				if len(align):
+					to_write["align"] = "|".join([f"{x[0]}={x[1]}" for x in align])
 
 				to_write["prolongations"] = ",".join([f"{x[0]}x{x[1]}" for x in tok.prolongations.items()])
 
 				slow_pace = []
 				for span_id, span in tok.slow_pace.items():
 					slow_pace.append(f"{span[0]}-{span[1]}({span_id})")
-				to_write["slow_pace"] = ",".join(slow_pace) if len(slow_pace) > 0 else "_"
 
 				fast_pace = []
 				for span_id, span in tok.fast_pace.items():
 					fast_pace.append(f"{span[0]}-{span[1]}({span_id})")
-				to_write["fast_pace"] = ",".join(fast_pace) if len(fast_pace) > 0 else "_"
 
+				if len(slow_pace) or len(fast_pace):
+					to_write["pace"] = ""
+					if len(slow_pace):
+						to_write["pace"] = "Slow="+",".join(slow_pace)
+					if len(fast_pace):
+						if len(to_write["pace"]):
+							to_write["pace"] += "|"
+						to_write["pace"] += "Fast="+",".join(fast_pace)
 
+					# to_write["pace"] = ",".join(slow_pace) if len(slow_pace) > 0 else "_"
 
 				guesses = []
 				for span_id, span in tok.guesses.items():
 					guesses.append(f"{span[0]}-{span[1]}({span_id})")
-				to_write["guesses"] = ",".join(guesses) if len(guesses) > 0 else "_"
+				if len(guesses):
+					to_write["guesses"] = ",".join(guesses) if len(guesses) > 0 else "_"
 
 				overlaps = []
 				for span_id, span in tok.overlaps.items():
 					overlaps.append(f"{span[0]}-{span[1]}({span_id})")
-				to_write["overlaps"] = ",".join(overlaps) if len(overlaps) > 0 else "_"
+				if len(overlaps):
+					to_write["overlaps"] = ",".join(overlaps) if len(overlaps) > 0 else "_"
 
 				writer.writerow(to_write)
 

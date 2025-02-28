@@ -159,15 +159,32 @@ def _segment(args):
 
 	sat_sm = SaT("sat-12l-sm")
 
+	pbar = tqdm.tqdm(input_files)
+	for filename in pbar:
+		basename = filename.stem
+		output_fname = args.output_dir.joinpath(f"{basename}.conll")
+
+		pipeline.segment(sat_sm, filename, output_fname, args.remove_metalinguistic)
+
+
+def _parse(args):
+	input_files = []
+	if args.input_dir:
+		input_files = args.input_dir.glob("*.conll")
+	else:
+		input_files = args.input_files
+
 	nlp = spacy_udpipe.load_from_path(lang="it",
-                                path="/home/ludop/Downloads/italian-postwita-ud-2.5-191206.udpipe",
+                                path=args.udpipe_model,
                                 meta={"description": "Custom 'it' model"})
 
-	for filename in input_files:
+	pbar = tqdm.tqdm(input_files)
+	for filename in pbar:
 		basename = filename.stem
-		output_fname = args.output_dir.joinpath(f"{basename}.txt")
+		output_fname = args.output_dir.joinpath(f"{basename}.conllu")
 
-		pipeline.segment(sat_sm, nlp, filename, output_fname, args.remove_metalinguistic)
+		pipeline.parse(nlp, filename, output_fname, args.remove_metalinguistic)
+
 
 
 
@@ -295,11 +312,28 @@ def main():
 							help="path to directory containing csv and conllu files")
 	parser_split.add_argument("--remove-metalinguistic", action="store_true",
 								help="") #TODO write help
-	parser_split.add_argument("--annotate", action="store_true",
-							help="") #TODO write help
-	parser_split.add_argument("--udpipe-model", type=ac.valid_filepath,
-							help="") #TODO write help
 	parser_split.set_defaults(func=_segment)
+
+	# PARSE
+	parser_parse = subparsers.add_parser("parse", parents=[parent_parser],
+										description='',
+										help='')
+	group = parser_parse.add_argument_group('Input files')
+	command_group = group.add_mutually_exclusive_group(required=True)
+	command_group.add_argument("--input-files", nargs="+",
+								type=ac.valid_filepath,
+								help="path(s) to conllu file(s)")
+	command_group.add_argument("--input-dir",
+								type=ac.valid_dirpath,
+								help="path to input directory. All .conllu files will be transformed")
+	parser_parse.add_argument("-o", "--output-dir",
+							type=ac.valid_dirpath,
+							help="path to directory containing csv and conllu files")
+	parser_parse.add_argument("--remove-metalinguistic", action="store_true",
+								help="") #TODO write help
+	parser_parse.add_argument("--udpipe-model", #type=ac.valid_filepath,
+							help="") #TODO write help
+	parser_parse.set_defaults(func=_parse)
 
 
 	args = root_parser.parse_args()

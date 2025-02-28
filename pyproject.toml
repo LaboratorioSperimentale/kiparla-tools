@@ -28,7 +28,9 @@ dependencies = ["tqdm",
                 "networkx",
                 "num2words",
                 "sequence_align",
-                "wtpsplit"]
+                "wtpsplit",
+                "spacy",
+                "spacy_udpipe"]
 
 [project.scripts]
 kiparla = "kiparla_tools:CLI.main"

@@ -18,6 +18,7 @@ def process_transcript(filename, annotations_filename, duration_threshold = 0.1)
 	:return: processed transcript object.
 	"""
 
+	#TODO make better
 	relations_to_ignore = []
 	if annotations_filename:
 		ignore_overlaps = open(annotations_filename, encoding="utf-8").readlines()
