@@ -157,7 +157,7 @@ def overlap_prolongations(transcription):
 # TODO: numeri?
 def clean_non_jefferson_symbols(transcription):
 	tot_subs = 0
-	new_string, subs_made = re.subn(r"[^{}_,\?.:=°><\[\]\(\)\w\s'\-~$#]",
+	new_string, subs_made = re.subn(r"[^{}_,\?.:=°><\[\]\(\)\w\s'\-~$#@]",
 									"",
 									transcription) # keeping also the apostrophe, # and $
 

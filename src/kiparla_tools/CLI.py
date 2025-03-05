@@ -5,6 +5,7 @@ import pathlib
 import collections
 
 import spacy_udpipe
+import spacy_conll
 from wtpsplit import SaT
 
 from kiparla_tools import args_check as ac
@@ -177,6 +178,8 @@ def _parse(args):
 	nlp = spacy_udpipe.load_from_path(lang="it",
                                 path=args.udpipe_model,
                                 meta={"description": "Custom 'it' model"})
+
+	nlp.add_pipe("conll_formatter", last=True)
 
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:

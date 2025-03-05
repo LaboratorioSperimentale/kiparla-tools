@@ -61,18 +61,10 @@ class Token:
 		for char in chars:
 			self.text = self.text.replace(char, "")
 
-		# self.orig_text = self.text
-
 		# # STEP 1: check that token has shape '?([a-z]+:*)+[-']?[.,?]
 		# # otherwise signal error
 		matching_po = re.fullmatch(r"po':*[.,?]?", self.text)
 		matching_instance = re.fullmatch(r"['~-]?(\p{L}+:*)*\p{L}+:*[-'~]?[.,?]?", self.text)
-
-		# if "po" in self.text:
-		# 	print(self.text)
-		# 	print(matching_po)
-		# 	print(matching_instance)
-		# 	input()
 
 		if matching_instance is None:
 			if self.text == "{P}":
@@ -84,17 +76,16 @@ class Token:
 			elif matching_po is None:
 				self.token_type = df.tokentype.error
 				return
-			# return
-
 
 		if matching_po:
-			# print(self.text)
 			self.text, subs_made = re.subn(r"'(:*)",
 									r"\1'",
 									self.text)
-			# print(self.text)
-			# input()
-			# self.text = self.text.replace("'")
+
+		# handle "@nomepaese"
+		if self.text[0] == "@":
+			self.token_type = df.tokentype.anonymized
+			self.text = self.text[1:]
 
 		# STEP2: find final prosodic features: intonation, truncation and interruptions
 		if self.text.endswith("."):
@@ -116,7 +107,6 @@ class Token:
 			# TODO: not truncation if text in dictionary of known words (po')
 
 		# STEP3: at this point we should be left with the bare word with only prolongations
-
 		tmp_text = []
 		i=0
 		for char in self.text:
@@ -129,9 +119,7 @@ class Token:
 				tmp_text.append((i, char))
 				i+=1
 
-		# print(self.text)
 		matches = list(re.finditer(r":+", self.text))
-		# print(matches)
 		for match in matches:
 			begin, end = match.span()
 			char_id = begin
@@ -153,6 +141,7 @@ class Token:
 
 		if all(c == "x" for c in self.text):
 			self.token_type = df.tokentype.unknown
+			self.text = "x"
 
 	def add_span(self, start, end):
 		self.span = (start, end)

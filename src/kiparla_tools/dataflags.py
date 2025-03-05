@@ -25,3 +25,4 @@ class tokentype(Flag):
 	metalinguistic = auto()
 	error = auto()
 	unknown = auto()
+	anonymized = auto()

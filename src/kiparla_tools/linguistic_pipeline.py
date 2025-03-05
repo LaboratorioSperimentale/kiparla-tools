@@ -26,7 +26,7 @@ def parse(model, filename, output_filename, ignore_meta):
 		writer = csv.DictWriter(fout, delimiter="\t", fieldnames=fieldnames, restval="_")
 		writer.writeheader()
 
-		for unit in serialize.units_from_conll(fin):
+		for _, unit in serialize.units_from_conll(fin):
 			unit_text = []
 			unit_full = []
 			for token in unit:
@@ -38,11 +38,19 @@ def parse(model, filename, output_filename, ignore_meta):
 				unit_full.append(text)
 
 			if len(unit_text):
-				# print (" ".join(unit_text))
 				doc = model(" ".join(unit_text))
+				print(doc._.conll_str)
+				input()
+
 				doc = [token for token in doc]
 
 				doc_text = [token.text for token in doc]
+
+				# unit_full = il gatto ((sbadiglio)) dorme sul divano
+				# unit_text = il gatto dorme sul divano
+				# doc_text = il gatto dorme su il divano
+
+				# ---> il gatto ((sbadiglio)) dorme sul su il divano
 
 				aligned_full, aligned_doc, _, _ = alignment.align(unit_full, doc_text)
 
@@ -53,8 +61,8 @@ def parse(model, filename, output_filename, ignore_meta):
 					prev_element = aligned_full[j]
 					if prev_element == "_":
 						aligned_full[i], aligned_full[j] = aligned_full[j], aligned_full[i]
-
 					i-=1
+
 
 				idx_unit, idx_doc = 0, 0
 
@@ -67,14 +75,12 @@ def parse(model, filename, output_filename, ignore_meta):
 					if full_token == doc_token:
 						add_info(unit[idx_unit], doc[idx_doc])
 						final_list.append(unit[idx_unit])
-						# writer.writerow()
 
 						idx_unit += 1
 						idx_doc += 1
 
 					elif doc_token == "_":
 						final_list.append(unit[idx_unit])
-						# writer.writerow(unit[idx_unit])
 						idx_unit += 1
 
 					elif full_token == "_":
@@ -84,7 +90,6 @@ def parse(model, filename, output_filename, ignore_meta):
 						ids.append(doc[idx_doc].i)
 						add_info(new_token, doc[idx_doc])
 						final_list.append(new_token)
-						# writer.writerow(new_token)
 						idx_doc += 1
 
 					else:
@@ -95,11 +100,8 @@ def parse(model, filename, output_filename, ignore_meta):
 						ptr = unit[idx_unit]
 						add_info(new_token, doc[idx_doc])
 
-						# unit[idx_unit] = "-".join(ids)
 						final_list.append(unit[idx_unit])
 						final_list.append(new_token)
-						# writer.writerow(unit[idx_unit])
-						# writer.writerow(new_token)
 
 						idx_unit += 1
 						idx_doc += 1
@@ -158,10 +160,3 @@ def segment(model, filename, output_filename, ignore_meta):
 				row["unit"] = curr_token_id
 
 			writer.writerow(row)
-
-# model = Model('english-ud-1.2-160523.udpipe')
-#  sentences = model.tokenize("Hi there. How are you?")
-#  for s in sentences:
-#      model.tag(s)
-#      model.parse(s)
-#  conllu = model.write(sentences, "conllu")

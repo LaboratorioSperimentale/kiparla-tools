@@ -13,6 +13,111 @@ from kiparla_tools.config_parameters import (
 )
 
 
+def conll2conllu(filename):
+
+	# ID FORM LEMMA UPOS XPOS FEATS HEAD DEPREL DEPS MISC
+
+	# TODO: bug sentence 19
+	# TODO:
+
+	with open(filename) as fin:
+		for unit_id, unit in units_from_conll(fin):
+
+			metadata = {
+				"sent_id" : unit_id,
+				"text": "",
+				"jefferson_text": " ".join(u["span"] if not u["span"] =="_" else "" for u in unit),
+				"tu_ids": set(u["tu_id"] for u in unit)
+			}
+
+			tokens = []
+
+			for token in unit:
+				conllu_tok = {
+					"ID": None,
+					"FORM": token["form"],
+					"LEMMA": token["lemma"],
+					"UPOS": token["upos"],
+					"XPOS": token["xpos"],
+					"FEATS": token["feats"],
+					"HEAD": "_",
+					"DEPREL": "_",
+					"DEPS": "_",
+					"MISC": "_",
+				}
+
+				tok_id = token["id"]
+				if not tok_id == "_":
+					if not "-" in tok_id:
+						conllu_tok["ID"] = int(tok_id)
+					else:
+						# print(tok_id)
+						subtokens = tok_id.split("-")
+						conllu_tok["ID"] = tuple(int(x) for x in subtokens)
+
+				if not token["deprel"] == "_":
+					deprel, head = token["deprel"].rsplit(":", 1)
+					head = int(head)
+					conllu_tok["HEAD"] = head
+					conllu_tok["DEPREL"] = deprel
+					if deprel == "ROOT":
+						conllu_tok["HEAD"] = 0
+
+				if "SpaceAfter" in token["jefferson_feats"]:
+					metadata["text"] += token["form"]
+				else:
+					metadata["text"] += " "
+					metadata["text"] += token["form"]
+				feats = {}
+				if not token["jefferson_feats"] == "_":
+					jefferson_features = token["jefferson_feats"].split("|")
+
+					for element in jefferson_features:
+						element = element.strip()
+						if len(element):
+							# print(element)
+							element = element.split("=")
+							feats[element[0]] = element[1]
+
+				if not token["token_id"] == "_":
+					feats["KID"] = token["token_id"]
+				if not token["speaker"] == "_":
+					feats["Speaker"] = token["speaker"]
+
+				conllu_tok["MISC"] = "|".join(list(f"{x}={y}" for x, y in sorted(feats.items())))
+				tokens.append(conllu_tok)
+
+			ids_map = {}
+			for new_id, tok in enumerate(tokens):
+				new_id = new_id + 1
+				old_tok_id = tok["ID"]
+				if not type(old_tok_id) is tuple:
+					tok["ID"] = new_id
+					ids_map[old_tok_id] = new_id
+			# print(unit)
+			# for tok in tokens:
+			# 	print(tok)
+			# print(ids_map)
+
+			for token in tokens:
+				old_tok_id = token["ID"]
+				if type(old_tok_id) is tuple:
+					# print("HERE", old_tok_id)
+					token["ID"] = "-".join(tuple(str(ids_map[x]) for x in old_tok_id))
+					# print(token["ID"])
+					# input()
+				if not token["DEPREL"] == "ROOT":
+					if token["HEAD"] in ids_map:
+						token["HEAD"] = ids_map[token["HEAD"]]
+
+			print(f"# sent_id = {metadata['sent_id']}")
+			print(f"# text = {metadata['text'].strip()}")
+			print(f"# jefferson_text = {metadata['jefferson_text']}")
+			for tok in tokens:
+				print(f"{tok['ID']}\t{tok['FORM']}\t{tok['LEMMA']}\t{tok['UPOS']}\t{tok['XPOS']}\t{tok['FEATS']}\t{tok['HEAD']}\t{tok['DEPREL']}\t{tok['DEPS']}\t{tok['MISC']}")
+			print()
+			# input()
+
 def units_from_conll(fobj):
 	curr_sent = []
 	curr_unit = "0"
@@ -23,16 +128,16 @@ def units_from_conll(fobj):
 		text = row["form"]
 		unit = row["unit"]
 
-		if unit == curr_unit:
+		if unit == curr_unit or unit == "_":
 			curr_sent.append(row)
 		else:
 			if len(curr_sent):
-				yield curr_sent
+				yield curr_unit, curr_sent
 			curr_unit = unit
 			curr_sent = [row]
 
 	if len(curr_sent):
-		yield curr_sent
+		yield curr_unit, curr_sent
 
 
 def print_full_statistics(list_of_transcripts, output_filename):
@@ -394,5 +499,5 @@ def print_aligned(tokens_a, tokens_b, output_filename, sep="\t"):
 			writer.writerow(to_write)
 
 if __name__ == "__main__":
-	eaf2csv("/home/ludop/Documents/kiparla-treebank/dati/output/BOA3017.eaf", "/home/ludop/Documents/kiparla-treebank/dati/output/BOA3017.csv")
+	conll2conllu("/home/ludop/Documents/TREEBANK/kiparla-treebank/dati/current_tagged/BOA3017.conll")
 	# csv2eaf("/home/ludop/Documents/kiparla-treebank/dati/output/BOA3017.tsv", "/home/ludop/Documents/kiparla-treebank/dati/output/BOA3017.eaf")
