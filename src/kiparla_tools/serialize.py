@@ -165,9 +165,11 @@ def print_full_statistics(list_of_transcripts, output_filename):
 		if len(stats_dict["tokens_per_minute"]) > max_columns:
 			max_columns = len(stats_dict["tokens_per_minute"])
 		full_statistics.append(stats_dict)
+		if len(stats_dict["ling_tokens_per_min"]) > max_columns:
+			max_columns = len(stats_dict["ling_tokens_per_min"])
 
 	for stats in full_statistics:
-		for field in ["num_tu", "tokens_per_minute", "avg_duration_per_min", "avg_tokens_per_min"]:
+		for field in ["num_tu", "tokens_per_minute", "avg_duration_per_min", "avg_tokens_per_min", "ling_tokens_per_min"]:
 			for el in range(max_columns):
 				stats[f"{field}::{el}"] = stats[f"{field}"][el] if len(stats[f"{field}"])>el else 0
 			del stats[f"{field}"]
