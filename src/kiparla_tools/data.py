@@ -9,23 +9,9 @@ from typing import List, Dict, Set, Tuple
 
 import kiparla_tools.process_text as pt
 import kiparla_tools.dataflags as df
+import kiparla_tools.utils as utils
 import csv # for annotators' statistics
 
-# @dataclass
-# class Turn:
-# 	speaker: str
-# 	transcription_units_ids: List[str] = field(default_factory=lambda: [])
-# 	start: float = 0
-# 	end: float = 0
-
-# 	def add_tu(self, tu_id):
-# 		self.transcription_units_ids.append(tu_id)
-
-# 	def set_start(self, start):
-# 		self.start = start
-
-# 	def set_end(self, end):
-# 		self.end = end
 
 @dataclass
 class Token:
@@ -61,18 +47,10 @@ class Token:
         for char in chars:
             self.text = self.text.replace(char, "")
 
-        # self.orig_text = self.text
-
         # # STEP 1: check that token has shape '?([a-z]+:*)+[-']?[.,?]
         # # otherwise signal error
         matching_po = re.fullmatch(r"po':*[.,?]?", self.text)
         matching_instance = re.fullmatch(r"['~-]?(\p{L}+:*)*\p{L}+:*[-'~]?[.,?]?", self.text)
-
-        # if "po" in self.text:
-        # 	print(self.text)
-        # 	print(matching_po)
-        # 	print(matching_instance)
-        # 	input()
 
         if matching_instance is None:
             if self.text == "{P}":
@@ -648,218 +626,143 @@ class Transcript:
                 for el in tu.overlapping_times:
                     tu.overlap_duration["+".join([str(x) for x in el])] = tu.overlapping_times[el][1]-tu.overlapping_times[el][0]
 
-
-    # def create_turns(self):
-
-    # 	# calculate turns
-    # 	# SP1 : [(T1)-][--][--] ----- [(T3)]-[----]------
-    # 	# SP2 : .........      [(T2)  ]............
-
-    # 	prev_speaker = self.transcription_units[0].speaker
-    # 	curr_turn = Turn(prev_speaker)
-    # 	curr_turn.add_tu(self.transcription_units[0].tu_id)
-    # 	curr_turn.set_start(self.transcription_units[0].start)
-    # 	curr_turn.set_end(self.transcription_units[0].end) # per ottenere anche la fine del primo turno, altrimenti in mancanza di questo ci restituisce solo lo start
-
-    # 	for tu in self.transcription_units[1:]:
-
-    # 		if tu.include:
-    # 			speaker = tu.speaker
-
-    # 			if speaker == prev_speaker:
-    # 				curr_turn.add_tu(tu.tu_id)
-    # 			else:
-    # 				self.turns.append(curr_turn)
-    # 				curr_turn = Turn(tu.speaker)
-    # 				curr_turn.add_tu(tu.tu_id)
-    # 				curr_turn.set_start(tu.start)
-    # 				prev_speaker = speaker
-
-    # 			curr_turn.set_end(tu.end)
-
-    # 	self.turns.append(curr_turn)
-
     # Statistic calculations
     def get_stats (self, annotators_data_csv="data/data_description.csv", split_size=60):
+        stats = {}
 
-        num_speakers = len(self.speakers) # number of speakers
 
-        num_tu = [] # number of TUs
+        stats["num_speakers"] = len(self.speakers) # number of speakers
 
-        i=1
-        n_curr = 0
-        for tu in self.transcription_units:
-            if tu.end < split_size*i:
-                n_curr += 1
-            else:
-                num_tu.append(n_curr)
-                n_curr += 1
-                i += 1
-        num_tu.append(n_curr)
+        # number of TUs
+        stats["num_tu"] = utils.compute_stats_per_minute(self.transcription_units, split_size)
 
-        num_ling_tu = [] # number of TUs excluding metalinguistic tokens
-        i=1
-        n_curr = 0
-        for tu in self.transcription_units:
-            if tu.end < split_size*i:
-                if any(token.token_type & df.tokentype.linguistic for token in tu.tokens.values()):
-                    n_curr += 1
-            else:
-                num_ling_tu.append(n_curr)
-                if any(token.token_type & df.tokentype.linguistic for token in tu.tokens.values()):
-                    n_curr += 1
-                i += 1
-        num_ling_tu.append(n_curr)
-
-        #total number of tokens
-        num_total_tokens = sum(len(tu.tokens) for tu in self.transcription_units) # total number of tokens
+        # number of TUs excluding metalinguistic tokens
+        stats["num_ling_tu"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                    lambda x: any(token.token_type & df.tokentype.linguistic for token in x.tokens.values()))
 
         # number of tokens per minute
-        tokens_per_minute = []
-
-        i=1
-        tokens_curr = 0
-        for tu in self.transcription_units:
-            if tu.end < split_size*i:
-                tokens_curr += len(tu.tokens)
-            else:
-                tokens_per_minute.append(tokens_curr)
-                tokens_curr += len(tu.tokens)
-                i += 1
-        tokens_per_minute.append(tokens_curr)
-
-        ## ALLA FINE tokens_per_minute = [100, 150, 200]
+        stats["tokens_per_minute"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                            f2_tu=lambda x: len(x.tokens))
 
         # totale dei minuti trascritti
-        transcribed_minutes = sum(tu.duration for tu in self.transcription_units) / split_size
-
+        stats["transcribed_minutes"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                            f2=lambda x: x.duration)
         # average number of token/minute
         # avg_tokens_per_min = sum(tokens_per_minute) / len(tokens_per_minute)
-        avg_tokens_per_min = []
-        for n_tokens, n_tus in zip(tokens_per_minute, num_tu):
-            avg_tokens_per_min.append(n_tokens / n_tus)
+        stats["avg_tokens_per_min"] = []
+        for n_tokens, n_tus in zip(stats["tokens_per_minute"], stats["num_tu"]):
+            stats["avg_tokens_per_min"].append(n_tokens / n_tus)
 
-        ## ALLA FINE avg_tokens_per_min = [100/10, 150/20, 200/25]
-        # lista1 = ["a", "b", "c"]
-        # lista2 = [1, 2, 3]
-        # zip(lista1, lista2) -> [("a", 1), ("b", 2), ("c", 3)]
+        stats["avg_duration_per_min"] = []
+        for n_tokens, n_tus in zip(stats["duration_per_minute"], stats["num_tu"]):
+            stats["avg_duration_per_min"].append(n_tokens / n_tus)
 
-        duration_per_minute = []
-        i=1
-        duration_curr = 0
-        for tu in self.transcription_units:
-            if tu.end < split_size*i:
-                duration_curr += tu.duration
-            else:
-                duration_per_minute.append(duration_curr)
-                duration_curr += tu.duration
-                i += 1
-        duration_per_minute.append(duration_curr)
+        # # number of total overlaps
+        # num_overlaps = []
+        # curr_overlaps = 0
 
-        avg_duration_per_min = []
-        for n_duration, n_tus in zip(duration_per_minute, num_tu):
-            avg_duration_per_min.append(n_duration / n_tus)
+        # for tu in self.transcription_units:
+        #     if tu.end < split_size*i:
+        #         curr_overlaps += len(tu.overlapping_times)
+        #     else:
+        #         num_overlaps.append(curr_overlaps)
+        #         duration_curr += tu.duration
+        #         i += 1
+        #     num_overlaps += (len(tu.overlapping_times))
 
+        # # number of intonation patterns
+        # num_intonation_patterns = 0
+        # for tu in self.transcription_units:
+        #     for token in tu.tokens.values():
+        #         if token.intonation_pattern is not None:
+        #             num_intonation_patterns += 1
 
-        # number of total overlaps
-        num_overlaps = 0
+        # # number of low volume spans
+        # num_low_volume_spans = 0
 
-        for tu in self.transcription_units:
-            num_overlaps += (len(tu.overlapping_times))
+        # for tu in self.transcription_units:
+        #     num_low_volume_spans += (len(tu.low_volume_spans))
 
-        # number of intonation patterns
-        num_intonation_patterns = 0
-        for tu in self.transcription_units:
-            for token in tu.tokens.values():
-                if token.intonation_pattern is not None:
-                    num_intonation_patterns += 1
+        # # number of guessing spans
+        # num_guessing_spans = 0
 
-        # number of low volume spans
-        num_low_volume_spans = 0
+        # for tu in self.transcription_units:
+        #     num_guessing_spans += (len(tu.guessing_spans))
 
-        for tu in self.transcription_units:
-            num_low_volume_spans += (len(tu.low_volume_spans))
+        # # number of fast pace spans
+        # num_fast_pace_spans = 0
 
-        # number of guessing spans
-        num_guessing_spans = 0
+        # for tu in self.transcription_units:
+        #     num_fast_pace_spans += (len(tu.fast_pace_spans))
 
-        for tu in self.transcription_units:
-            num_guessing_spans += (len(tu.guessing_spans))
+        # # number of slow pace spans
+        # num_slow_pace_spans = 0
 
-        # number of fast pace spans
-        num_fast_pace_spans = 0
+        # for tu in self.transcription_units:
+        #     num_slow_pace_spans += (len(tu.slow_pace_spans))
 
-        for tu in self.transcription_units:
-            num_fast_pace_spans += (len(tu.fast_pace_spans))
+        # # number of prolongations
+        # # prolongations: Dict[int, int] = field(default_factory=lambda: {}) --> attributo della classe token
+        # num_prolongations = 0
 
-        # number of slow pace spans
-        num_slow_pace_spans = 0
+        # for tu in self.transcription_units:
+        #     for token in tu.tokens.values():
+        #         num_prolongations += (len(token.prolongations))
 
-        for tu in self.transcription_units:
-            num_slow_pace_spans += (len(tu.slow_pace_spans))
+        # #num_linguistic token type
+        # num_linguistic_tokens = 0
+        # for tu in self.transcription_units:
+        #     for token in tu.tokens.values():
+        #         if token.token_type & df.tokentype.linguistic:
+        #             num_linguistic_tokens +=1
 
-        # number of prolongations
-        # prolongations: Dict[int, int] = field(default_factory=lambda: {}) --> attributo della classe token
-        num_prolongations = 0
+        # # number of linguistic token per minute
+        # ling_tokens_per_min = []
+        # i = 1
+        # ling_tokens_curr = 0
+        # for tu in self.transcription_units:
+        #     if tu.end < split_size*i:
+        #         for token in tu.tokens.values():
+        #             if token.token_type & df.tokentype.linguistic:
+        #                 ling_tokens_curr += 1
+        #     else:
+        #         ling_tokens_per_min.append(ling_tokens_curr)
+        #         for token in tu.tokens.values():
+        #             if token.token_type & df.tokentype.linguistic:
+        #                 ling_tokens_curr += 1
+        #         i += 1
+        # ling_tokens_per_min.append(ling_tokens_curr)
 
-        for tu in self.transcription_units:
-            for token in tu.tokens.values():
-                num_prolongations += (len(token.prolongations))
+        # # num_metalinguistic token type
+        # num_metaling_tokens = 0
+        # for tu in self.transcription_units:
+        #     for token in tu.tokens.values():
+        #         if token.token_type & df.tokentype.metalinguistic:
+        #             num_metaling_tokens += 1
 
-        #num_linguistic token type
-        num_linguistic_tokens = 0
-        for tu in self.transcription_units:
-            for token in tu.tokens.values():
-                if token.token_type & df.tokentype.linguistic:
-                    num_linguistic_tokens +=1
+        # # num_shortpauses
+        # num_shortpauses = 0
+        # for tu in self.transcription_units:
+        #     for token in tu.tokens.values():
+        #         if token.token_type & df.tokentype.shortpause:
+        #             num_shortpauses += 1
 
-        # number of linguistic token per minute
-        ling_tokens_per_min = []
-        i = 1
-        ling_tokens_curr = 0
-        for tu in self.transcription_units:
-            if tu.end < split_size*i:
-                for token in tu.tokens.values():
-                    if token.token_type & df.tokentype.linguistic:
-                        ling_tokens_curr += 1
-            else:
-                ling_tokens_per_min.append(ling_tokens_curr)
-                for token in tu.tokens.values():
-                    if token.token_type & df.tokentype.linguistic:
-                        ling_tokens_curr += 1
-                i += 1
-        ling_tokens_per_min.append(ling_tokens_curr)
+        # #num_unknown
+        # num_unknown = 0
+        # for tu in self.transcription_units:
+        #     for token in tu.tokens.values():
+        #         if token.token_type & df.tokentype.unknown:
+        #             num_unknown += 1
 
-        # num_metalinguistic token type
-        num_metaling_tokens = 0
-        for tu in self.transcription_units:
-            for token in tu.tokens.values():
-                if token.token_type & df.tokentype.metalinguistic:
-                    num_metaling_tokens += 1
-
-        # num_shortpauses
-        num_shortpauses = 0
-        for tu in self.transcription_units:
-            for token in tu.tokens.values():
-                if token.token_type & df.tokentype.shortpause:
-                    num_shortpauses += 1
-
-        #num_unknown
-        num_unknown = 0
-        for tu in self.transcription_units:
-            for token in tu.tokens.values():
-                if token.token_type & df.tokentype.unknown:
-                    num_unknown += 1
-
-        #num_errors
-        num_errors = 0
-        for tu in self.transcription_units:
-            for token in tu.tokens.values():
-                if token.token_type & df.tokentype.error:
-                    num_errors += 1
+        # #num_errors
+        # num_errors = 0
+        # for tu in self.transcription_units:
+        #     for token in tu.tokens.values():
+        #         if token.token_type & df.tokentype.error:
+        #             num_errors += 1
 
         # creating an empty dictionary to store statistics
-        stats = {}
+
 
         # open and read the .csv file to extract annotators' data
         with open(annotators_data_csv, "r") as file:
@@ -869,41 +772,19 @@ class Transcript:
 
                 # if transcript_id not in stats:
                 if transcript_id == self.tr_id:
-                    stats = {
-                        "Transcript_ID": self.tr_id,
-                        "num_speakers": num_speakers,
-                        "num_tu": num_tu,
-                        "num_ling_tu": num_ling_tu,
-                        "transcribed_minutes": transcribed_minutes,
-                        "num_total_tokens": num_total_tokens,
-                        "num_linguistic_tokens": num_linguistic_tokens,
-                        "ling_tokens_per_min": ling_tokens_per_min,
-                        "num_metaling_tokens": num_metaling_tokens,
-                        "num_shortpauses": num_shortpauses,
-                        "num_unknown": num_unknown,
-                        "num_errors": num_errors,
-                        "tokens_per_minute": tokens_per_minute,
-                        "avg_tokens_per_min": avg_tokens_per_min,
-                        "avg_duration_per_min": avg_duration_per_min,
-                        "num_overlaps": num_overlaps,
-                        "num_intonation_patterns": num_intonation_patterns,
-                        "num_low_volume_spans": num_low_volume_spans,
-                        "num_guessing_spans": num_guessing_spans,
-                        "num_fast_pace_spans": num_fast_pace_spans,
-                        "num_slow_pace_spans": num_slow_pace_spans,
-                        "num_prolongations": num_prolongations,
-                        "annotator": row["Annotatore"],
-                        "reviewer": row["Revisore"],
-                        "transcription_type": row["Tipo"],
-                        "expertise": row["Esperto"],
-                        "accuracy": row["Accurato"],
-                        "minutes_experience": row["MinutiEsperienza"],
-                        "sec30": row["Sec30"],
-                        "sec60": row["Sec60"],
-                        "sec90": row["Sec90"],
-                        "sec120": row["Sec120"],
-                        "sec_assignment": row["SecAssegnazione"],
-                    }
+                    stats["Transcript_ID"] = self.tr_id
+                    stats.update(row)
+                    # stats["annotator"]= row["Annotatore"]
+                    # stats["reviewer"]= row["Revisore"]
+                    # stats["transcription_type"]= row["Tipo"]
+                    # stats["expertise"]= row["Esperto"]
+                    # stats["accuracy"]= row["Accurato"]
+                    # stats["minutes_experience"]= row["MinutiEsperienza"]
+                    # stats["sec30"]= row["Sec30"]
+                    # stats["sec60"]= row["Sec60"]
+                    # stats["sec90"]: row["Sec90"]
+                    # stats["sec120"]: row["Sec120"]
+                    # stats["sec_assignment"]: row["SecAssegnazione"]
 
 
         self.statistics = pd.DataFrame(stats.items(), columns=["Statistic", "Value"])

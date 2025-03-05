@@ -171,11 +171,11 @@ def print_full_statistics(list_of_transcripts, output_filename):
 		# 	max_columns = len(stats_dict["num_ling_tu"])
 
 	for stats in full_statistics:
-		for field in ["num_tu", "num_ling_tu",
-				"tokens_per_minute", "avg_duration_per_min", "avg_tokens_per_min", "ling_tokens_per_min"]:
-			for el in range(max_columns):
-				stats[f"{field}::{el}"] = stats[f"{field}"][el] if len(stats[f"{field}"])>el else 0
-			del stats[f"{field}"]
+		for field in stats:
+			if type(stats[field]) is list:
+				for el in range(max_columns):
+					stats[f"{field}::{el}"] = stats[field][el] if len(stats[field])>el else 0
+			del stats[field]
 
 	# Creating a df with all statistics
 	statistics_complete = pd.DataFrame(full_statistics) # creating the dataframe
