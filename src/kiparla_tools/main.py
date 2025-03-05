@@ -122,7 +122,7 @@ if __name__ == "__main__":
 				tokens_a, tokens_b = alignment.align_transcripts(transcripts[t_a],
 																transcripts[t_b])
 
-				serialize.print_aligned(tokens_a, tokens_b, f"data/alignments/{t_a}_{t_b}.tsv")
+				serialize.print_aligned(tokens_a, tokens_b, f"/Users/martinasimonotti/asr-assisted-transcription/asr-assisted-transcription/data/alignments/{t_a}_{t_b}.tsv")
 
 	for file in pathlib.Path(f"/home/ludop/Documents/asr-assisted-transcription/data/output").glob("*.tsv"):
 		serialize.csv2eaf(file, f"data/audio/{file.stem}.wav", f"/home/ludop/Documents/asr-assisted-transcription/data/output/{file.stem}.eaf")
