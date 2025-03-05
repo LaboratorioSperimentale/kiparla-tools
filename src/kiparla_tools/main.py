@@ -18,7 +18,6 @@ def process_transcript(filename, annotations_filename, duration_threshold = 0.1)
 	:return: processed transcript object.
 	"""
 
-	#TODO make better
 	relations_to_ignore = []
 	if annotations_filename:
 		ignore_overlaps = open(annotations_filename, encoding="utf-8").readlines()
@@ -67,7 +66,7 @@ def align_transcripts(transcripts_dict, output_folder):
 
 
 # Funzione che apre tutti i file transcript e genera un file di output per ognuno
-def process_all_transcripts(input_dir="data/csv_puliti", output_dir="data/output"):
+def process_all_transcripts(input_dir="data/curr_csv", output_dir="data/output"): 
 	transcripts_dict = {}
 
 	if not os.path.exists(output_dir): # non abbiamo cartella di output, quindi la creiamo
@@ -111,7 +110,7 @@ if __name__ == "__main__":
 	if not os.path.exists(output_dir):
 		os.makedirs(output_dir)
 
-	transcripts = process_all_transcripts("data/csv_puliti_demo", "data/output_sample")
+	transcripts = process_all_transcripts("data/curr_csv", "data/output_sample") 
 
 	for i, t_a in enumerate(list(transcripts.keys())[:-1]):
 		t_a_name = t_a.split("_")[1]

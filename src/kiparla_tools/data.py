@@ -742,7 +742,12 @@ class Transcript:
 		for tu in self.transcription_units:
 			num_overlaps += (len(tu.overlapping_times))
 
-
+		# number of intonation patterns
+		num_intonation_patterns = 0
+		for tu in self.transcription_units:
+			for token in tu.tokens.values():
+				if token.intonation_pattern is not None:
+					num_intonation_patterns += 1
 
 		# number of low volume spans
 		num_low_volume_spans = 0
@@ -838,6 +843,7 @@ class Transcript:
                         "avg_tokens_per_min": avg_tokens_per_min,
 						"avg_duration_per_min": avg_duration_per_min,
 						"num_overlaps": num_overlaps,
+						"num_intonation_patterns": num_intonation_patterns,
 						"num_low_volume_spans": num_low_volume_spans,
 						"num_guessing_spans": num_guessing_spans,
 						"num_fast_pace_spans": num_fast_pace_spans,
