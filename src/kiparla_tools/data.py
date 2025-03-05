@@ -769,17 +769,17 @@ class Transcript:
 
         # creating an empty dictionary to store statistics
 
-
+        found = False
         # open and read the .csv file to extract annotators' data
         with open(annotators_data_csv, "r") as file:
             reader = csv.DictReader(file, delimiter="\t")
             for row in reader:
                 transcript_id = row["NomeFile"]
-
                 # if transcript_id not in stats:
                 if transcript_id == self.tr_id:
                     stats["Transcript_ID"] = self.tr_id
                     stats.update(row)
+                    found = True
                     # stats["annotator"]= row["Annotatore"]
                     # stats["reviewer"]= row["Revisore"]
                     # stats["transcription_type"]= row["Tipo"]
@@ -792,6 +792,8 @@ class Transcript:
                     # stats["sec120"]: row["Sec120"]
                     # stats["sec_assignment"]: row["SecAssegnazione"]
 
+        if not found:
+            print(self.tr_id)
 
         self.statistics = pd.DataFrame(stats.items(), columns=["Statistic", "Value"])
 

@@ -20,7 +20,7 @@ NomeFile	Audio	Annotatore	Revisore	Tipo	Esperto	Accurato	MinutiEsperienza	Sec30	
 02_StraParlaA_V	Straparla_A	V	-	Whisper-Assisted	no			69	149	217	251	708
 02_StraParlaB_O	Straparla_B	O	-	Whisper-Assisted	sì			120	220	396	406	592
 02_StraParlaB_R	Straparla_B	R	-	Whisper-Assisted	no			64	104	173	191	725
-02_StraParlaC_N	Straparla_C	N	-	Revised	no			70	144	213	242	947
+02_StraParlaC_N	Straparla_C	N	-	Whisper-Assisted	no			70	144	213	242	947
 03_ParlaBOA	ParlaBO_A	esterno	?	Revised	-	-	-	-	-	-	-	-
 03_ParlaBOB	ParlaBO_B	esterno	?	Revised	-	-	-	-	-	-	-	-
 03_PastiA	Pasti_A	esterno	Eleonora	Revised	-	-	-	-	-	-	-	-
@@ -31,3 +31,6 @@ NomeFile	Audio	Annotatore	Revisore	Tipo	Esperto	Accurato	MinutiEsperienza	Sec30	
 03_StraParlaB_whi	Straparla_B	O	Eleonora	Revised	-	-	-	-	-	-	-	-
 03_StraParlaC_man	Straparla_C	U	Eleonora	Revised	-	-	-	-	-	-	-	-
 03_StraParlaC_whi	Straparla_C		Eleonora	Revised	-	-	-	-	-	-	-	-
+03_StraParlaA	Straparla_A		Eleonora	Revised	-	-	-	-	-	-	-	-
+03_StraParlaB	Straparla_B		Eleonora	Revised	-	-	-	-	-	-	-	-
+03_StraParlaC	Straparla_C		Eleonora	Revised	-	-	-	-	-	-	-	-

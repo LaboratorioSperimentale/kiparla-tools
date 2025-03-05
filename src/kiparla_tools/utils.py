@@ -2,7 +2,7 @@ def compute_stats_per_minute(tus_list, split_size, f1_tu=lambda x: True, f2_tu=l
 
 	ret_list = []
 	n_curr = 0
-	i=0
+	i=1
 	for tu in tus_list:
 		if tu.end > split_size*i:
 			ret_list.append(n_curr)
