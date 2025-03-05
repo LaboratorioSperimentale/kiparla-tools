@@ -54,10 +54,8 @@ def replace_che(transcription):
 
 	for word, substitute in words_to_replace.items():
 
-		# new_word = f"\\b{word[0]}"
-		# sub_word = f"{word[0]}
-		new_word = f"\\b"
-		sub_word = f""
+		new_word = "\\b"
+		sub_word = ""
 		for char_id, char in enumerate(word):
 			new_word += "([^ =]*)" + char
 			sub_word = sub_word + "\\" + str(char_id+1) + char
@@ -65,27 +63,22 @@ def replace_che(transcription):
 
 		sub_word = sub_word[:-1] + "é"
 
-		# print(new_word, sub_word)
-
 		new_word = re.compile(new_word)
 		new_string, subs_made = re.subn(new_word, rf"{sub_word}", transcription)
 
 		if subs_made > 0:
 			tot_subs += subs_made
 			transcription = new_string
-		# sub_word = re.compile(sub_word)
 	return tot_subs, transcription
 
 def replace_pero(transcription):
 
 	words_to_replace = {"pero'": "però",
-						"perche'": "perché"}
+						"perche'": "perché",
+						"puo'": "può",}
 
 	tot_subs = 0
 	for word, substitute in words_to_replace.items():
-
-		# new_word = f"\\b{word[0]}"
-		# sub_word = f"{word[0]}
 		new_word = f"\\b{word[0]}"
 		sub_word = f"{word[0]}"
 		for char_id, char in enumerate(word[1:-1]):
@@ -93,7 +86,6 @@ def replace_pero(transcription):
 			sub_word = sub_word + "\\" + str(char_id+1) + char
 
 		new_word += "([^ =]*)" + word[-1]
-		# new_word += "\\b"
 
 		sub_word = sub_word[:-1] + substitute[-1]
 
@@ -101,16 +93,9 @@ def replace_pero(transcription):
 		new_string, subs_made = re.subn(new_word, rf"{sub_word}", transcription)
 
 		if subs_made > 0:
-			# print(transcription)
-			# print(new_word, sub_word)
-			# print(new_string)
-			# input()
-
 			tot_subs += subs_made
 			transcription = new_string
-		# sub_word = re.compile(sub_word)
 	return tot_subs, transcription
-
 
 # remove initial and final pauses (keep count)
 def remove_pauses(transcription):

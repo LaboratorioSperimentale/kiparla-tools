@@ -30,7 +30,9 @@ dependencies = ["tqdm",
                 "sequence_align",
                 "wtpsplit",
                 "spacy",
-                "spacy_udpipe"]
+                "spacy_udpipe",
+                "spacy_conll",
+                "pyyaml"]
 
 [project.scripts]
 kiparla = "kiparla_tools:CLI.main"

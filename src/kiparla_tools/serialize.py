@@ -2,6 +2,7 @@ import csv
 from ast import literal_eval
 import regex as re
 import pandas as pd
+import yaml
 from speach import elan
 from pympi import Elan as EL
 
@@ -94,18 +95,12 @@ def conll2conllu(filename):
 				if not type(old_tok_id) is tuple:
 					tok["ID"] = new_id
 					ids_map[old_tok_id] = new_id
-			# print(unit)
-			# for tok in tokens:
-			# 	print(tok)
-			# print(ids_map)
 
 			for token in tokens:
 				old_tok_id = token["ID"]
 				if type(old_tok_id) is tuple:
-					# print("HERE", old_tok_id)
 					token["ID"] = "-".join(tuple(str(ids_map[x]) for x in old_tok_id))
-					# print(token["ID"])
-					# input()
+
 				if not token["DEPREL"] == "ROOT":
 					if token["HEAD"] in ids_map:
 						token["HEAD"] = ids_map[token["HEAD"]]
@@ -359,7 +354,7 @@ def csv2eaf(input_filename, linked_file, output_filename,
 	doc.to_file(output_filename)
 
 
-def eaf2csv(input_filename, output_filename, annotations_filename, sep="\t"):
+def eaf2csv(input_filename, output_filename, annotations, sep="\t"):
 	"""
 	Reads data from an ELAN (.eaf) file and writes it to a CSV file with specified fieldnames and separator.
 
@@ -370,8 +365,6 @@ def eaf2csv(input_filename, output_filename, annotations_filename, sep="\t"):
 	"""
 
 	fieldnames = ["tu_id", "speaker", "start", "end", "duration", "text"]
-
-	file_to_rewrite = open(annotations_filename, encoding="utf-8").readlines()
 
 	full_file = []
 
@@ -403,19 +396,23 @@ def eaf2csv(input_filename, output_filename, annotations_filename, sep="\t"):
 	with open(output_filename, "w", encoding="utf-8", newline='') as fout:
 		writer = csv.DictWriter(fout, fieldnames=fieldnames, delimiter=sep, extrasaction='ignore')
 		writer.writeheader()
-
 		for el_no, to_write in enumerate(full_file):
 			to_write["tu_id"] = el_no
-			# if to_write["id"] in to_remap:
 			to_remap[to_write["id"]] = el_no
 
 			writer.writerow(to_write)
 
-	with open(annotations_filename, "w", encoding="utf-8") as fout:
-		for line in file_to_rewrite:
-			linesplit = line.strip().split()
-			newline = [to_remap[x] for x in linesplit]
-			print("\t".join([str(x) for x in newline]), file=fout)
+	if "ignore" in annotations:
+		for pos, el_list in enumerate(annotations["ignore"]):
+			el_list = el_list.split()
+			new_list = []
+			for x in el_list:
+				x = int(x)
+				if x in to_remap:
+					new_list.append(str(to_remap[x]))
+				else:
+					new_list.append(str(x))
+			annotations["ignore"][pos] = " ".join(new_list)
 
 
 def read_csv(input_filename, sep="\t"):
@@ -497,6 +494,14 @@ def print_aligned(tokens_a, tokens_b, output_filename, sep="\t"):
 				to_write["match"] = 0
 
 			writer.writerow(to_write)
+
+
+def load_annotations(fname):
+
+	with open(fname, 'r') as file:
+		ret = yaml.safe_load(file)
+
+	return ret
 
 if __name__ == "__main__":
 	conll2conllu("/home/ludop/Documents/TREEBANK/kiparla-treebank/dati/current_tagged/BOA3017.conll")

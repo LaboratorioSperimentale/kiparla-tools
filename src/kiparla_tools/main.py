@@ -1,11 +1,11 @@
 import kiparla_tools.data as data
 import kiparla_tools.serialize as serialize
 import kiparla_tools.alignment as alignment
-import pandas as pd
+import itertools
 import os
 
 
-def process_transcript(filename, annotations_filename, duration_threshold = 0.1):
+def process_transcript(filename, annotations, duration_threshold = 0.1):
 	"""
 	The function `process_transcript` reads a CSV file containing transcript data, creates transcription
 	units, tokenizes them, and adds token features before returning the processed transcript.
@@ -17,19 +17,13 @@ def process_transcript(filename, annotations_filename, duration_threshold = 0.1)
 	to the `duration_threshold`, they are considered as overlapping.
 	:return: processed transcript object.
 	"""
-
+	# print(annotations)
 	relations_to_ignore = []
-	if annotations_filename:
-		ignore_overlaps = open(annotations_filename, encoding="utf-8").readlines()
-		ignore_overlaps = [line.strip().split() for line in ignore_overlaps]
-
-		for line in ignore_overlaps:
-			for x in line:
-				for y in line:
-					x = int(x)
-					y = int(y)
-					if y > x:
-						relations_to_ignore.append((x, y))
+	if "ignore" in annotations:
+		for element in annotations["ignore"]:
+			relations_to_ignore.extend(itertools.combinations([int(x) for x in element.split()], 2))
+	# print(relations_to_ignore)
+	# input()
 
 	transcript_name = filename.stem
 	transcript = data.Transcript(transcript_name)

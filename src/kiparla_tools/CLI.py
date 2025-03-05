@@ -6,6 +6,7 @@ import collections
 
 import spacy_udpipe
 import spacy_conll
+import yaml
 from wtpsplit import SaT
 
 from kiparla_tools import args_check as ac
@@ -23,16 +24,22 @@ def _eaf2csv(args):
 	if args.units_annotations_dir:
 		annotations_fpaths = {}
 		for file in input_files:
-			supposed_annotation_path = pathlib.Path(args.units_annotations_dir).joinpath(f"{file.stem}.txt")
+			supposed_annotation_path = pathlib.Path(args.units_annotations_dir).joinpath(f"{file.stem}.yml")
+			content = {}
 			if supposed_annotation_path.is_file():
-				annotations_fpaths[file.stem] = supposed_annotation_path
+				content = serialize.load_annotations(supposed_annotation_path)
+			annotations_fpaths[file.stem] = content
 
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
 		pbar.set_description(f"Processing {filename.stem}")
 		output_fname = args.output_dir.joinpath(f"{filename.stem}.csv")
-		serialize.eaf2csv(filename, output_fname, annotations_fpaths[filename.stem])
-
+		annotations = annotations_fpaths[filename.stem]
+		serialize.eaf2csv(filename, output_fname, annotations)
+		if len(annotations):
+			output_fname = pathlib.Path(args.units_annotations_dir).joinpath(f"{filename.stem}.yml")
+			with open(output_fname, 'w') as yaml_file:
+				yaml.dump(annotations, yaml_file, indent=2)
 
 def _csv2eaf(args):
 	input_files = []
@@ -58,24 +65,23 @@ def _process(args):
 	input_files = []
 	if args.input_dir:
 		input_files = list(args.input_dir.glob("*.csv"))
-		# print(input_files)
 	else:
 		input_files = args.input_files
 
-	annotations_fpaths = collections.defaultdict(lambda: 0)
+	annotations = collections.defaultdict(dict)
 	if args.units_annotations_dir:
 		for file in input_files:
-			supposed_annotation_path = pathlib.Path(args.units_annotations_dir).joinpath(f"{file.stem}.txt")
+			supposed_annotation_path = pathlib.Path(args.units_annotations_dir).joinpath(f"{file.stem}.yml")
 			if supposed_annotation_path.is_file():
-				annotations_fpaths[file.stem] = supposed_annotation_path
+				content = serialize.load_annotations(supposed_annotation_path)
+				annotations[file.stem] = content
 
 	transcripts = {}
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
-		# print(filename)
 		pbar.set_description(f"Processing {filename.stem}")
 		transcript_name = filename.stem
-		transcript = main_tools.process_transcript(filename, annotations_fpaths[filename.stem])
+		transcript = main_tools.process_transcript(filename, annotations[filename.stem])
 		transcripts[transcript_name] = transcript
 
 		output_filename_vert = args.output_dir.joinpath(f"{transcript_name}.conll")

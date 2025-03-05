@@ -1,17 +1,15 @@
 import collections
-import itertools
-# import re
+import csv # for annotators' statistics
+from dataclasses import dataclass, field
+from typing import List, Dict, Tuple
+
 import regex as re
 import pandas as pd
 import networkx as nx
-from dataclasses import dataclass, field
-from typing import List, Dict, Set, Tuple
 
 import kiparla_tools.process_text as pt
 import kiparla_tools.dataflags as df
 import kiparla_tools.utils as utils
-import csv # for annotators' statistics
-
 
 @dataclass
 class Token:
@@ -362,18 +360,20 @@ class TranscriptionUnit:
         end_pos = 0
         token_id = -1
 
+        # print(tokens)
+
         for tok in tokens:
+            # print(tok)
+            assert(len(tok)>0)
+            end_pos = start_pos + len(tok)
 
-            if len(tok)>0 and not tok == " ":
-                end_pos += len(tok)
+            # print(start_pos, end_pos, self.annotation[start_pos:end_pos])
+            # input()
+            if not tok == " ":
                 if tok == "=":
-                    if len(self.tokens) == 0:
-                        self.warnings["SKIPPED_TOKEN"] += 1
-                    else:
-                        self.tokens[token_id].add_info("ProsodicLink", "Yes")
-                    start_pos = end_pos+1
-                else:
+                    self.tokens[token_id].add_info("ProsodicLink", "Yes")
 
+                else:
                     subtokens = re.split(r"(\p{L}[\)\]°><]?'[\(\[°><]?\p{L})", tok)
 
                     if len(subtokens) == 3:
@@ -381,7 +381,7 @@ class TranscriptionUnit:
                         subtoken2 = subtokens[1][-1]+subtokens[2]
 
                         start1 = start_pos
-                        end1 = end_pos - len(tok) + len(subtoken1) -1
+                        end1 = end_pos - len(tok) + len(subtoken1)
 
                         start2 = end1+1
                         end2 = end_pos
@@ -402,8 +402,51 @@ class TranscriptionUnit:
                         new_token = Token(tok, f"{self.tu_id}-{token_id}")
                         new_token.add_span(start_pos, end_pos)
                         self.tokens[token_id] = new_token
-                    start_pos = end_pos+1
-                    end_pos+=1
+
+            start_pos = end_pos
+
+            # if len(tok)>0 and not tok == " ":
+                # # end_pos += len(tok)
+                # end_pos = start_pos + len(tok)
+                # if tok == "=":
+                #     if len(self.tokens) == 0:
+                #         self.warnings["SKIPPED_TOKEN"] += 1
+                #     else:
+                #         self.tokens[token_id].add_info("ProsodicLink", "Yes")
+                #     start_pos = end_pos+1
+
+                # else:
+
+                #     subtokens = re.split(r"(\p{L}[\)\]°><]?'[\(\[°><]?\p{L})", tok)
+
+                #     if len(subtokens) == 3:
+                #         subtoken1 = subtokens[0]+subtokens[1][:-1]
+                #         subtoken2 = subtokens[1][-1]+subtokens[2]
+
+                #         start1 = start_pos
+                #         end1 = end_pos - len(tok) + len(subtoken1) -1
+
+                #         start2 = end1+1
+                #         end2 = end_pos
+
+                #         token_id += 1
+                #         new_token = Token(subtoken1, f"{self.tu_id}-{token_id}")
+                #         new_token.add_span(start1, end1)
+                #         new_token.add_info("SpaceAfter", "No")
+                #         self.tokens[token_id] = new_token
+
+                #         token_id += 1
+                #         new_token = Token(subtoken2, f"{self.tu_id}-{token_id}")
+                #         new_token.add_span(start2, end2)
+                #         self.tokens[token_id] = new_token
+
+                #     else:
+                #         token_id += 1
+                #         new_token = Token(tok, f"{self.tu_id}-{token_id}")
+                #         new_token.add_span(start_pos, end_pos)
+                #         self.tokens[token_id] = new_token
+                #     start_pos = end_pos+1
+                    # end_pos+=1
 
 
         if self.dialect:
@@ -451,11 +494,11 @@ class TranscriptionUnit:
                     if token_id in char_ranges:
                         char_ranges[token_id].append(pos_id)
 
-                for id in char_ranges:
-                    char_ranges[id] = (min(char_ranges[id]), max(char_ranges[id])+1)
-                    self.tokens[id].add_info(feature_name, (span_id,
-                                                            char_ranges[id][0],
-                                                            char_ranges[id][1]))
+                for idx in char_ranges:
+                    char_ranges[idx] = (min(char_ranges[idx]), max(char_ranges[idx])+1)
+                    self.tokens[idx].add_info(feature_name, (span_id,
+                                                            char_ranges[idx][0],
+                                                            char_ranges[idx][1]))
 
 
         if len(self.overlapping_matches) > 0:
@@ -573,7 +616,7 @@ class Transcript:
         for u, v in to_remove:
             self.time_based_overlaps.remove_edge(u, v)
 
-        if len(relations_to_ignore):
+        if len(relations_to_ignore) > 0:
             for u, v in relations_to_ignore:
                 self.time_based_overlaps.remove_edge(u, v)
 
@@ -595,8 +638,6 @@ class Transcript:
                 for node in clique:
                     clique_tup = tuple(x for x in clique if not x == node)
                     self.transcription_units_dict[node].overlapping_times[clique_tup] = (overlap_start, overlap_end)
-
-        edges_to_move = []
 
         for tu_id, tu  in self.transcription_units_dict.items():
             spans = tu.overlapping_spans
@@ -771,7 +812,7 @@ class Transcript:
 
         found = False
         # open and read the .csv file to extract annotators' data
-        with open(annotators_data_csv, "r") as file:
+        with open(annotators_data_csv, "r", encoding="utf-8") as file:
             reader = csv.DictReader(file, delimiter="\t")
             for row in reader:
                 transcript_id = row["NomeFile"]

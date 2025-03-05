@@ -184,3 +184,10 @@ data/max_trascrizioni.tsv
 data/output_sample/*
 data/prova_processing*
 cache/
+GPATH
+.gitignore
+.gitignore
+GTAGS
+.gitignore
+GRTAGS
+tags
