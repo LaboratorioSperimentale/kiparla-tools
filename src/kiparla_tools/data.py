@@ -657,12 +657,12 @@ class Transcript:
                 stats["avg_tokens_per_min"].append(0)
 
 
-        stats["avg_duration_per_min"] = []
-        for n_tokens, n_tus in zip(stats["duration_per_minute"], stats["num_tu"]):
-            if n_tus > 0:
-                stats["avg_duration_per_min"].append(n_tokens / n_tus)
-            else:
-                stats["avg_duration_per_min"].append(0)
+        # stats["avg_duration_per_min"] = []
+        # for n_tokens, n_tus in zip(stats["duration_per_minute"], stats["num_tu"]):
+        #     if n_tus > 0:
+        #         stats["avg_duration_per_min"].append(n_tokens / n_tus)
+        #     else:
+        #         stats["avg_duration_per_min"].append(0)
 
         # # number of total overlaps
         # num_overlaps = []

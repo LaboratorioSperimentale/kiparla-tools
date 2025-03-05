@@ -162,20 +162,15 @@ def print_full_statistics(list_of_transcripts, output_filename):
 		stats_dict = transcript.statistics.set_index("Statistic")["Value"].to_dict() # converting statistics into a dictionary
 		if len(stats_dict["num_tu"]) > max_columns:
 			max_columns = len(stats_dict["num_tu"])
-		# if len(stats_dict["tokens_per_minute"]) > max_columns:
-		# 	max_columns = len(stats_dict["tokens_per_minute"])
-		# full_statistics.append(stats_dict)
-		# if len(stats_dict["ling_tokens_per_min"]) > max_columns:
-		# 	max_columns = len(stats_dict["ling_tokens_per_min"])
-		# if len(stats_dict["num_ling_tu"]) > max_columns:
-		# 	max_columns = len(stats_dict["num_ling_tu"])
+		full_statistics.append(stats_dict)
 
 	for stats in full_statistics:
-		for field in stats:
+		fields = list(stats.keys())
+		for field in fields:
 			if type(stats[field]) is list:
 				for el in range(max_columns):
 					stats[f"{field}::{el}"] = stats[field][el] if len(stats[field])>el else 0
-			del stats[field]
+				del stats[field]
 
 	# Creating a df with all statistics
 	statistics_complete = pd.DataFrame(full_statistics) # creating the dataframe
