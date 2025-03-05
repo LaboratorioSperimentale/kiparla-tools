@@ -151,9 +151,9 @@ class Token:
 
         self.text = self.text.lower()
 
-		if all(c == "x" for c in self.text):
-			self.token_type = df.tokentype.unknown
-			self.text = "x"
+        if all(c == "x" for c in self.text):
+            self.token_type = df.tokentype.unknown
+            self.text = "x"
 
     def add_span(self, start, end):
         self.span = (start, end)
