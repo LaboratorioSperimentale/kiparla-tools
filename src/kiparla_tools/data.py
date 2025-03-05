@@ -630,7 +630,6 @@ class Transcript:
     def get_stats (self, annotators_data_csv="data/data_description.csv", split_size=60):
         stats = {}
 
-
         stats["num_speakers"] = len(self.speakers) # number of speakers
 
         # number of TUs
