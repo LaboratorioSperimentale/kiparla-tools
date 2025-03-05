@@ -162,14 +162,17 @@ def print_full_statistics(list_of_transcripts, output_filename):
 		stats_dict = transcript.statistics.set_index("Statistic")["Value"].to_dict() # converting statistics into a dictionary
 		if len(stats_dict["num_tu"]) > max_columns:
 			max_columns = len(stats_dict["num_tu"])
-		if len(stats_dict["tokens_per_minute"]) > max_columns:
-			max_columns = len(stats_dict["tokens_per_minute"])
-		full_statistics.append(stats_dict)
-		if len(stats_dict["ling_tokens_per_min"]) > max_columns:
-			max_columns = len(stats_dict["ling_tokens_per_min"])
+		# if len(stats_dict["tokens_per_minute"]) > max_columns:
+		# 	max_columns = len(stats_dict["tokens_per_minute"])
+		# full_statistics.append(stats_dict)
+		# if len(stats_dict["ling_tokens_per_min"]) > max_columns:
+		# 	max_columns = len(stats_dict["ling_tokens_per_min"])
+		# if len(stats_dict["num_ling_tu"]) > max_columns:
+		# 	max_columns = len(stats_dict["num_ling_tu"])
 
 	for stats in full_statistics:
-		for field in ["num_tu", "tokens_per_minute", "avg_duration_per_min", "avg_tokens_per_min", "ling_tokens_per_min"]:
+		for field in ["num_tu", "num_ling_tu",
+				"tokens_per_minute", "avg_duration_per_min", "avg_tokens_per_min", "ling_tokens_per_min"]:
 			for el in range(max_columns):
 				stats[f"{field}::{el}"] = stats[f"{field}"][el] if len(stats[f"{field}"])>el else 0
 			del stats[f"{field}"]

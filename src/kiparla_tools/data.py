@@ -697,12 +697,24 @@ class Transcript:
                 i += 1
         num_tu.append(n_curr)
 
-        ## ALLA FINE num_tu = [10, 20, 25]
+        num_ling_tu = [] # number of TUs excluding metalinguistic tokens
+        i=1
+        n_curr = 0
+        for tu in self.transcription_units:
+            if tu.end < split_size*i:
+                if any(token.token_type & df.tokentype.linguistic for token in tu.tokens.values()):
+                    n_curr += 1
+            else:
+                num_ling_tu.append(n_curr)
+                if any(token.token_type & df.tokentype.linguistic for token in tu.tokens.values()):
+                    n_curr += 1
+                i += 1
+        num_ling_tu.append(n_curr)
 
         #total number of tokens
         num_total_tokens = sum(len(tu.tokens) for tu in self.transcription_units) # total number of tokens
 
-          # number of tokens per minute
+        # number of tokens per minute
         tokens_per_minute = []
 
         i=1
@@ -715,15 +727,14 @@ class Transcript:
                 tokens_curr += len(tu.tokens)
                 i += 1
         tokens_per_minute.append(tokens_curr)
-  
-        
+
         ## ALLA FINE tokens_per_minute = [100, 150, 200]
 
         # totale dei minuti trascritti
         transcribed_minutes = sum(tu.duration for tu in self.transcription_units) / split_size
 
         # average number of token/minute
-          # avg_tokens_per_min = sum(tokens_per_minute) / len(tokens_per_minute)
+        # avg_tokens_per_min = sum(tokens_per_minute) / len(tokens_per_minute)
         avg_tokens_per_min = []
         for n_tokens, n_tus in zip(tokens_per_minute, num_tu):
             avg_tokens_per_min.append(n_tokens / n_tus)
@@ -750,7 +761,7 @@ class Transcript:
             avg_duration_per_min.append(n_duration / n_tus)
 
 
-         # number of total overlaps
+        # number of total overlaps
         num_overlaps = 0
 
         for tu in self.transcription_units:
@@ -795,7 +806,7 @@ class Transcript:
             for token in tu.tokens.values():
                 num_prolongations += (len(token.prolongations))
 
-          #num_linguistic token type
+        #num_linguistic token type
         num_linguistic_tokens = 0
         for tu in self.transcription_units:
             for token in tu.tokens.values():
@@ -819,7 +830,7 @@ class Transcript:
                 i += 1
         ling_tokens_per_min.append(ling_tokens_curr)
 
-          # num_metalinguistic token type
+        # num_metalinguistic token type
         num_metaling_tokens = 0
         for tu in self.transcription_units:
             for token in tu.tokens.values():
@@ -862,6 +873,7 @@ class Transcript:
                         "Transcript_ID": self.tr_id,
                         "num_speakers": num_speakers,
                         "num_tu": num_tu,
+                        "num_ling_tu": num_ling_tu,
                         "transcribed_minutes": transcribed_minutes,
                         "num_total_tokens": num_total_tokens,
                         "num_linguistic_tokens": num_linguistic_tokens,
