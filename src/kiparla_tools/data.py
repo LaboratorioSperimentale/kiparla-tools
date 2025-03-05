@@ -646,16 +646,23 @@ class Transcript:
 
         # totale dei minuti trascritti
         stats["transcribed_minutes"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
-                                                            f2=lambda x: x.duration)
+                                                            f2_tu=lambda x: x.duration)
         # average number of token/minute
         # avg_tokens_per_min = sum(tokens_per_minute) / len(tokens_per_minute)
         stats["avg_tokens_per_min"] = []
         for n_tokens, n_tus in zip(stats["tokens_per_minute"], stats["num_tu"]):
-            stats["avg_tokens_per_min"].append(n_tokens / n_tus)
+            if n_tus > 0:
+                stats["avg_tokens_per_min"].append(n_tokens / n_tus)
+            else:
+                stats["avg_tokens_per_min"].append(0)
+
 
         stats["avg_duration_per_min"] = []
         for n_tokens, n_tus in zip(stats["duration_per_minute"], stats["num_tu"]):
-            stats["avg_duration_per_min"].append(n_tokens / n_tus)
+            if n_tus > 0:
+                stats["avg_duration_per_min"].append(n_tokens / n_tus)
+            else:
+                stats["avg_duration_per_min"].append(0)
 
         # # number of total overlaps
         # num_overlaps = []
