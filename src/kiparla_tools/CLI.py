@@ -185,16 +185,13 @@ def _parse(args):
                                 path=args.udpipe_model,
                                 meta={"description": "Custom 'it' model"})
 
-	nlp.add_pipe("conll_formatter", last=True)
+	# nlp.add_pipe("conll_formatter", last=True)
 
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
 		basename = filename.stem
-		output_fname = args.output_dir.joinpath(f"{basename}.conllu")
-
+		output_fname = args.output_dir.joinpath(f"{basename}.conll")
 		pipeline.parse(nlp, filename, output_fname, args.remove_metalinguistic)
-
-
 
 
 def main():

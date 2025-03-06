@@ -89,7 +89,6 @@ class Token:
         elif self.text.endswith("'") or self.text.startswith("'"):
             if self.text not in {"po'"}:
                 self.truncation = True
-            # TODO: not truncation if text in dictionary of known words (po')
 
         # STEP3: at this point we should be left with the bare word with only prolongations
 
@@ -363,27 +362,29 @@ class TranscriptionUnit:
         # print(tokens)
 
         for tok in tokens:
-            # print(tok)
+
             assert(len(tok)>0)
             end_pos = start_pos + len(tok)
 
-            # print(start_pos, end_pos, self.annotation[start_pos:end_pos])
-            # input()
             if not tok == " ":
                 if tok == "=":
                     self.tokens[token_id].add_info("ProsodicLink", "Yes")
 
-                else:
-                    subtokens = re.split(r"(\p{L}[\)\]°><]?'[\(\[°><]?\p{L})", tok)
+                elif "'" in tok:
+                    apostrophe_idx = tok.index("'")
+                    prefix = tok[:apostrophe_idx]
+                    suffix = tok[apostrophe_idx+1:]
 
-                    if len(subtokens) == 3:
-                        subtoken1 = subtokens[0]+subtokens[1][:-1]
-                        subtoken2 = subtokens[1][-1]+subtokens[2]
+                    letter_in_prefix = any(c.isalpha() for c in prefix)
+                    letter_in_suffix = any(c.isalpha() for c in suffix)
+
+                    if letter_in_suffix and letter_in_prefix:
+                        subtoken1 = tok[:apostrophe_idx+1]
+                        subtoken2 = tok[apostrophe_idx+1:]
 
                         start1 = start_pos
-                        end1 = end_pos - len(tok) + len(subtoken1)
-
-                        start2 = end1+1
+                        end1 = start1 + len(subtoken1)
+                        start2 = end1
                         end2 = end_pos
 
                         token_id += 1
@@ -402,52 +403,52 @@ class TranscriptionUnit:
                         new_token = Token(tok, f"{self.tu_id}-{token_id}")
                         new_token.add_span(start_pos, end_pos)
                         self.tokens[token_id] = new_token
+                    # print(tok[:apostrophe_idx], tok[apostrophe_idx+1:])
+                    # input()
+
+                    # subtokens = re.split(r"\p{L}[\)\]°><]?'[\(\[°><]?\p{L}", tok)
+                    # subtokens = re.split(r"(\p{L}[\)\]°><]?)(')([\(\[°><]?\p{L})", tok)
+                    # subtokens = [x for x in subtokens if len(x)]
+
+                    # print(subtokens)
+                    # input()
+
+                    # if len(subtokens) == 1:
+                    #     token_id += 1
+                    #     new_token = Token(tok, f"{self.tu_id}-{token_id}")
+                    #     new_token.add_span(start_pos, end_pos)
+                    #     self.tokens[token_id] = new_token
+
+                    # else:
+                    #     print(subtokens)
+                        # input()
+
+                        # subtoken1 = subtokens[0]+subtokens[1][:-1]
+                        # subtoken2 = subtokens[1][-1]+subtokens[2]
+
+                        # start1 = start_pos
+                        # end1 = end_pos - len(tok) + len(subtoken1)
+
+                        # start2 = end1-1
+                        # end2 = end_pos
+
+                        # token_id += 1
+                        # new_token = Token(subtoken1, f"{self.tu_id}-{token_id}")
+                        # new_token.add_span(start1, end1)
+                        # new_token.add_info("SpaceAfter", "No")
+                        # self.tokens[token_id] = new_token
+
+                        # token_id += 1
+                        # new_token = Token(subtoken2, f"{self.tu_id}-{token_id}")
+                        # new_token.add_span(start2, end2)
+                        # self.tokens[token_id] = new_token
+                else:
+                    token_id += 1
+                    new_token = Token(tok, f"{self.tu_id}-{token_id}")
+                    new_token.add_span(start_pos, end_pos)
+                    self.tokens[token_id] = new_token
 
             start_pos = end_pos
-
-            # if len(tok)>0 and not tok == " ":
-                # # end_pos += len(tok)
-                # end_pos = start_pos + len(tok)
-                # if tok == "=":
-                #     if len(self.tokens) == 0:
-                #         self.warnings["SKIPPED_TOKEN"] += 1
-                #     else:
-                #         self.tokens[token_id].add_info("ProsodicLink", "Yes")
-                #     start_pos = end_pos+1
-
-                # else:
-
-                #     subtokens = re.split(r"(\p{L}[\)\]°><]?'[\(\[°><]?\p{L})", tok)
-
-                #     if len(subtokens) == 3:
-                #         subtoken1 = subtokens[0]+subtokens[1][:-1]
-                #         subtoken2 = subtokens[1][-1]+subtokens[2]
-
-                #         start1 = start_pos
-                #         end1 = end_pos - len(tok) + len(subtoken1) -1
-
-                #         start2 = end1+1
-                #         end2 = end_pos
-
-                #         token_id += 1
-                #         new_token = Token(subtoken1, f"{self.tu_id}-{token_id}")
-                #         new_token.add_span(start1, end1)
-                #         new_token.add_info("SpaceAfter", "No")
-                #         self.tokens[token_id] = new_token
-
-                #         token_id += 1
-                #         new_token = Token(subtoken2, f"{self.tu_id}-{token_id}")
-                #         new_token.add_span(start2, end2)
-                #         self.tokens[token_id] = new_token
-
-                #     else:
-                #         token_id += 1
-                #         new_token = Token(tok, f"{self.tu_id}-{token_id}")
-                #         new_token.add_span(start_pos, end_pos)
-                #         self.tokens[token_id] = new_token
-                #     start_pos = end_pos+1
-                    # end_pos+=1
-
 
         if self.dialect:
             for tok_id, tok in self.tokens.items():
@@ -480,8 +481,6 @@ class TranscriptionUnit:
                                     ("fast_pace", self.fast_pace_spans),
                                     ("low_volume", self.low_volume_spans),
                                     ("guesses", self.guessing_spans)]:
-
-
 
             for span_id, span in enumerate(spans):
                 a, b = span[0], span[1]
