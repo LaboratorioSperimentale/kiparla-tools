@@ -1,7 +1,7 @@
 tu_id	speaker	start	end	duration	include	W:normalized_spaces	W:numbers	W:accents	W:non_jefferson	W:pauses_trim	W:prosodic_trim	W:moved_boundaries	W:switches	E:volume	E:pace	E:guess	E:overlap	E:overlap_mismatch	E:overlap_duration	T:shortpauses	T:metalinguistic	T:errors	T:linguistic	annotation	correct	text
 0	SP1	0.53	3.631	3.101	True	0	0	0	0	0	0	0	0	False	False	False	False	False	_	0	0	0	16	 mh: >negli ultimi anni secondo me è aum-< infatti il fatto che è aumentato il turismo	mh: >negli ultimi anni secondo me è aum-< infatti il fatto che è aumentato il turismo	mh negli ultimi anni secondo me è aum- infatti il fatto che è aumentato il turismo
 1	SP1	3.97	5.98	2.01	True	0	0	0	0	0	0	0	0	False	False	False	False	False	_	0	0	0	8	 ha impattato molto anche [quello (con gli affitti)]	ha impattato molto anche [quello (con gli affitti)]	ha impattato molto anche quello con gli affitti
-2	SP2	5.16	6.21	1.05	True	0	0	0	0	0	0	0	0	False	False	False	False	False	_	0	0	0	3	 [e puo' es]sere	[e puo' es]sere	e puo' essere
+2	SP2	5.16	6.21	1.05	True	0	0	1	0	0	0	0	0	False	False	False	False	False	_	0	0	0	3	 [e puo' es]sere	[e può es]sere	e può essere
 3	SP2	6.42	7.329	0.909	True	0	0	0	0	0	0	0	0	False	False	False	False	False	_	0	0	0	4	 è vero è vero	è vero è vero	è vero è vero
 4	SP1	7.409	13.459	6.05	True	0	0	0	0	0	0	0	0	False	False	False	False	False	_	0	0	0	13	 perché: insomma >qui< molte persone molti: prorietari, hanno messo le case su airbeb,	perché: insomma >qui< molte persone molti: prorietari, hanno messo le case su airbeb,	perché insomma qui molte persone molti prorietari hanno messo le case su airbeb
 5	SP1	14.032	15.29	1.258	True	0	0	0	0	0	0	0	0	False	False	False	False	True	6=0.280	0	0	0	4	 per: per il turismo	per: per il turismo	per per il turismo

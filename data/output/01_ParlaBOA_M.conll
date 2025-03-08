@@ -58,8 +58,8 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 12-5	SP2	12	_	_	{P}	{P}	_	_	_	_	_	shortpause	_		_		_	_	_
 12-6	SP2	12	_	_	[che	che	_	_	_	_	_	linguistic	_		_		_	_	0-3(13)
 12-7	SP2	12	_	_	fanno]	fanno	_	_	_	_	_	linguistic	_		_		_	_	0-5(13)
-12-8	SP2	12	_	_	l	l'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-12-9	SP2	12	_	_	elemosina:	elemosina	_	_	_	_	_	linguistic	_		_	8x1	_	_	_
+12-8	SP2	12	_	_	l'	l'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
+12-9	SP2	12	_	_	lemosina:	elemosina	_	_	_	_	_	linguistic	_		_	8x1	_	_	_
 12-10	SP2	12	_	_	sì	sì	_	_	_	_	_	linguistic	_		End=28.453		_	_	_
 13-0	SP1	13	_	_	[mhmh]	mhmh	_	_	_	_	_	linguistic	_		End=26.932		_	_	0-4(12)
 14-0	SP2	14	_	_	m:h	mh	_	_	_	_	_	linguistic	_		Begin=28.607	0x1	_	_	_
@@ -129,8 +129,8 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 25-5	SP1	25	_	_	(spetto)	spetto	_	_	_	_	_	linguistic	_		End=49.263		_	0-6(0)	_
 26-0	SP2	26	_	_	e::h	eh	_	_	_	_	_	linguistic	_		Begin=49.276	0x2	_	_	_
 26-1	SP2	26	_	_	non	non	_	_	_	_	_	linguistic	_		_		_	_	_
-26-2	SP2	26	_	_	l	l'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-26-3	SP2	26	_	_	ho	ho	_	_	_	_	_	linguistic	_		_		_	_	_
+26-2	SP2	26	_	_	l'	l'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
+26-3	SP2	26	_	_	o	ho	_	_	_	_	_	linguistic	_		_		_	_	_
 26-4	SP2	26	_	_	ancora	ancora	_	_	_	_	_	linguistic	_		_		_	_	_
 26-5	SP2	26	_	_	incontrato	incontrato	_	_	_	_	_	linguistic	_		_		_	_	_
 26-6	SP2	26	_	_	[cremonini]	cremonini	_	_	_	_	_	linguistic	_		_		_	_	0-9(27)
@@ -167,12 +167,12 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 29-0	SP1	29	_	_	vabbé	vabbé	_	_	_	_	_	linguistic	_		Begin=58.896		_	_	_
 29-1	SP1	29	_	_	magari	magari	_	_	_	_	_	linguistic	_		_		_	_	_
 29-2	SP1	29	_	_	dai	dai	_	_	_	_	_	linguistic	_		_		_	_	_
-29-3	SP1	29	_	_	[quest	quest'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	0-6(30)
-29-4	SP1	29	_	_	anno	anno	_	_	_	_	_	linguistic	_		_		_	_	0-4(30)
+29-3	SP1	29	_	_	[quest'	quest'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	0-6(30)
+29-4	SP1	29	_	_	nno	anno	_	_	_	_	_	linguistic	_		_		_	_	0-4(30)
 29-5	SP1	29	_	_	sarà	sarà	_	_	_	_	_	linguistic	_		_		_	_	0-4(30)
 29-6	SP1	29	_	_	{ride}	{ride}	_	_	_	_	_	metalinguistic	_		_		_	_	0-6(30)
-29-7	SP1	29	_	_	l	l'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	0-2(30)
-29-8	SP1	29	_	_	anno]	anno	_	_	_	_	_	linguistic	_		_		_	_	0-3(30)
+29-7	SP1	29	_	_	l'	l'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	0-2(30)
+29-8	SP1	29	_	_	nno]	anno	_	_	_	_	_	linguistic	_		_		_	_	0-3(30)
 29-9	SP1	29	_	_	buono	buono	_	_	_	_	_	linguistic	_		End=61.579		_	_	_
 30-0	SP2	30	_	_	[ah	ah	_	_	_	_	_	linguistic	_		Begin=60.092		_	_	0-2(29)
 30-1	SP2	30	_	_	sì	sì	_	_	_	_	_	linguistic	_		_		_	_	0-2(29)
@@ -314,8 +314,8 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 52-6	SP2	52	_	_	piace	piace	_	_	_	_	_	linguistic	_		_		_	_	_
 52-7	SP2	52	_	_	molto	molto	_	_	_	_	_	linguistic	_		_		_	_	_
 52-8	SP2	52	_	_	poi	poi	_	_	_	_	_	linguistic	_		_		_	_	_
-52-9	SP2	52	_	_	c	c'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-52-10	SP2	52	_	_	è	è	_	_	_	_	_	linguistic	_		_		_	_	_
+52-9	SP2	52	_	_	c'	c'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
+52-10	SP2	52	_	_		è	_	_	_	_	_	linguistic	_		_		_	_	_
 52-11	SP2	52	_	_	di	di	_	_	_	_	_	linguistic	_		_		_	_	_
 52-12	SP2	52	_	_	fianco	fianco	_	_	_	_	_	linguistic	_		_		_	_	_
 52-13	SP2	52	_	_	la	la	_	_	_	_	_	linguistic	_		_		_	_	_
@@ -325,8 +325,8 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 53-0	SP2	53	_	_	e	e	_	_	_	_	_	linguistic	_		Begin=111.513		_	_	_
 53-1	SP2	53	_	_	quindi	quindi	_	_	_	_	_	linguistic	_		_		_	_	_
 53-2	SP2	53	_	_	spesso	spesso	_	_	_	_	_	linguistic	_		_		_	_	_
-53-3	SP2	53	_	_	d	d'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-53-4	SP2	53	_	_	estate	estate	_	_	_	_	_	linguistic	_		_		_	_	_
+53-3	SP2	53	_	_	d'	d'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
+53-4	SP2	53	_	_	state	estate	_	_	_	_	_	linguistic	_		_		_	_	_
 53-5	SP2	53	_	_	con	con	_	_	_	_	_	linguistic	_		_		_	_	_
 53-6	SP2	53	_	_	il	il	_	_	_	_	_	linguistic	_		_		_	_	_
 53-7	SP2	53	_	_	mio	mio	_	_	_	_	_	linguistic	_		_		_	_	_
@@ -465,8 +465,8 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 72-0	SP2	72	_	_	la	la	_	_	_	_	_	linguistic	_		Begin=159.841		_	_	_
 72-1	SP2	72	_	_	storia	storia	_	_	_	_	_	linguistic	_		_		_	_	_
 72-2	SP2	72	_	_	cioè	cioè	_	_	_	_	_	linguistic	_		_		_	_	_
-72-3	SP2	72	_	_	l	l'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-72-4	SP2	72	_	_	architettura,	architettura	_	_	_	_	_	linguistic	_	Intonation=weakly_ascending	_		_	_	_
+72-3	SP2	72	_	_	l'	l'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
+72-4	SP2	72	_	_	rchitettura,	architettura	_	_	_	_	_	linguistic	_	Intonation=weakly_ascending	_		_	_	_
 72-5	SP2	72	_	_	il	il	_	_	_	_	_	linguistic	_		_		_	_	_
 72-6	SP2	72	_	_	il	il	_	_	_	_	_	linguistic	_		_		_	_	_
 72-7	SP2	72	_	_	centro	centro	_	_	_	_	_	linguistic	_		_		_	_	_
@@ -497,8 +497,8 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 77-2	SP2	77	_	_	la	la	_	_	_	_	_	linguistic	_		_		_	_	_
 77-3	SP2	77	_	_	vita	vita	_	_	_	_	_	linguistic	_		_		_	_	_
 77-4	SP2	77	_	_	{P}	{P}	_	_	_	_	_	shortpause	_		_		_	_	_
-77-5	SP2	77	_	_	c	c'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-77-6	SP2	77	_	_	è	è	_	_	_	_	_	linguistic	_		_		_	_	_
+77-5	SP2	77	_	_	c'	c'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
+77-6	SP2	77	_	_		è	_	_	_	_	_	linguistic	_		_		_	_	_
 77-7	SP2	77	_	_	sempre	sempre	_	_	_	_	_	linguistic	_		_		_	_	_
 77-8	SP2	77	_	_	un	un	_	_	_	_	_	linguistic	_		_		_	_	_
 77-9	SP2	77	_	_	sacco	sacco	_	_	_	_	_	linguistic	_		_		_	_	_
@@ -588,8 +588,8 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 84-7	SP2	84	_	_	ovunque	ovunque	_	_	_	_	_	linguistic	_		End=202.58		_	_	_
 85-0	SP2	85	_	_	menomale	menomale	_	_	_	_	_	linguistic	_		End=203.762		_	_	_
 86-0	SP2	86	_	_	anche	anche	_	_	_	_	_	linguistic	_		Begin=204.475		_	_	_
-86-1	SP2	86	_	_	l	l'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-86-2	SP2	86	_	_	autobus	autobus	_	_	_	_	_	linguistic	_		_		_	_	_
+86-1	SP2	86	_	_	l'	l'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
+86-2	SP2	86	_	_	utobus	autobus	_	_	_	_	_	linguistic	_		_		_	_	_
 86-3	SP2	86	_	_	secondo	secondo	_	_	_	_	_	linguistic	_		_		_	_	_
 86-4	SP2	86	_	_	me	me	_	_	_	_	_	linguistic	_		_		_	_	_
 86-5	SP2	86	_	_	funziona	funziona	_	_	_	_	_	linguistic	_		_		_	_	_

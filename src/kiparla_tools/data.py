@@ -686,6 +686,11 @@ class Transcript:
         # totale dei minuti trascritti
         stats["transcribed_minutes"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                             f2_tu=lambda x: x.duration)
+        
+        # intonation pattern al minuto (non riesco a inserirlo nel csv)
+        # stats["intonation_patterns_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
+        #                                     f2_tu=lambda x: sum(1 for token in x.tokens if token.intonation is not None)
+        #                                     ) 
         # average number of token/minute
         # avg_tokens_per_min = sum(tokens_per_minute) / len(tokens_per_minute)
         stats["avg_tokens_per_min"] = []
@@ -694,8 +699,26 @@ class Transcript:
                 stats["avg_tokens_per_min"].append(n_tokens / n_tus)
             else:
                 stats["avg_tokens_per_min"].append(0)
+        
+        # high volume tokens
+    
+        # low volume tokens
+        
+        stats["slow_pace_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
+                                                                  f2_tu=lambda x:len (x.slow_pace_spans))
 
+        # slow pace tokens
 
+        stats["fast_pace_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
+                                                                  f2_tu=lambda x:len(x.fast_pace_spans))
+        # fast pace tokens 
+        
+        stats["overlapping_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                                f2_tu=lambda x: len(x.overlapping_spans))
+        # overlapping tokens 
+        
+        
+        
         # stats["avg_duration_per_min"] = []
         # for n_tokens, n_tus in zip(stats["duration_per_minute"], stats["num_tu"]):
         #     if n_tus > 0:
@@ -706,7 +729,8 @@ class Transcript:
         # # number of total overlaps
         # num_overlaps = []
         # curr_overlaps = 0
-
+       # stats["overlaps_per_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size, f2_tu=lambda x: )
+                                                               #    f2_tu= lambda x: 
         # for tu in self.transcription_units:
         #     if tu.end < split_size*i:
         #         curr_overlaps += len(tu.overlapping_times)
@@ -716,6 +740,9 @@ class Transcript:
         #         i += 1
         #     num_overlaps += (len(tu.overlapping_times))
 
+                                  
+        
+
         # # number of intonation patterns
         # num_intonation_patterns = 0
         # for tu in self.transcription_units:
@@ -723,11 +750,7 @@ class Transcript:
         #         if token.intonation_pattern is not None:
         #             num_intonation_patterns += 1
 
-        # # number of low volume spans
-        # num_low_volume_spans = 0
-
-        # for tu in self.transcription_units:
-        #     num_low_volume_spans += (len(tu.low_volume_spans))
+   
 
         # # number of guessing spans
         # num_guessing_spans = 0
@@ -754,6 +777,7 @@ class Transcript:
         # for tu in self.transcription_units:
         #     for token in tu.tokens.values():
         #         num_prolongations += (len(token.prolongations))
+        #stats["prolongations"] = utils.compute_stats_per_minute(self.transcription_units, split_size, f2_tu=lambda x: len(x.tokens_prolongations))
 
         # #num_linguistic token type
         # num_linguistic_tokens = 0
