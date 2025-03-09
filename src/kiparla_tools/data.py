@@ -682,6 +682,26 @@ class Transcript:
         # number of tokens per minute
         stats["tokens_per_minute"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                             f2_tu=lambda x: len(x.tokens))
+        # number of linguistic tokens per minute
+        stats["linguistic_tokens_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                                        f2_tu=lambda x: sum(1 for token in x.tokens.values() 
+                                                                        if token.token_type == df.tokentype.linguistic))
+        # number of metalinguistic tokens per minute
+        stats["metalinguistic_tokens_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                                        f2_tu=lambda x: sum(1 for token in x.tokens.values() 
+                                                                        if token.token_type == df.tokentype.metalinguistic))
+        # number of shortpauses per minute
+        stats["shortpauses_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                                        f2_tu=lambda x: sum(1 for token in x.tokens.values() 
+                                                                        if token.token_type == df.tokentype.shortpause))
+        # number of errors per minute
+        stats["errors_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                                        f2_tu=lambda x: sum(1 for token in x.tokens.values() 
+                                                                        if token.token_type == df.tokentype.error))
+        # number of unknows tokens per minute
+        stats["unknown_tokens_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                                        f2_tu=lambda x: sum(1 for token in x.tokens.values() 
+                                                                        if token.token_type == df.tokentype.unknown))
         # average number of token/minute
         stats["avg_tokens_per_min"] = []
         for n_tokens, n_tus in zip(stats["tokens_per_minute"], stats["num_tu"]):
@@ -733,68 +753,8 @@ class Transcript:
         #     else:
         #         stats["avg_duration_per_min"].append(0)
 
-   
 
-        # # number of guessing spans
-        # num_guessing_spans = 0
-
-        # for tu in self.transcription_units:
-        #     num_guessing_spans += (len(tu.guessing_spans))
-
-  
-
-        # #num_linguistic token type
-        # num_linguistic_tokens = 0
-        # for tu in self.transcription_units:
-        #     for token in tu.tokens.values():
-        #         if token.token_type & df.tokentype.linguistic:
-        #             num_linguistic_tokens +=1
-
-        # # number of linguistic token per minute
-        # ling_tokens_per_min = []
-        # i = 1
-        # ling_tokens_curr = 0
-        # for tu in self.transcription_units:
-        #     if tu.end < split_size*i:
-        #         for token in tu.tokens.values():
-        #             if token.token_type & df.tokentype.linguistic:
-        #                 ling_tokens_curr += 1
-        #     else:
-        #         ling_tokens_per_min.append(ling_tokens_curr)
-        #         for token in tu.tokens.values():
-        #             if token.token_type & df.tokentype.linguistic:
-        #                 ling_tokens_curr += 1
-        #         i += 1
-        # ling_tokens_per_min.append(ling_tokens_curr)
-
-        # # num_metalinguistic token type
-        # num_metaling_tokens = 0
-        # for tu in self.transcription_units:
-        #     for token in tu.tokens.values():
-        #         if token.token_type & df.tokentype.metalinguistic:
-        #             num_metaling_tokens += 1
-
-        # # num_shortpauses
-        # num_shortpauses = 0
-        # for tu in self.transcription_units:
-        #     for token in tu.tokens.values():
-        #         if token.token_type & df.tokentype.shortpause:
-        #             num_shortpauses += 1
-
-        # #num_unknown
-        # num_unknown = 0
-        # for tu in self.transcription_units:
-        #     for token in tu.tokens.values():
-        #         if token.token_type & df.tokentype.unknown:
-        #             num_unknown += 1
-
-        # #num_errors
-        # num_errors = 0
-        # for tu in self.transcription_units:
-        #     for token in tu.tokens.values():
-        #         if token.token_type & df.tokentype.error:
-        #             num_errors += 1
-
+        
         # creating an empty dictionary to store statistics
 
         found = False
