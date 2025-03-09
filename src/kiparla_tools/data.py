@@ -678,7 +678,9 @@ class Transcript:
         # number of TUs excluding metalinguistic tokens
         stats["num_ling_tu"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                     lambda x: any(token.token_type & df.tokentype.linguistic for token in x.tokens.values()))
-
+        # durata delle tus per minuto
+        stats["tus_duration_per_minute"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                            f2_tu=lambda x: x.duration)
         # number of tokens per minute
         stats["tokens_per_minute"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                             f2_tu=lambda x: len(x.tokens))
@@ -710,10 +712,14 @@ class Transcript:
             else:
                 stats["avg_tokens_per_min"].append(0)
         
-        # totale dei minuti trascritti
-        stats["transcribed_minutes"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
-                                                            f2_tu=lambda x: x.duration)
-        
+        # average duration of tus per minute
+        stats["avg_duration_per_min"] = []
+        for n_tokens, n_tus in zip(stats["tus_duration_per_minute"], stats["num_tu"]):
+            if n_tus > 0:
+                stats["avg_duration_per_min"].append(n_tokens / n_tus)
+            else:
+               stats["avg_duration_per_min"].append(0)
+ 
         # intonation pattern al minuto 
         stats["intonation_patterns_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
                                             f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.intonation_pattern is not None)
@@ -745,16 +751,8 @@ class Transcript:
         # guessing spans
         stats ["guessing_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
                                                                   f2_tu=lambda x: len(x.guessing_spans))
-        
-        # stats["avg_duration_per_min"] = []
-        # for n_tokens, n_tus in zip(stats["duration_per_minute"], stats["num_tu"]):
-        #     if n_tus > 0:
-        #         stats["avg_duration_per_min"].append(n_tokens / n_tus)
-        #     else:
-        #         stats["avg_duration_per_min"].append(0)
 
 
-        
         # creating an empty dictionary to store statistics
 
         found = False
