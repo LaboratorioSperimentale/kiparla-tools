@@ -682,7 +682,14 @@ class Transcript:
         # number of tokens per minute
         stats["tokens_per_minute"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                             f2_tu=lambda x: len(x.tokens))
-
+        # average number of token/minute
+        stats["avg_tokens_per_min"] = []
+        for n_tokens, n_tus in zip(stats["tokens_per_minute"], stats["num_tu"]):
+            if n_tus > 0:
+                stats["avg_tokens_per_min"].append(n_tokens / n_tus)
+            else:
+                stats["avg_tokens_per_min"].append(0)
+        
         # totale dei minuti trascritti
         stats["transcribed_minutes"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                             f2_tu=lambda x: x.duration)
@@ -691,13 +698,6 @@ class Transcript:
         stats["intonation_patterns_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
                                             f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.intonation_pattern is not None)
                                            ) 
-        # average number of token/minute
-        stats["avg_tokens_per_min"] = []
-        for n_tokens, n_tus in zip(stats["tokens_per_minute"], stats["num_tu"]):
-            if n_tus > 0:
-                stats["avg_tokens_per_min"].append(n_tokens / n_tus)
-            else:
-                stats["avg_tokens_per_min"].append(0)
         
         # high volume tokens
         stats["high_volume_tokens"] = utils.compute_stats_per_minute (self.transcription_units, split_size,
