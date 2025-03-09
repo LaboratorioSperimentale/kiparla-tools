@@ -687,12 +687,11 @@ class Transcript:
         stats["transcribed_minutes"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                             f2_tu=lambda x: x.duration)
         
-        # intonation pattern al minuto (non riesco a inserirlo nel csv)
+        # intonation pattern al minuto 
         stats["intonation_patterns_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
                                             f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.intonation_pattern is not None)
                                            ) 
         # average number of token/minute
-        # avg_tokens_per_min = sum(tokens_per_minute) / len(tokens_per_minute)
         stats["avg_tokens_per_min"] = []
         for n_tokens, n_tus in zip(stats["tokens_per_minute"], stats["num_tu"]):
             if n_tus > 0:
@@ -701,8 +700,11 @@ class Transcript:
                 stats["avg_tokens_per_min"].append(0)
         
         # high volume tokens
-    
+        stats["high_volume_tokens"] = utils.compute_stats_per_minute (self.transcription_units, split_size,
+                                                                      f2_tu=lambda x: sum(1 for token in x.tokens.values()if token.volume is not None and token.volume == df.volume.high))
         # low volume tokens
+        stats["low_volume_tokens"] = utils.compute_stats_per_minute (self.transcription_units, split_size,
+                                                                     f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.volume is not None and token.volume == df.volume.low))
         
         stats["slow_pace_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
                                                                   f2_tu=lambda x:len (x.slow_pace_spans))
