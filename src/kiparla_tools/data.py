@@ -720,7 +720,8 @@ class Transcript:
         stats["overlapping_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                                 f2_tu=lambda x: len(x.overlapping_spans))
         # overlapping tokens 
-        
+        stats["overlapping tokens"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
+                                                                     f2_tu=lambda x: sum (1 for token in x.tokens.values() if token.overlaps))
         
         
         # stats["avg_duration_per_min"] = []
@@ -729,30 +730,6 @@ class Transcript:
         #         stats["avg_duration_per_min"].append(n_tokens / n_tus)
         #     else:
         #         stats["avg_duration_per_min"].append(0)
-
-        # # number of total overlaps
-        # num_overlaps = []
-        # curr_overlaps = 0
-       # stats["overlaps_per_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size, f2_tu=lambda x: )
-                                                               #    f2_tu= lambda x: 
-        # for tu in self.transcription_units:
-        #     if tu.end < split_size*i:
-        #         curr_overlaps += len(tu.overlapping_times)
-        #     else:
-        #         num_overlaps.append(curr_overlaps)
-        #         duration_curr += tu.duration
-        #         i += 1
-        #     num_overlaps += (len(tu.overlapping_times))
-
-                                  
-        
-
-        # # number of intonation patterns
-        # num_intonation_patterns = 0
-        # for tu in self.transcription_units:
-        #     for token in tu.tokens.values():
-        #         if token.intonation_pattern is not None:
-        #             num_intonation_patterns += 1
 
    
 
@@ -763,15 +740,6 @@ class Transcript:
         #     num_guessing_spans += (len(tu.guessing_spans))
 
   
-
-        # # number of prolongations
-        # # prolongations: Dict[int, int] = field(default_factory=lambda: {}) --> attributo della classe token
-        # num_prolongations = 0
-
-        # for tu in self.transcription_units:
-        #     for token in tu.tokens.values():
-        #         num_prolongations += (len(token.prolongations))
-        #stats["prolongations"] = utils.compute_stats_per_minute(self.transcription_units, split_size, f2_tu=lambda x: len(x.tokens_prolongations))
 
         # #num_linguistic token type
         # num_linguistic_tokens = 0
