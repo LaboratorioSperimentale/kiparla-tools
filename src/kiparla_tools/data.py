@@ -697,24 +697,26 @@ class Transcript:
         # intonation pattern al minuto 
         stats["intonation_patterns_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
                                             f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.intonation_pattern is not None)
-                                           ) 
-        
+                                           )  
         # high volume tokens
         stats["high_volume_tokens"] = utils.compute_stats_per_minute (self.transcription_units, split_size,
                                                                       f2_tu=lambda x: sum(1 for token in x.tokens.values()if token.volume is not None and token.volume == df.volume.high))
         # low volume tokens
         stats["low_volume_tokens"] = utils.compute_stats_per_minute (self.transcription_units, split_size,
                                                                      f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.volume is not None and token.volume == df.volume.low))
-        
+        # slow pace spans
         stats["slow_pace_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
                                                                   f2_tu=lambda x:len (x.slow_pace_spans))
-
         # slow pace tokens
-
+        stats["slow_pace_tokens"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                                   f2_tu=lambda x: sum (1 for token in x.tokens.values() if token.slow_pace))
+        # fast pace spans
         stats["fast_pace_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
                                                                   f2_tu=lambda x:len(x.fast_pace_spans))
-        # fast pace tokens 
-        
+        # fast pace tokens
+        stats["fast_pace_tokens"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                                   f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.fast_pace))
+        # overlapping spans
         stats["overlapping_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                                 f2_tu=lambda x: len(x.overlapping_spans))
         # overlapping tokens 
