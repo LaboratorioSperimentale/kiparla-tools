@@ -720,9 +720,11 @@ class Transcript:
         stats["overlapping_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                                 f2_tu=lambda x: len(x.overlapping_spans))
         # overlapping tokens 
-        stats["overlapping tokens"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
+        stats["overlapping_tokens"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
                                                                      f2_tu=lambda x: sum (1 for token in x.tokens.values() if token.overlaps))
-        
+        # guessing spans
+        stats ["guessing_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
+                                                                  f2_tu=lambda x: len(x.guessing_spans))
         
         # stats["avg_duration_per_min"] = []
         # for n_tokens, n_tus in zip(stats["duration_per_minute"], stats["num_tu"]):
