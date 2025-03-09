@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<ANNOTATION_DOCUMENT AUTHOR="automatic_pipeline" DATE="2025-03-08T20:12:27+01:00" VERSION="2.8" FORMAT="2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.mpi.nl/tools/elan/EAFv2.8.xsd">
+<ANNOTATION_DOCUMENT AUTHOR="automatic_pipeline" DATE="2025-03-09T11:03:27+01:00" VERSION="2.8" FORMAT="2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.mpi.nl/tools/elan/EAFv2.8.xsd">
 	<HEADER>
 		<MEDIA_DESCRIPTOR MEDIA_URL="data/audio/01_ParlaBOA_E.wav" RELATIVE_MEDIA_URL="data/audio/01_ParlaBOA_E.wav" MIME_TYPE="audio/x-wav" />
 		<PROPERTY NAME="lastUsedAnnotation">0</PROPERTY>

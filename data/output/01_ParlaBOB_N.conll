@@ -156,7 +156,7 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 20-0	SP2	20	_	_	[mh	mh	_	_	_	_	_	linguistic	_		Begin=50.491		_	_	0-2(19)
 20-1	SP2	20	_	_	mh]	mh	_	_	_	_	_	linguistic	_		End=50.949		_	_	0-2(19)
 21-0	SP1	21	_	_	c'	c'	_	_	_	_	_	linguistic	_	SpaceAfter=No	Begin=51.894		_	_	_
-21-1	SP1	21	_	_		è	_	_	_	_	_	linguistic	_		_		_	_	_
+21-1	SP1	21	_	_	è	è	_	_	_	_	_	linguistic	_		_		_	_	_
 21-2	SP1	21	_	_	sicuramente	sicuramente	_	_	_	_	_	linguistic	_		_		_	_	_
 21-3	SP1	21	_	_	molta	molta	_	_	_	_	_	linguistic	_		_		_	_	_
 21-4	SP1	21	_	_	più	più	_	_	_	_	_	linguistic	_		_		_	_	_
@@ -181,12 +181,12 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 24-10	SP1	24	_	_	fa	fa	_	_	_	_	_	linguistic	_		_		_	_	_
 24-11	SP1	24	_	_	però	però	_	_	_	_	_	linguistic	_		End=61.924		_	_	_
 25-0	SP1	25	_	_	c'	c'	_	_	_	_	_	linguistic	_	SpaceAfter=No	Begin=62.493		_	_	_
-25-1	SP1	25	_	_	:	è	_	_	_	_	_	linguistic	_		End=63.398	0x1	_	_	_
+25-1	SP1	25	_	_	è:	è	_	_	_	_	_	linguistic	_		End=63.398	0x1	_	_	_
 26-0	SP1	26	_	_	c'	c'	_	_	_	_	_	linguistic	_	SpaceAfter=No	Begin=63.96		_	_	_
-26-1	SP1	26	_	_		è	_	_	_	_	_	linguistic	_		_		_	_	_
+26-1	SP1	26	_	_	è	è	_	_	_	_	_	linguistic	_		_		_	_	_
 26-2	SP1	26	_	_	sia	sia	_	_	_	_	_	linguistic	_		_		_	_	_
 26-3	SP1	26	_	_	l'	l'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-26-4	SP1	26	_	_	ndustria:	industria	_	_	_	_	_	linguistic	_		End=65.271	8x1	_	_	_
+26-4	SP1	26	_	_	industria:	industria	_	_	_	_	_	linguistic	_		End=65.271	8x1	_	_	_
 27-0	SP1	27	_	_	è	è	_	_	_	_	_	linguistic	_		Begin=65.373		_	_	_
 27-1	SP1	27	_	_	la	la	_	_	_	_	_	linguistic	_		_		_	_	_
 27-2	SP1	27	_	_	regione	regione	_	_	_	_	_	linguistic	_		_		_	_	_
@@ -223,7 +223,7 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 31-1	SP1	31	_	_	>secondo	secondo	_	_	_	_	_	linguistic	_		_		Fast=0-7(0)	_	_
 31-2	SP1	31	_	_	me<	me	_	_	_	_	_	linguistic	_		_		Fast=0-2(0)	_	_
 31-3	SP1	31	_	_	c'	c'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-31-4	SP1	31	_	_		è	_	_	_	_	_	linguistic	_		_		_	_	_
+31-4	SP1	31	_	_	è	è	_	_	_	_	_	linguistic	_		_		_	_	_
 31-5	SP1	31	_	_	un	un	_	_	_	_	_	linguistic	_		_		_	_	_
 31-6	SP1	31	_	_	po'	po'	_	_	_	_	_	linguistic	_		_		_	_	_
 31-7	SP1	31	_	_	di	di	_	_	_	_	_	linguistic	_		_		_	_	_
@@ -280,7 +280,7 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 37-1	SP1	37	_	_	esatto	esatto	_	_	_	_	_	linguistic	_		_		_	_	_
 37-2	SP1	37	_	_	poi	poi	_	_	_	_	_	linguistic	_		_		_	_	_
 37-3	SP1	37	_	_	l'	l'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-37-4	SP1	37	_	_	niversità	università	_	_	_	_	_	linguistic	_		_		_	_	_
+37-4	SP1	37	_	_	università	università	_	_	_	_	_	linguistic	_		_		_	_	_
 37-5	SP1	37	_	_	di	di	_	_	_	_	_	linguistic	_		_		_	_	_
 37-6	SP1	37	_	_	bologna	bologna	_	_	_	_	_	linguistic	_		End=96.107		_	_	_
 38-0	SP1	38	_	_	°mh°	mh	_	_	_	_	_	linguistic	_	Volume=low	Begin=96.84		_	_	_
@@ -350,13 +350,13 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 48-2	SP1	48	_	_	e:	e	_	_	_	_	_	linguistic	_		_	0x1	_	_	_
 48-3	SP1	48	_	_	lavoro	lavoro	_	_	_	_	_	linguistic	_		_		_	_	_
 48-4	SP1	48	_	_	nell'	nell'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-48-5	SP1	48	_	_	fficio	ufficio	_	_	_	_	_	linguistic	_		_		_	_	_
+48-5	SP1	48	_	_	ufficio	ufficio	_	_	_	_	_	linguistic	_		_		_	_	_
 48-6	SP1	48	_	_	e:	e	_	_	_	_	_	linguistic	_		_	0x1	_	_	_
 48-7	SP1	48	_	_	relazioni	relazioni	_	_	_	_	_	linguistic	_		_		_	_	_
 48-8	SP1	48	_	_	internazionali,	internazionali	_	_	_	_	_	linguistic	_	Intonation=weakly_ascending	_		_	_	_
 48-9	SP1	48	_	_	{P}	{P}	_	_	_	_	_	shortpause	_		_		_	_	_
 48-10	SP1	48	_	_	dell'	dell'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-48-11	SP1	48	_	_	niversità	università	_	_	_	_	_	linguistic	_		_		_	_	_
+48-11	SP1	48	_	_	università	università	_	_	_	_	_	linguistic	_		_		_	_	_
 48-12	SP1	48	_	_	di	di	_	_	_	_	_	linguistic	_		_		_	_	_
 48-13	SP1	48	_	_	bologna,	bologna	_	_	_	_	_	linguistic	_	Intonation=weakly_ascending	End=121.411		_	_	_
 49-0	SP1	49	_	_	in	in	_	_	_	_	_	linguistic	_		Begin=121.782		_	_	_
@@ -385,7 +385,7 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 50-13	SP1	50	_	_	a	a	_	_	_	_	_	linguistic	_		_		_	_	_
 50-14	SP1	50	_	_	iscriversi	iscriversi	_	_	_	_	_	linguistic	_		_		_	_	_
 50-15	SP1	50	_	_	all'	all'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-50-16	SP1	50	_	_	niversità	università	_	_	_	_	_	linguistic	_		_		_	_	_
+50-16	SP1	50	_	_	università	università	_	_	_	_	_	linguistic	_		_		_	_	_
 50-17	SP1	50	_	_	di	di	_	_	_	_	_	linguistic	_		_		_	_	_
 50-18	SP1	50	_	_	bologna	bologna	_	_	_	_	_	linguistic	_		End=132.867		_	_	_
 51-0	SP2	51	_	_	mh	mh	_	_	_	_	_	linguistic	_		Begin=132.976		_	_	_
@@ -431,7 +431,7 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 55-13	SP1	55	_	_	che	che	_	_	_	_	_	linguistic	_		_		_	_	_
 55-14	SP1	55	_	_	riguardano	riguardano	_	_	_	_	_	linguistic	_		_		_	_	_
 55-15	SP1	55	_	_	l'	l'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-55-16	SP1	55	_	_	mmigrazione,	immigrazione	_	_	_	_	_	linguistic	_	Intonation=weakly_ascending	End=151.36		_	_	_
+55-16	SP1	55	_	_	immigrazione,	immigrazione	_	_	_	_	_	linguistic	_	Intonation=weakly_ascending	End=151.36		_	_	_
 56-0	SP2	56	_	_	ah,	ah	_	_	_	_	_	linguistic	_	Intonation=weakly_ascending	Begin=151.48		_	_	_
 56-1	SP2	56	_	_	mh	mh	_	_	_	_	_	linguistic	_		_		_	_	_
 56-2	SP2	56	_	_	mh	mh	_	_	_	_	_	linguistic	_		End=152.83		_	_	_
@@ -512,6 +512,6 @@ token_id	speaker	tu_id	unit	id	span	form	lemma	upos	xpos	feats	deprel	type	meta_
 68-1	SP1	68	_	_	come	come	_	_	_	_	_	linguistic	_		_		_	_	_
 68-2	SP1	68	_	_	commerci	commerci	_	_	_	_	_	linguistic	_		_		_	_	_
 68-3	SP1	68	_	_	all'	all'	_	_	_	_	_	linguistic	_	SpaceAfter=No	_		_	_	_
-68-4	SP1	68	_	_	stero	estero	_	_	_	_	_	linguistic	_		_		_	_	_
+68-4	SP1	68	_	_	estero	estero	_	_	_	_	_	linguistic	_		_		_	_	_
 68-5	SP1	68	_	_	{P}	{P}	_	_	_	_	_	shortpause	_		_		_	_	_
 68-6	SP1	68	_	_	tipo	tipo	_	_	_	_	_	linguistic	_		End=187.702		_	_	_

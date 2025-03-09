@@ -688,9 +688,9 @@ class Transcript:
                                                             f2_tu=lambda x: x.duration)
         
         # intonation pattern al minuto (non riesco a inserirlo nel csv)
-        # stats["intonation_patterns_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
-        #                                     f2_tu=lambda x: sum(1 for token in x.tokens if token.intonation is not None)
-        #                                     ) 
+        stats["intonation_patterns_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
+                                            f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.intonation_pattern is not None)
+                                           ) 
         # average number of token/minute
         # avg_tokens_per_min = sum(tokens_per_minute) / len(tokens_per_minute)
         stats["avg_tokens_per_min"] = []
@@ -758,17 +758,7 @@ class Transcript:
         # for tu in self.transcription_units:
         #     num_guessing_spans += (len(tu.guessing_spans))
 
-        # # number of fast pace spans
-        # num_fast_pace_spans = 0
-
-        # for tu in self.transcription_units:
-        #     num_fast_pace_spans += (len(tu.fast_pace_spans))
-
-        # # number of slow pace spans
-        # num_slow_pace_spans = 0
-
-        # for tu in self.transcription_units:
-        #     num_slow_pace_spans += (len(tu.slow_pace_spans))
+  
 
         # # number of prolongations
         # # prolongations: Dict[int, int] = field(default_factory=lambda: {}) --> attributo della classe token
