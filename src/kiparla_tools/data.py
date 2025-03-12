@@ -724,6 +724,9 @@ class Transcript:
         stats["intonation_patterns_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
                                             f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.intonation_pattern is not None)
                                            )  
+        # prolongations per minute
+        stats["prolongations"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
+                                                                f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.prolongations))
         # high volume tokens
         stats["high_volume_tokens"] = utils.compute_stats_per_minute (self.transcription_units, split_size,
                                                                       f2_tu=lambda x: sum(1 for token in x.tokens.values()if token.volume is not None and token.volume == df.volume.high))
@@ -752,6 +755,10 @@ class Transcript:
         stats ["guessing_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
                                                                   f2_tu=lambda x: len(x.guessing_spans))
 
+
+
+
+       #TODO allungamenti!! 
 
         # creating an empty dictionary to store statistics
 
