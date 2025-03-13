@@ -17,10 +17,10 @@ from kiparla_tools import linguistic_pipeline as pipeline
 def _eaf2csv(args):
 	input_files = []
 	if args.input_dir:
-		input_files = args.input_dir.glob("*.eaf")
+		input_files = list(args.input_dir.glob("*.eaf"))
 	else:
-		input_files = args.input_files
-
+		input_files = list(args.input_files)
+	#print(list(input_files))
 	if args.units_annotations_dir:
 		annotations_fpaths = {}
 		for file in input_files:
@@ -44,9 +44,9 @@ def _eaf2csv(args):
 def _csv2eaf(args):
 	input_files = []
 	if args.input_dir:
-		input_files = args.input_dir.glob("*.csv")
+		input_files = list(args.input_dir.glob("*.csv"))
 	else:
-		input_files = args.input_files
+		input_files = list(args.input_files)
 
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
@@ -66,7 +66,7 @@ def _process(args):
 	if args.input_dir:
 		input_files = list(args.input_dir.glob("*.csv"))
 	else:
-		input_files = args.input_files
+		input_files = list(args.input_files)
 
 	annotations = collections.defaultdict(dict)
 	if args.units_annotations_dir:
@@ -81,7 +81,8 @@ def _process(args):
 	for filename in pbar:
 		pbar.set_description(f"Processing {filename.stem}")
 		transcript_name = filename.stem
-		transcript = main_tools.process_transcript(filename, annotations[filename.stem])
+		transcript = main_tools.process_transcript(filename, annotations[filename.stem], 
+											duration_threshold=args.duration_threshold)
 		transcripts[transcript_name] = transcript
 
 		output_filename_vert = args.output_dir.joinpath(f"{transcript_name}.conll")
@@ -96,7 +97,7 @@ def _process(args):
 def _align(args):
 	input_files = []
 	if args.input_dir:
-		input_files = args.input_dir.glob("*.tus.csv")
+		input_files = list(args.input_dir.glob("*.tus.csv"))
 	else:
 		input_files = args.input_files
 
@@ -115,7 +116,7 @@ def _align(args):
 def _cicle(args):
 
 	# STEP1 eaf -> csv
-	input_files = args.eaf_dir.glob("*.eaf")
+	input_files = list(args.eaf_dir.glob("*.eaf"))
 
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
@@ -124,7 +125,7 @@ def _cicle(args):
 		serialize.eaf2csv(filename, output_fname)
 
 
-	input_files = args.csv_dir.glob("*.csv")
+	input_files = list(args.csv_dir.glob("*.csv"))
 	# STEP2 process csv
 	transcripts = {}
 	pbar = tqdm.tqdm(input_files)
@@ -144,7 +145,7 @@ def _cicle(args):
 
 	# STEP3 csv -> eaf
 
-	input_files = args.output_dir.glob("*.csv")
+	input_files = list(args.output_dir.glob("*.csv"))
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
 		pbar.set_description(f"Processing {filename.stem}")
@@ -160,7 +161,7 @@ def _cicle(args):
 def _segment(args):
 	input_files = []
 	if args.input_dir:
-		input_files = args.input_dir.glob("*.conll")
+		input_files = list(args.input_dir.glob("*.conll"))
 	else:
 		input_files = args.input_files
 
@@ -177,7 +178,7 @@ def _segment(args):
 def _parse(args):
 	input_files = []
 	if args.input_dir:
-		input_files = args.input_dir.glob("*.conll")
+		input_files = list(args.input_dir.glob("*.conll"))
 	else:
 		input_files = args.input_files
 
