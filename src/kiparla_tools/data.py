@@ -746,6 +746,9 @@ class Transcript:
         # low volume spans
         stats["low_volume_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                                    f2_tu=lambda x:len (x.low_volume_spans))  
+        # differing volume spans
+        stats["differing_volume_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                                       f2_tu=lambda x: len(x.high_volume_spans) + len(x.low_volume_spans))  
         # slow pace spans
         stats["slow_pace_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
                                                                   f2_tu=lambda x:len (x.slow_pace_spans))
@@ -757,7 +760,10 @@ class Transcript:
                                                                   f2_tu=lambda x:len(x.fast_pace_spans))
         # fast pace tokens
         stats["fast_pace_tokens"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
-                                                                   f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.fast_pace))
+                                                                  f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.fast_pace))
+        # differing pace spans
+        stats["differing_pace_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                                       f2_tu=lambda x: len(x.slow_pace_spans) + len(x.fast_pace_spans)) 
         # overlapping spans
         stats["overlapping_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                                 f2_tu=lambda x: len(x.overlapping_spans))
