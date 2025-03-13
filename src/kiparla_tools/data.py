@@ -322,7 +322,7 @@ class TranscriptionUnit:
                 self.low_volume_spans = [match.span() for match in matches]
                 
         # check how many high volume spans have been transcribed
-        matches = list(re.finditer(r"\b[A-ZÀ-ÖØ-Þ]+(?:\s+[A-ZÀ-ÖØ-Þ]+)*\b", self.annotation))
+        matches = list(re.finditer(r"\b[A-ZÀÈÉÌÒÓÙ]+(?:\s+[A-ZÀÈÉÌÒÓÙ]+)*\b", self.annotation))
         if matches:
             self.high_volume_spans = [match.span() for match in matches]
 
