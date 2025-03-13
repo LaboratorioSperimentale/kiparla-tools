@@ -191,6 +191,7 @@ class TranscriptionUnit:
     overlap_duration: Dict[str, float] = field(default_factory=lambda: {})
 
     low_volume_spans: List[Tuple[int, int]] = field(default_factory=lambda: [])
+    high_volume_spans: List[Tuple[int, int]] = field(default_factory=lambda: [])
     guessing_spans: List[Tuple[int, int]] = field(default_factory=lambda: [])
     fast_pace_spans: List[Tuple[int, int]] = field(default_factory=lambda: [])
     slow_pace_spans: List[Tuple[int, int]] = field(default_factory=lambda: [])
@@ -319,6 +320,11 @@ class TranscriptionUnit:
             matches = list(re.finditer(r"°[^°]+°", self.annotation))
             if len(matches)>0:
                 self.low_volume_spans = [match.span() for match in matches]
+                
+        # check how many high volume spans have been transcribed
+        matches = list(re.finditer(r"\b[A-ZÀ-ÖØ-Þ]+(?:\s+[A-ZÀ-ÖØ-Þ]+)*\b", self.annotation))
+        if matches:
+            self.high_volume_spans = [match.span() for match in matches]
 
         # check how many overlapping spans have been transcribed
         if "[" in self.annotation and not self.errors["UNBALANCED_OVERLAP"]:
@@ -480,6 +486,7 @@ class TranscriptionUnit:
         for feature_name, spans in [("slow_pace", self.slow_pace_spans),
                                     ("fast_pace", self.fast_pace_spans),
                                     ("low_volume", self.low_volume_spans),
+                                    ("high_volume", self.high_volume_spans),
                                     ("guesses", self.guessing_spans)]:
 
             for span_id, span in enumerate(spans):
@@ -733,6 +740,12 @@ class Transcript:
         # low volume tokens
         stats["low_volume_tokens"] = utils.compute_stats_per_minute (self.transcription_units, split_size,
                                                                      f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.volume is not None and token.volume == df.volume.low))
+        # high volume spans
+        stats["high_volume_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                                    f2_tu=lambda x:len (x.high_volume_spans)) 
+        # low volume spans
+        stats["low_volume_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
+                                                                   f2_tu=lambda x:len (x.low_volume_spans))  
         # slow pace spans
         stats["slow_pace_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size, 
                                                                   f2_tu=lambda x:len (x.slow_pace_spans))
