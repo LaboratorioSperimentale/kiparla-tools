@@ -50,6 +50,8 @@ class Token:
         matching_po = re.fullmatch(r"po':*[.,?]?", self.text)
         matching_instance = re.fullmatch(r"['~-]?(\p{L}+:*)*\p{L}+:*[-'~]?[.,?]?", self.text)
 
+        print(self.text)
+
         if matching_instance is None:
             if self.text == "{P}":
                 self.token_type = df.tokentype.shortpause

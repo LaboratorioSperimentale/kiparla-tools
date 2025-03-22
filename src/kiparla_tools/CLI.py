@@ -168,6 +168,7 @@ def _segment(args):
 
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
+		pbar.set_description(f"Processing {filename.stem}")
 		basename = filename.stem
 		output_fname = args.output_dir.joinpath(f"{basename}.conll")
 
@@ -189,9 +190,26 @@ def _parse(args):
 
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
+		pbar.set_description(f"Processing {filename.stem}")
 		basename = filename.stem
 		output_fname = args.output_dir.joinpath(f"{basename}.conll")
 		pipeline.parse(nlp, filename, output_fname, args.remove_metalinguistic)
+
+
+def _conll2conllu(args):
+
+	input_files = []
+	if args.input_dir:
+		input_files = args.input_dir.glob("*.conll")
+	else:
+		input_files = args.input_files
+
+	pbar = tqdm.tqdm(input_files)
+	for filename in pbar:
+		pbar.set_description(f"Processing {filename.stem}")
+		basename = filename.stem
+		output_fname = args.output_dir.joinpath(f"{basename}.conllu")
+		serialize.conll2conllu(filename, output_fname)
 
 
 def main():
@@ -340,6 +358,23 @@ def main():
 	parser_parse.add_argument("--udpipe-model", #type=ac.valid_filepath,
 							help="") #TODO write help
 	parser_parse.set_defaults(func=_parse)
+
+	# CONLL2CONLLU
+	parser_conll2conllu = subparsers.add_parser("conll2conllu", parents=[parent_parser],
+												description='',
+												help='')
+	group = parser_conll2conllu.add_argument_group('Input files')
+	command_group = group.add_mutually_exclusive_group(required=True)
+	command_group.add_argument("--input-files", nargs="+",
+								type=ac.valid_filepath,
+								help="path(s) to conllu file(s)")
+	command_group.add_argument("--input-dir",
+								type=ac.valid_dirpath,
+								help="path to input directory. All .conllu files will be transformed")
+	parser_conll2conllu.add_argument("-o", "--output-dir",
+							type=ac.valid_dirpath,
+							help="path to directory containing csv and conllu files")
+	parser_conll2conllu.set_defaults(func=_conll2conllu)
 
 
 	args = root_parser.parse_args()

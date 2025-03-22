@@ -14,20 +14,15 @@ from kiparla_tools.config_parameters import (
 )
 
 
-def conll2conllu(filename):
+def conll2conllu(filename, output_filename):
 
 	# ID FORM LEMMA UPOS XPOS FEATS HEAD DEPREL DEPS MISC
-
-	# TODO: bug sentence 19
-	# TODO:
-
-	with open(filename) as fin:
+	with open(filename, encoding="utf-8") as fin, open(output_filename, "w", encoding="utf-8") as fout:
 		for unit_id, unit in units_from_conll(fin):
-
 			metadata = {
 				"sent_id" : unit_id,
 				"text": "",
-				"jefferson_text": " ".join(u["span"] if not u["span"] =="_" else "" for u in unit),
+				"jefferson_text": "",
 				"tu_ids": set(u["tu_id"] for u in unit)
 			}
 
@@ -35,7 +30,7 @@ def conll2conllu(filename):
 
 			for token in unit:
 				conllu_tok = {
-					"ID": None,
+					"ID": token["id"],
 					"FORM": token["form"],
 					"LEMMA": token["lemma"],
 					"UPOS": token["upos"],
@@ -47,71 +42,72 @@ def conll2conllu(filename):
 					"MISC": "_",
 				}
 
-				tok_id = token["id"]
-				if not tok_id == "_":
-					if not "-" in tok_id:
-						conllu_tok["ID"] = int(tok_id)
-					else:
-						# print(tok_id)
-						subtokens = tok_id.split("-")
-						conllu_tok["ID"] = tuple(int(x) for x in subtokens)
-
 				if not token["deprel"] == "_":
 					deprel, head = token["deprel"].rsplit(":", 1)
 					head = int(head)
 					conllu_tok["HEAD"] = head
 					conllu_tok["DEPREL"] = deprel
-					if deprel == "ROOT":
-						conllu_tok["HEAD"] = 0
 
-				if "SpaceAfter" in token["jefferson_feats"]:
-					metadata["text"] += token["form"]
-				else:
-					metadata["text"] += " "
-					metadata["text"] += token["form"]
+				if not token["token_id"] == "_":
+					if "SpaceAfter" in token["jefferson_feats"]:
+						metadata["text"] += token["form"]
+						metadata["jefferson_text"] += token["span"]
+
+					elif "ProsodicLink" in token["jefferson_feats"]:
+						metadata["text"] += " "+token["form"]
+						metadata["jefferson_text"] += "="+token["span"]
+
+					else:
+						metadata["text"] += token["form"]+" "
+						metadata["jefferson_text"] += token["span"]+" "
+
 				feats = {}
+				if not token["token_id"] == "_":
+					feats["TID"] = token["token_id"]
+				if not token["speaker"] == "_":
+					feats["Speaker"] = token["speaker"]
+
 				if not token["jefferson_feats"] == "_":
 					jefferson_features = token["jefferson_feats"].split("|")
 
 					for element in jefferson_features:
 						element = element.strip()
 						if len(element):
-							# print(element)
 							element = element.split("=")
 							feats[element[0]] = element[1]
 
-				if not token["token_id"] == "_":
-					feats["KID"] = token["token_id"]
-				if not token["speaker"] == "_":
-					feats["Speaker"] = token["speaker"]
+				if token["type"] in ["error", "shortpause", "unknown"]:
+					feats["Type"] = token["type"]
+				elif token["type"] == "metalinguistic":
+					feats["Type"] = token["meta_label"]
+
+				if len(token["align"]) and not token["align"] == "_":
+					align, ms = token["align"].split("=")
+					feats[f"Align{align.capitalize()}"] = ms
+
+				if len(token["prolongations"]) and not token["prolongations"] == "_":
+					feats["Prolonged"] = "Yes"
+
+				if len(token["pace"]) and not token["pace"] == "_":
+					paces, _ = token["pace"].split("=")
+					feats[f"Pace{paces.capitalize()}"] = "Yes"
+
+				if not token["overlaps"] == "_":
+					feats["Overlapping"] = "Yes"
+
 
 				conllu_tok["MISC"] = "|".join(list(f"{x}={y}" for x, y in sorted(feats.items())))
+				if not conllu_tok["MISC"].strip():
+					conllu_tok["MISC"] = "_"
 				tokens.append(conllu_tok)
 
-			ids_map = {}
-			for new_id, tok in enumerate(tokens):
-				new_id = new_id + 1
-				old_tok_id = tok["ID"]
-				if not type(old_tok_id) is tuple:
-					tok["ID"] = new_id
-					ids_map[old_tok_id] = new_id
 
-			for token in tokens:
-				old_tok_id = token["ID"]
-				if type(old_tok_id) is tuple:
-					token["ID"] = "-".join(tuple(str(ids_map[x]) for x in old_tok_id))
-
-				if not token["DEPREL"] == "ROOT":
-					if token["HEAD"] in ids_map:
-						token["HEAD"] = ids_map[token["HEAD"]]
-
-			print(f"# sent_id = {metadata['sent_id']}")
-			print(f"# text = {metadata['text'].strip()}")
-			print(f"# jefferson_text = {metadata['jefferson_text']}")
+			print(f"# sent_id = {metadata['sent_id']}", file=fout)
+			print(f"# text = {metadata['text'].strip()}", file=fout)
+			print(f"# jefferson_text = {metadata['jefferson_text']}", file=fout)
 			for tok in tokens:
-				print(f"{tok['ID']}\t{tok['FORM']}\t{tok['LEMMA']}\t{tok['UPOS']}\t{tok['XPOS']}\t{tok['FEATS']}\t{tok['HEAD']}\t{tok['DEPREL']}\t{tok['DEPS']}\t{tok['MISC']}")
-			print()
-			# input()
+				print(f"{tok['ID']}\t{tok['FORM']}\t{tok['LEMMA']}\t{tok['UPOS']}\t{tok['XPOS']}\t{tok['FEATS']}\t{tok['HEAD']}\t{tok['DEPREL']}\t{tok['DEPS']}\t{tok['MISC']}", file=fout)
+			print("", file=fout)
 
 def units_from_conll(fobj):
 	curr_sent = []
@@ -504,5 +500,5 @@ def load_annotations(fname):
 	return ret
 
 if __name__ == "__main__":
-	conll2conllu("/home/ludop/Documents/TREEBANK/kiparla-treebank/dati/current_tagged/BOA3017.conll")
+	conll2conllu("/home/ludop/Documents/TREEBANK/kiparla-treebank/dati/current_tagged/BOA3017.conll", "./prova.txt")
 	# csv2eaf("/home/ludop/Documents/kiparla-treebank/dati/output/BOA3017.tsv", "/home/ludop/Documents/kiparla-treebank/dati/output/BOA3017.eaf")

@@ -27,7 +27,7 @@ def parse(model, filename, output_filename, ignore_meta):
 		writer = csv.DictWriter(fout, delimiter="\t", fieldnames=fieldnames, restval="_")
 		writer.writeheader()
 
-		for _, unit in serialize.units_from_conll(fin):
+		for unit_id, unit in serialize.units_from_conll(fin):
 			unit_processed = []
 			unit_text = []
 			unit_full = []
@@ -81,6 +81,7 @@ def parse(model, filename, output_filename, ignore_meta):
 					elif orig_token == "_":
 						updatable = False
 						new_token = {"token_id":"_",
+									"unit": unit_id,
 									"form": doc[idx_doc].text}
 						ids.append(doc[idx_doc].i+1)
 						add_info(new_token, doc[idx_doc])
@@ -89,8 +90,10 @@ def parse(model, filename, output_filename, ignore_meta):
 
 					else:
 						updatable = False
+						#TODO: aiutooooooo
 						ids.append(doc[idx_doc].i+1)
 						new_token = {"token_id":"_",
+									"unit": unit_id,
 									"form": doc[idx_doc].text}
 						add_info(new_token, doc[idx_doc])
 
