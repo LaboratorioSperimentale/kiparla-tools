@@ -101,11 +101,11 @@ if __name__ == "__main__":
 	import pathlib
 
 	# output_dir = 'data/alignments'
-	output_dir = '/home/ludop/Documents/asr-assisted-transcription/data/alignments'
+	output_dir = 'data/alignments'
 	if not os.path.exists(output_dir):
 		os.makedirs(output_dir)
 
-	transcripts = process_all_transcripts("/home/ludop/Documents/asr-assisted-transcription/data/csv_puliti", "/home/ludop/Documents/asr-assisted-transcription/data/output")
+	transcripts = process_all_transcripts("data/curr_csv", "data/output_sample")
 
 	for i, t_a in enumerate(list(transcripts.keys())[:-1]):
 		t_a_name = t_a.split("_")[1]
@@ -116,9 +116,9 @@ if __name__ == "__main__":
 				tokens_a, tokens_b = alignment.align_transcripts(transcripts[t_a],
 																transcripts[t_b])
 
-				serialize.print_aligned(tokens_a, tokens_b, f"/Users/martinasimonotti/asr-assisted-transcription/asr-assisted-transcription/data/alignments/{t_a}_{t_b}.tsv")
+				serialize.print_aligned(tokens_a, tokens_b, f"data/alignments/{t_a}_{t_b}.tsv")
 
-	for file in pathlib.Path(f"/home/ludop/Documents/asr-assisted-transcription/data/output").glob("*.tsv"):
-		serialize.csv2eaf(file, f"data/audio/{file.stem}.wav", f"/home/ludop/Documents/asr-assisted-transcription/data/output/{file.stem}.eaf")
+	for file in pathlib.Path(f"data/output_sample").glob("*.tsv"):
+		serialize.csv2eaf(file, f"data/audio/{file.stem}.wav", f"data/output_sample/{file.stem}.eaf")
 
-	serialize.print_full_statistics(transcripts, "/home/ludop/Documents/asr-assisted-transcription/data/output/statistics.csv")
+	serialize.print_full_statistics(transcripts, "data/output_sample/statistics.csv")
