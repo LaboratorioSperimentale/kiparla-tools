@@ -779,7 +779,7 @@ class Transcript:
 
 
 
-       #TODO allungamenti!! 
+       
 
         # creating an empty dictionary to store statistics
 
