@@ -1,7 +1,9 @@
 """Functions to handle sequence alignment"""
+import collections
 from sequence_align.pairwise import needleman_wunsch
 #hirschberg
 from typing import List
+import csv
 
 from kiparla_tools import data
 
@@ -84,6 +86,42 @@ def align(seq_a, seq_b, match_score=1, mismatch_score=-1, indel_score=-0.5):
 
 	return aligned_seq_a, aligned_seq_b, score_seq, tot_score
 
+def count_mismatch(filenames):
+	voc_gold = set()
+	voc_trascrittore = set()
+	
+	frequenze = collections.defaultdict(lambda: collections.defaultdict(int))
+
+	for filename in filenames:
+		with open(filename) as fin:
+			fin.readline()
+
+			for line in fin:
+				linesplit = line.strip().split("\t")
+
+				match, _, tok_trascrittore, _, tok_gold = linesplit
+				
+				if not match == "0":
+					frequenze[tok_gold][tok_trascrittore] += 1
+					voc_gold.add(tok_gold)
+					voc_trascrittore.add(tok_trascrittore)
+
+	sorted_frequenze = sorted(frequenze.items())
+
+	with open(f"data/output_{filename.rsplit('/', 1)[-1]}", "w") as fout:
+
+		writer = csv.DictWriter(fout, fieldnames=["TOK_GOLD"]+ list(voc_trascrittore),
+						restval=0)
+		
+		writer.writeheader()
+
+		for tok_gold, substitutions in sorted_frequenze:
+			substitutions["TOK_GOLD"] = tok_gold
+			substitutions = dict(substitutions)
+
+
+			writer.writerow(substitutions)
 
 if __name__ == "__main__":
-	print(align(["a", "b", "c"], ["a", "c", "b"]))
+	count_mismatch("data/alignments/01_ParlaBOA_E_03_ParlaBOA.tsv")
+	count_mismatch("data/alignments/03_ParlaBOA_01_ParlaBOA_M.tsv")

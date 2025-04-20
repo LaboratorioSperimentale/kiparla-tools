@@ -697,7 +697,10 @@ class Transcript:
         stats ["guessing_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                                 f2_tu=lambda x: len(x.guessing_spans))
 
-        #TODO allungamenti!!
+
+
+
+
 
         # creating an empty dictionary to store statistics
 
