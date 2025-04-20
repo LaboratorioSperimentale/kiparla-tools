@@ -36,3 +36,4 @@ dependencies = ["tqdm",
 
 [project.scripts]
 kiparla = "kiparla_tools:CLI.main"
+
