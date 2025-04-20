@@ -1,7 +1,12 @@
 import collections
+import functools
 import csv # for annotators' statistics
 from dataclasses import dataclass, field
 from typing import List, Dict, Tuple
+import logging
+from logging.handlers import RotatingFileHandler
+from dotenv import load_dotenv
+import os
 
 import regex as re
 import pandas as pd
@@ -10,6 +15,10 @@ import networkx as nx
 import kiparla_tools.process_text as pt
 import kiparla_tools.dataflags as df
 import kiparla_tools.utils as utils
+from kiparla_tools.logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
+setup_logging(logger)
 
 @dataclass
 class Token:
@@ -167,7 +176,6 @@ class Token:
         if field_name == "Dialect":
             self.dialect = True
 
-#TODO: creare funzioni di test
 
 @dataclass
 class TranscriptionUnit:
@@ -201,17 +209,20 @@ class TranscriptionUnit:
     def __post_init__(self):
         self.orig_annotation = self.annotation
 
-        self.annotation = self.annotation.strip()
-
         if self.annotation is None or len(self.annotation)<1:
+            logger.info("Empty annotation for TU %s", self.tu_id)
             self.include = False
             return
 
+        self.annotation = self.annotation.strip()
+
         if self.annotation[0] == "#":
+            logger.debug("Dialect detected in TU %s", self.tu_id)
+            logger.debug("%s >> %s", self.annotation, self.annotation[1:])
             self.dialect = True
             self.annotation = self.annotation[1:]
 
-        functions_to_apply = [
+        warning_functions_to_apply = [
             ("SYMBOL_NOT_ALLOWED", pt.clean_non_jefferson_symbols),   # remove non jefferson symbols
             ("META_TAGS", pt.meta_tag),                               # transform metalinguistic annotations and shortpauses
             ("UNEVEN_SPACES", pt.check_spaces),                       # remove spaces before and after parentheses
@@ -219,169 +230,186 @@ class TranscriptionUnit:
             ("TRIM_PROSODICLINKS", pt.remove_prosodiclinks),          # remove leading and trailing prosodiclinks
             ("OVERLAP_PROLONGATION", pt.overlap_prolongations),       # fix \w+:*[:
             ("MULTIPLE_SPACES", pt.remove_spaces),                    # remove double spaces
+            ("ACCENTS", pt.replace_che),                              # replace chè with ché
+            ("ACCENTS", pt.replace_po),                               # replace pò with po'
+            ("ACCENTS", pt.replace_pero),                             # replace o'/e' with ò/è
+            ("NUMBERS", pt.check_numbers),                            # replace numbers with letters
         ]
 
-        for warning_label, function in functions_to_apply:
-            substitutions, new_transcription = function(self.annotation)
-            self.warnings[warning_label] = substitutions
+        error_functions_to_apply = [
+            ("UNBALANCED_DOTS", pt.check_even_dots),                    # check if dots are balanced
+            ("UNBALANCED_PACE", pt.check_angular_parentheses),          # check if angular parentheses are balanced
+            ("UNBALANCED_GUESS", functools.partial(pt.check_normal_parentheses,
+                                                open_char="(", close_char=")")),    # check if guessing parentheses are balanced
+            ("UNBALANCED_OVERLAP", functools.partial(pt.check_normal_parentheses,
+                                                open_char="[", close_char="]")),    # check if overlapping parentheses are balanced
+        ]
+
+        for warning_label, warning_function in warning_functions_to_apply:
+            substitutions, new_transcription = warning_function(self.annotation)
+            if substitutions > 0:
+                logger.debug("Applied %d substitution(s) with function %s", substitutions, warning_function.__name__)
+                logger.debug("%s >> %s", self.annotation, new_transcription)
+            self.warnings[warning_label] += substitutions
             self.annotation = new_transcription
 
-
-        self.errors["UNBALANCED_DOTS"] = not pt.check_even_dots(self.annotation)
-        self.errors["UNBALANCED_OVERLAP"] = not pt.check_normal_parentheses(self.annotation, "[", "]")
-        self.errors["UNBALANCED_GUESS"] = not pt.check_normal_parentheses(self.annotation, "(", ")")
-        self.errors["UNBALANCED_PACE"] = not pt.check_angular_parentheses(self.annotation)
-
-        #pò, perché etc..
-        substitutions, new_text = pt.replace_che(self.annotation)
-        self.warnings["ACCENTS"] += substitutions
-        self.annotation = new_text
-
-        substitutions, new_text = pt.replace_po(self.annotation)
-        self.warnings["ACCENTS"] += substitutions
-        self.annotation = new_text
-
-        substitutions, new_text = pt.replace_pero(self.annotation)
-        self.warnings["ACCENTS"] += substitutions
-        self.annotation = new_text
-
-        # substitute numbers
-        substitutions, new_transcription = pt.check_numbers(self.annotation)
-        self.warnings["NUMBERS"] = substitutions
-        self.annotation = new_transcription
+        for error_label, error_function in error_functions_to_apply:
+            self.errors[error_label] = not error_function(self.annotation)
+            if self.errors[error_label]:
+                function_name = getattr(error_function, "func", error_function).__name__
+                logger.debug("Function %s produced error", function_name)
 
         # fix spaces before and after dots
         if "°" in self.annotation and not self.errors["UNBALANCED_DOTS"]:
             substitutions, new_transcription = pt.check_spaces_dots(self.annotation)
+            if substitutions > 0:
+                logger.debug("Applying %d substitutions with function check_spaces_dots", substitutions)
+                logger.debug("%s >> %s", self.annotation, new_transcription)
             self.warnings["UNEVEN_SPACES"] += substitutions
             self.annotation = new_transcription
 
         # fix spaces before and after angular
         if "<" in self.annotation and not self.errors["UNBALANCED_PACE"]:
             substitutions, new_transcription = pt.check_spaces_angular(self.annotation)
+            if substitutions > 0:
+                logger.debug("Applying %d substitutions with function check_spaces_angular", substitutions)
+                logger.debug("%s >> %s", self.annotation, new_transcription)
             self.warnings["UNEVEN_SPACES"] += substitutions
             self.annotation = new_transcription
 
         # check how many varying pace spans have been transcribed
         if "<" in self.annotation and not self.errors["UNBALANCED_PACE"]:
-
-            tot_spans = (self.annotation.count("<") + self.annotation.count(">"))/2
-            # OLD VERSION
-            # matches_left = list(re.finditer(r"<[^ ][^ )\]]?[^><]*[^ (\[]?>", self.annotation))
-            # matches_right = list(re.finditer(r">[^ ][^ )\]]?[^><]*[^ (\[]?<", self.annotation))
             matches_left, matches_right = pt.matches_angular(self.annotation)
-
-            # TODO @Martina check se ho beccato slow e fast bene!
-            # self.slow_pace_spans = [match.span() for match in matches_left]
-            # self.fast_pace_spans = [match.span() for match in matches_right]
             self.slow_pace_spans = [x[1] for x in matches_left]
             self.fast_pace_spans = [x[1] for x in matches_right]
+
+            if len(self.slow_pace_spans) + len(self.fast_pace_spans) > 0:
+                logger.debug("Found %d varying pace spans", len(self.slow_pace_spans) + len(self.fast_pace_spans))
 
         # check how many low volume spans have been transcribed
         if "°" in self.annotation and not self.errors["UNBALANCED_DOTS"]:
             matches = list(re.finditer(r"°[^°]+°", self.annotation))
             if len(matches)>0:
                 self.low_volume_spans = [match.span() for match in matches]
+                logger.debug("Found %d low volume spans", len(self.low_volume_spans))
 
         # check how many high volume spans have been transcribed
         matches = list(re.finditer(r"\b[A-ZÀÈÉÌÒÓÙ]+(?:\s+[A-ZÀÈÉÌÒÓÙ]+)*\b", self.annotation))
         if matches:
             self.high_volume_spans = [match.span() for match in matches]
+            logger.debug("Found %d high volume spans", len(self.high_volume_spans))
 
         # check how many overlapping spans have been transcribed
         if "[" in self.annotation and not self.errors["UNBALANCED_OVERLAP"]:
             matches = list(re.finditer(r"\[[^\]]+\]", self.annotation))
             if len(matches)>0:
                 self.overlapping_spans = [match.span() for match in matches]
+                logger.debug("Found %d overlapping spans", len(self.overlapping_spans))
 
         # check how many guessing spans have been transcribed
         if "(" in self.annotation and not self.errors["UNBALANCED_GUESS"]:
             matches = list(re.finditer(r"\([^)]+\)", self.annotation))
             if len(matches)>0:
                 self.guessing_spans = [match.span() for match in matches]
+                logger.debug("Found %d guessing spans", len(self.guessing_spans))
 
         # invert [.,?][:-~]
         substitutions, new_transcription = pt.switch_symbols(self.annotation)
+        if substitutions > 0:
+            logger.debug("Applied %d substitution(s) with function switch_symbols", substitutions)
+            logger.debug("%s >> %s", self.annotation, new_transcription)
         self.warnings["SWITCHES"] += substitutions
         self.annotation = new_transcription
 
-        # remove unit if it only includes non-alphabetic symbols
+        # remove unit if it only includes non-alphabetic symbols or is empty
         if all(c in ["[", "]", "(", ")", "°", ">", "<", "-", "'", "#"] for c in self.annotation):
+            logger.info("Removing TU %s", self.tu_id)
             self.include = False
-
-        if len(self.annotation) == 0:
-            self.include = False
-
+            return
 
     def tokenize(self):
 
         if not self.include:
             return
 
-        # print(self.annotation)
-        # ! split on space, apostrophe between words and prosodic links
-        # tokens = re.split(r"( |(?<=\w)'(?=\w)|=)", self.annotation)
+        logger.debug("Tokenizing TU %s", self.tu_id)
+
+        # ! split on space and prosodic links
         tokens = re.split(r"( |=)", self.annotation)
+        logger.info("%s >> %s", self.annotation, tokens)
 
         start_pos = 0
         end_pos = 0
         token_id = -1
 
-        # print(tokens)
-
         for tok in tokens:
+            logger.debug("Extracting token '%s'", tok)
 
             assert(len(tok)>0)
             end_pos = start_pos + len(tok)
+            logger.debug("Start: %d, End: %d, %s", start_pos, end_pos, self.annotation[start_pos:end_pos])
 
-            if not tok == " ":
-                if tok == "=":
-                    self.tokens[token_id].add_info("ProsodicLink", "Yes")
+            if tok == " ":
+                logger.debug("Skipping space")
+                start_pos = end_pos
+                continue
 
-                elif "'" in tok:
-                    apostrophe_idx = tok.index("'")
-                    prefix = tok[:apostrophe_idx]
-                    suffix = tok[apostrophe_idx+1:]
+            if tok == "=":
+                logger.debug("Adding prosodic link to token %s", self.tokens[token_id].text)
+                self.tokens[token_id].add_info("ProsodicLink", "Yes")
 
-                    letter_in_prefix = any(c.isalpha() for c in prefix)
-                    letter_in_suffix = any(c.isalpha() for c in suffix)
+            elif "'" in tok:
+                apostrophe_idx = tok.index("'")
+                prefix = tok[:apostrophe_idx]
+                suffix = tok[apostrophe_idx+1:]
 
-                    if letter_in_suffix and letter_in_prefix:
-                        subtoken1 = tok[:apostrophe_idx+1]
-                        subtoken2 = tok[apostrophe_idx+1:]
+                letter_in_prefix = any(c.isalpha() for c in prefix)
+                letter_in_suffix = any(c.isalpha() for c in suffix)
 
-                        start1 = start_pos
-                        end1 = start1 + len(subtoken1)
-                        start2 = end1
-                        end2 = end_pos
+                logger.debug("Found apostrophe. Prefix: %s, Suffix: %s", prefix, suffix)
 
-                        token_id += 1
-                        new_token = Token(subtoken1, f"{self.tu_id}-{token_id}")
-                        new_token.add_span(start1, end1)
-                        new_token.add_info("SpaceAfter", "No")
-                        self.tokens[token_id] = new_token
+                if letter_in_suffix and letter_in_prefix:
+                    subtoken1 = tok[:apostrophe_idx+1]
+                    subtoken2 = tok[apostrophe_idx+1:]
 
-                        token_id += 1
-                        new_token = Token(subtoken2, f"{self.tu_id}-{token_id}")
-                        new_token.add_span(start2, end2)
-                        self.tokens[token_id] = new_token
+                    start1 = start_pos
+                    end1 = start1 + len(subtoken1)
+                    start2 = end1
+                    end2 = end_pos
 
-                    else:
-                        token_id += 1
-                        new_token = Token(tok, f"{self.tu_id}-{token_id}")
-                        new_token.add_span(start_pos, end_pos)
-                        self.tokens[token_id] = new_token
+                    token_id += 1
+                    new_token = Token(subtoken1, f"{self.tu_id}-{token_id}")
+                    logger.debug("Adding token %s", new_token)
+                    new_token.add_span(start1, end1)
+                    new_token.add_info("SpaceAfter", "No")
+                    logger.debug("Adding spaceafter feature")
+                    self.tokens[token_id] = new_token
+
+                    token_id += 1
+                    new_token = Token(subtoken2, f"{self.tu_id}-{token_id}")
+                    logger.debug("Adding token %s", new_token)
+                    new_token.add_span(start2, end2)
+                    self.tokens[token_id] = new_token
 
                 else:
                     token_id += 1
                     new_token = Token(tok, f"{self.tu_id}-{token_id}")
+                    logger.debug("Adding token %s", new_token)
                     new_token.add_span(start_pos, end_pos)
                     self.tokens[token_id] = new_token
+
+            else:
+                token_id += 1
+                new_token = Token(tok, f"{self.tu_id}-{token_id}")
+                logger.debug("Adding token %s", new_token)
+                new_token.add_span(start_pos, end_pos)
+                self.tokens[token_id] = new_token
 
             start_pos = end_pos
 
         if self.dialect:
-            for tok_id, tok in self.tokens.items():
+            logger.debug("Adding dialectal variation to all tokens in TU")
+            for _, tok in self.tokens.items():
                 tok.add_info("OrigLang", "dialect")
 
     def add_token_features(self):
@@ -390,7 +418,6 @@ class TranscriptionUnit:
         token_ids = []
 
         for tok_id, tok in self.tokens.items():
-
             i=0
             for char in tok.orig_text:
                 if char in [":", ".", ",", "?"]:
@@ -697,11 +724,6 @@ class Transcript:
         stats ["guessing_spans"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                                 f2_tu=lambda x: len(x.guessing_spans))
 
-
-
-
-
-
         # creating an empty dictionary to store statistics
 
         found = False
@@ -715,17 +737,6 @@ class Transcript:
                     stats["Transcript_ID"] = self.tr_id
                     stats.update(row)
                     found = True
-                    # stats["annotator"]= row["Annotatore"]
-                    # stats["reviewer"]= row["Revisore"]
-                    # stats["transcription_type"]= row["Tipo"]
-                    # stats["expertise"]= row["Esperto"]
-                    # stats["accuracy"]= row["Accurato"]
-                    # stats["minutes_experience"]= row["MinutiEsperienza"]
-                    # stats["sec30"]= row["Sec30"]
-                    # stats["sec60"]= row["Sec60"]
-                    # stats["sec90"]: row["Sec90"]
-                    # stats["sec120"]: row["Sec120"]
-                    # stats["sec_assignment"]: row["SecAssegnazione"]
 
         if not found:
             print(self.tr_id)

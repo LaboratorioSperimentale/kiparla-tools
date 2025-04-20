@@ -3,6 +3,8 @@ import argparse
 import tqdm
 import pathlib
 import collections
+import logging
+
 
 import spacy_udpipe
 import spacy_conll
@@ -13,6 +15,10 @@ from kiparla_tools import args_check as ac
 from kiparla_tools import serialize
 from kiparla_tools import main as main_tools
 from kiparla_tools import linguistic_pipeline as pipeline
+from kiparla_tools.logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
+setup_logging(logger)
 
 def _eaf2csv(args):
 	input_files = []
@@ -20,7 +26,7 @@ def _eaf2csv(args):
 		input_files = list(args.input_dir.glob("*.eaf"))
 	else:
 		input_files = list(args.input_files)
-	#print(list(input_files))
+
 	if args.units_annotations_dir:
 		annotations_fpaths = {}
 		for file in input_files:
@@ -33,12 +39,14 @@ def _eaf2csv(args):
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
 		pbar.set_description(f"Processing {filename.stem}")
+		logger.info("Processing %s", filename.stem)
 		output_fname = args.output_dir.joinpath(f"{filename.stem}.csv")
 		annotations = annotations_fpaths[filename.stem]
 		serialize.eaf2csv(filename, output_fname, annotations)
+
 		if len(annotations):
 			output_fname = pathlib.Path(args.units_annotations_dir).joinpath(f"{filename.stem}.yml")
-			with open(output_fname, 'w') as yaml_file:
+			with open(output_fname, 'w', encoding="utf-8") as yaml_file:
 				yaml.dump(annotations, yaml_file, indent=2)
 
 def _csv2eaf(args):
@@ -51,6 +59,7 @@ def _csv2eaf(args):
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
 		pbar.set_description(f"Processing {filename.stem}")
+		logger.info("Processing %s", filename.stem)
 		basename = filename.stem
 		if basename.endswith(".tus"):
 			basename = basename[:-4]
@@ -79,14 +88,20 @@ def _process(args):
 	transcripts = {}
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
-		pbar.set_description(f"Processing {filename.stem}")
 		transcript_name = filename.stem
-		transcript = main_tools.process_transcript(filename, annotations[filename.stem], 
-											duration_threshold=args.duration_threshold)
+		pbar.set_description(f"Processing {transcript_name}")
+		logger.debug("Processing %s", transcript_name)
+
+		transcript = main_tools.process_transcript(filename, annotations[transcript_name],
+												duration_threshold=args.duration_threshold)
 		transcripts[transcript_name] = transcript
+		logger.info("Successfully processed %s", transcript_name)
 
 		output_filename_vert = args.output_dir.joinpath(f"{transcript_name}.conll")
 		output_filename_tus = args.output_dir.joinpath(f"{transcript_name}.tus.csv")
+		logger.debug("Writing CoNLL output to %s", output_filename_vert)
+		logger.debug("Writing TUs output to %s", output_filename_tus)
+
 		serialize.conversation_to_conll(transcript, output_filename_vert)
 		serialize.conversation_to_linear(transcript, output_filename_tus)
 

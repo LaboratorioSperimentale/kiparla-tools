@@ -253,29 +253,30 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 
 def conversation_to_linear(transcript, output_filename, sep = '\t'):
 
-	fieldnames = ["tu_id", "speaker", "start", "end", "duration", "include",
+	fieldnames = ["tu_id", "speaker", "start", "end", "duration", "include", "variation",
 				"W:normalized_spaces", "W:numbers", "W:accents", "W:non_jefferson", "W:pauses_trim", "W:prosodic_trim", "W:moved_boundaries", "W:switches",
 				"E:volume", "E:pace", "E:guess", "E:overlap", "E:overlap_mismatch",
 				"E:overlap_duration",
 				"T:shortpauses", "T:metalinguistic", "T:errors", "T:linguistic",
-				"annotation", "correct", "text"]
+				"original", "text", "orthographic"]
 
 	with open(output_filename, "w", encoding="utf-8") as fout:
 		writer = csv.DictWriter(fout, fieldnames=fieldnames, delimiter=sep, restval="_")
 		writer.writeheader()
 
 		for tu in transcript.transcription_units:
-			# tu_id = tu.tu_id
 
-			to_write = {"tu_id": tu.tu_id,
+			to_write = {
+						"tu_id": tu.tu_id,
 						"speaker": tu.speaker,
 						"start": tu.start,
 						"end": tu.end,
 						"duration": tu.duration,
 						"include": tu.include,
-						"annotation": tu.orig_annotation,
-						"correct": tu.annotation,
-						"text": " ".join(str(tok) for _, tok in tu.tokens.items()),
+						"variation": tu.dialect,
+						"original": tu.orig_annotation,
+						"text": tu.annotation,
+						"orthographic": " ".join(str(tok) for _, tok in tu.tokens.items()),
 						"W:normalized_spaces": tu.warnings["UNEVEN_SPACES"],
 						"W:numbers": tu.warnings["NUMBERS"],
 						"W:accents": tu.warnings["ACCENTS"],
@@ -292,8 +293,8 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 						"T:shortpauses": sum([df.tokentype.shortpause in tok.token_type for _, tok in tu.tokens.items()]),
 						"T:metalinguistic": sum([df.tokentype.metalinguistic in tok.token_type for _, tok in tu.tokens.items()]),
 						"T:errors": sum([df.tokentype.error in tok.token_type for _, tok in tu.tokens.items()]),
-						"T:linguistic": sum([df.tokentype.linguistic in tok.token_type for _, tok in tu.tokens.items()])}
-
+						"T:linguistic": sum([df.tokentype.linguistic in tok.token_type for _, tok in tu.tokens.items()])
+					}
 
 			errors = " ".join([tok.text for _, tok in tu.tokens.items() if df.tokentype.error in tok.token_type])
 			to_write["T:errors"] = f"{to_write['T:errors']}"

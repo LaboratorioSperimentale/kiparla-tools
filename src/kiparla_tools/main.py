@@ -2,8 +2,15 @@ import kiparla_tools.data as data
 import kiparla_tools.serialize as serialize
 import kiparla_tools.alignment as alignment
 import itertools
+import logging
+from logging.handlers import RotatingFileHandler
+from dotenv import load_dotenv
 import os
 
+from kiparla_tools.logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
+setup_logging(logger)
 
 def process_transcript(filename, annotations, duration_threshold = 0.1):
 	"""
@@ -22,24 +29,30 @@ def process_transcript(filename, annotations, duration_threshold = 0.1):
 	if "ignore" in annotations:
 		for element in annotations["ignore"]:
 			relations_to_ignore.extend(itertools.combinations([int(x) for x in element.split()], 2))
-	# print(relations_to_ignore)
-	# input()
+	logger.debug("Relations that will be ignored: %s", relations_to_ignore)
 
 	transcript_name = filename.stem
+	logger.debug("Initializing transcript %s", transcript_name)
 	transcript = data.Transcript(transcript_name)
 
 	for tu_id, speaker, start, end, duration, annotation in serialize.read_csv(filename):
+		logger.debug("Initializing TU %s", tu_id)
 		new_tu = data.TranscriptionUnit(tu_id, speaker, start, end, duration, annotation)
 		transcript.add(new_tu)
 
+	logger.debug("Sorting transcript")
 	transcript.sort()
+	logger.debug("Finding overlaps")
 	transcript.find_overlaps(duration_threshold=duration_threshold)
 
+	logger.debug("Starting tokenization")
 	for tu in transcript:
 		tu.tokenize()
 
+	logger.debug("Checking overlaps")
 	transcript.check_overlaps(relations_to_ignore)
 
+	logger.debug("Adding token features")
 	for tu in transcript:
 		tu.add_token_features()
 
