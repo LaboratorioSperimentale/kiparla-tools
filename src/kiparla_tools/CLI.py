@@ -125,23 +125,23 @@ def _align(args):
 
 
  	# caricare data_description e filtrare solo le due colonne che ci interessano
-	transcriptors_data = pd.read_csv("data/data_description.csv", sep="\t")
-	transcriptors_data["Esperto"] = transcriptors_data["Esperto"]
-	transcriptors_data["Tipo"] = transcriptors_data["Tipo"]
-	transcriptors_data["NomeFile"] = transcriptors_data["NomeFile"]
+	# transcriptors_data = pd.read_csv("data/data_description.csv", sep="\t")
+	# transcriptors_data["Esperto"] = transcriptors_data["Esperto"]
+	# transcriptors_data["Tipo"] = transcriptors_data["Tipo"]
+	# transcriptors_data["NomeFile"] = transcriptors_data["NomeFile"]
 
- 	# filtrare esperti
-	transcribers = transcriptors_data[
-     (transcriptors_data["Esperto"]== "sì")
-     (transcriptors_data["Tipo"].isin(["From-Scratch", "Whisper-Assisted"]))
-	]
+ 	# # filtrare esperti
+	# transcribers = transcriptors_data[
+    #  (transcriptors_data["Esperto"]== "sì")
+    #  (transcriptors_data["Tipo"].isin(["From-Scratch", "Whisper-Assisted"]))
+	# ]
 
- 	# filtrare i revised escludendo quelli che terminano per _whi e e _man
-	revised = transcriptors_data[
-        (transcriptors_data["Tipo"] == "Revised") &
-        (~transcriptors_data["NomeFile"].str.endswith("_man")) &
-        (~transcriptors_data["NomeFile"].str.endswith("_whi"))
-    ]
+ 	# # filtrare i revised escludendo quelli che terminano per _whi e e _man
+	# revised = transcriptors_data[
+    #     (transcriptors_data["Tipo"] == "Revised") &
+    #     (~transcriptors_data["NomeFile"].str.endswith("_man")) &
+    #     (~transcriptors_data["NomeFile"].str.endswith("_whi"))
+    # ]
 
 	input_files = []
 	if args.input_dir:
