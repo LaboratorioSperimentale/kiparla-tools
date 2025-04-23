@@ -16,6 +16,10 @@ from kiparla_tools import args_check as ac
 from kiparla_tools import serialize
 from kiparla_tools import main as main_tools
 from kiparla_tools import linguistic_pipeline as pipeline
+from kiparla_tools import logging_utils as logging_utils
+
+logger = logging.getLogger(__name__)
+logging_utils.setup_logging(logger)
 
 def _eaf2csv(args):
 	input_files = []
@@ -376,7 +380,7 @@ def main():
 	command_group.add_argument("--input-files", nargs="+",
 								type=ac.valid_filepath,
 								help="path(s) to conllu file(s)")
-	command_group.add_argument("--input-dir", default="input_conllu/",
+	command_group.add_argument("--input-dir",
 								type=ac.valid_dirpath,
 								help="path to input directory. All .conllu files will be transformed")
 	parser_align.set_defaults(func=_align)
