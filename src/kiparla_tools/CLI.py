@@ -3,8 +3,6 @@ import argparse
 import tqdm
 import pathlib
 import collections
-import logging
-
 
 import spacy_udpipe
 import spacy_conll
@@ -15,10 +13,6 @@ from kiparla_tools import args_check as ac
 from kiparla_tools import serialize
 from kiparla_tools import main as main_tools
 from kiparla_tools import linguistic_pipeline as pipeline
-from kiparla_tools.logging_utils import setup_logging
-
-logger = logging.getLogger(__name__)
-setup_logging(logger)
 
 def _eaf2csv(args):
 	input_files = []
@@ -110,6 +104,27 @@ def _process(args):
 
 
 def _align(args):
+	
+
+ 	# caricare data_description e filtrare solo le due colonne che ci interessano
+	transcriptors_data = pd.read_csv("data/data_description.csv", sep="\t")
+	transcriptors_data["Esperto"] = transcriptors_data["Esperto"]
+	transcriptors_data["Tipo"] = transcriptors_data["Tipo"]
+	transcriptors_data["NomeFile"] = transcriptors_data["NomeFile"]
+	
+ 	# filtrare esperti 
+	transcribers = transcriptors_data[
+     (transcriptors_data["Esperto"]== "sì")
+     (transcriptors_data["Tipo"].isin(["From-Scratch", "Whisper-Assisted"]))
+	]
+	
+ 	# filtrare i revised escludendo quelli che terminano per _whi e e _man
+	revised = transcriptors_data[
+        (transcriptors_data["Tipo"] == "Revised") &
+        (~transcriptors_data["NomeFile"].str.endswith("_man")) &
+        (~transcriptors_data["NomeFile"].str.endswith("_whi"))
+    ]
+	
 	input_files = []
 	if args.input_dir:
 		input_files = list(args.input_dir.glob("*.tus.csv"))
@@ -119,13 +134,45 @@ def _align(args):
 	transcripts = {}
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
-		pbar.set_description(f"Processing {filename.stem}")
+		pbar.set_description(f"Processing {filename.stem}") 
 		transcript_name = filename.stem
 		transcript = serialize.transcript_from_csv(filename)
 
 		transcripts[transcript_name] = transcript
 
-	main_tools.align_transcripts(transcripts, args.output_dir)
+# impostare l'ordine trascrittore (01) / whi (20) - gold (03)
+# 1. creare le coppie di file allineati in base alla tipologia di file 
+	pairs = []
+	for t1 in transcripts:
+		for t2 in transcripts:
+			if t1 == t2:
+				continue
+			base1 = "_".join(t1.split("_")[1:])
+			base2 = "_".join(t2.split("_")[1:])
+			if base1 == base2:
+				pairs.append((t1, t2))
+ # 2. ordinare le coppie
+	ordered_alignment = []
+	for t1, t2 in pairs:
+		first_num = int(t1.split("_")[0])
+		second_num = int(t2.split("_")[0])
+		if first_num < second_num:
+			ordered = [t1, t2]
+		else:
+			ordered = [t2, t1]
+ 
+ # 3. evitare i duplicati
+		if tuple(ordered) not in ordered_alignment:
+			ordered_alignment.append(tuple(ordered))
+  
+# 4. esecuxione dell'allineamento + stampa file
+	for t1, t2 in tqdm.tqdm(ordered_alignment, desc="Allineamento"):
+		tokens_a, tokens_b = alignment.align_transcripts(transcripts[t1], transcripts[t2])
+		fout = f"{t1}_{t2}.tsv"
+		output_path = pathlib.Path("data/alignments") / fout
+		serialize.print_aligned(tokens_a, tokens_b, output_path)
+   
+#	main_tools.align_transcripts(transcripts, args.output_dir)
 
 
 def _cicle(args):

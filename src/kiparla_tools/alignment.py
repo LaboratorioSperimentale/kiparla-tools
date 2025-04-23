@@ -62,14 +62,14 @@ def align_transcripts(transcript_a:List[data.Token], transcript_b:List[data.Toke
 	return aligned_tokens_a, aligned_tokens_b
 
 
-def align(seq_a, seq_b, match_score=1, mismatch_score=-1, indel_score=-0.5):
+def align(seq_a, seq_b, match_score=1, mismatch_score=-1, indel_score=-1.0):
 
 	aligned_seq_a, aligned_seq_b = needleman_wunsch(
 		seq_a,
 		seq_b,
 		match_score=1.0,
 		mismatch_score=-1.0,
-		indel_score=-1.0,
+		indel_score=-1.0, # @Ludo siccome qui è -1.0 l'ho cambiato anche tra i parametri sopra
 		gap="_",
 	)
 
@@ -86,7 +86,7 @@ def align(seq_a, seq_b, match_score=1, mismatch_score=-1, indel_score=-0.5):
 
 	return aligned_seq_a, aligned_seq_b, score_seq, tot_score
 
-def count_mismatch(filenames):
+def count_mismatch(filenames): 
 	voc_gold = set()
 	voc_trascrittore = set()
 	
@@ -122,6 +122,8 @@ def count_mismatch(filenames):
 
 			writer.writerow(substitutions)
 
+
+#TODO creare una sola tabella finale (una per fs e una per gold)
 if __name__ == "__main__":
 	count_mismatch("data/alignments/01_ParlaBOA_E_03_ParlaBOA.tsv")
 	count_mismatch("data/alignments/03_ParlaBOA_01_ParlaBOA_M.tsv")
