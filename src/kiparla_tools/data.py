@@ -4,9 +4,6 @@ import csv # for annotators' statistics
 from dataclasses import dataclass, field
 from typing import List, Dict, Tuple
 import logging
-from logging.handlers import RotatingFileHandler
-from dotenv import load_dotenv
-import os
 
 import regex as re
 import pandas as pd
@@ -54,12 +51,24 @@ class Token:
         for char in chars:
             self.text = self.text.replace(char, "")
 
-        # # STEP 1: check that token has shape '?([a-z]+:*)+[-']?[.,?]
-        # # otherwise signal error
+        if all(c == "x" for c in self.text):
+            self.token_type = df.tokentype.unknown
+            self.text = "x"
+            return
+
+        if self.text[0] == "#":
+            logger.debug("Dialect detected in token %s", self.text)
+            self.dialect = True
+            self.text = self.text[1:]
+
+        # ! STEP 1: check that token has shape '?([a-z]+:*)+[-']?[.,?]
         matching_po = re.fullmatch(r"po':*[.,?]?", self.text)
+        matching_anonymized = self.text.startswith("@")
         matching_instance = re.fullmatch(r"['~-]?(\p{L}+:*)*\p{L}+:*[-'~]?[.,?]?", self.text)
 
-        print(self.text)
+        if matching_anonymized:
+            self.token_type = df.tokentype.anonymized
+            return
 
         if matching_instance is None:
             if self.text == "{P}":
@@ -72,13 +81,12 @@ class Token:
                 self.token_type = df.tokentype.error
                 return
 
-
         if matching_po:
-            self.text, subs_made = re.subn(r"'(:*)",
+            self.text, _ = re.subn(r"'(:*)",
                                     r"\1'",
                                     self.text)
 
-        # STEP2: find final prosodic features: intonation, truncation and interruptions
+        # ! STEP2: find final prosodic features: intonation, truncation and interruptions
         if self.text.endswith("."):
             self.intonation_pattern = df.intonation.descending
             self.text = self.text[:-1] # this line removes the last character of the string (".")
@@ -96,7 +104,8 @@ class Token:
             if self.text not in {"po'"}:
                 self.truncation = True
 
-        # STEP3: at this point we should be left with the bare word with only prolongations
+        # ! STEP3: at this point we should be left with the bare word with only prolongations
+        logger.debug("Token after step 2: %s", self.text)
 
         tmp_text = []
         i=0
@@ -127,12 +136,7 @@ class Token:
         # check for high volume
         if any(letter.isupper() for letter in self.text):
             self.volume = df.volume.high
-
         self.text = self.text.lower()
-
-        if all(c == "x" for c in self.text):
-            self.token_type = df.tokentype.unknown
-            self.text = "x"
 
     def add_span(self, start, end):
         self.span = (start, end)
@@ -228,6 +232,7 @@ class TranscriptionUnit:
             ("UNEVEN_SPACES", pt.check_spaces),                       # remove spaces before and after parentheses
             ("TRIM_PAUSES", pt.remove_pauses),                        # remove leading and trailing shortpauses
             ("TRIM_PROSODICLINKS", pt.remove_prosodiclinks),          # remove leading and trailing prosodiclinks
+            ("UNEVEN_SPACES", pt.space_prosodiclink),                 # remove space before or after prosodiclinks
             ("OVERLAP_PROLONGATION", pt.overlap_prolongations),       # fix \w+:*[:
             ("MULTIPLE_SPACES", pt.remove_spaces),                    # remove double spaces
             ("ACCENTS", pt.replace_che),                              # replace chè with ché
@@ -336,7 +341,7 @@ class TranscriptionUnit:
 
         # ! split on space and prosodic links
         tokens = re.split(r"( |=)", self.annotation)
-        logger.info("%s >> %s", self.annotation, tokens)
+        logger.debug("%s >> %s", self.annotation, tokens)
 
         start_pos = 0
         end_pos = 0
@@ -345,7 +350,9 @@ class TranscriptionUnit:
         for tok in tokens:
             logger.debug("Extracting token '%s'", tok)
 
-            assert(len(tok)>0)
+            if len(tok) == 0:
+                logger.error("Empty token")
+                logger.error("TU %s, tokens %s", self.tu_id, tokens)
             end_pos = start_pos + len(tok)
             logger.debug("Start: %d, End: %d, %s", start_pos, end_pos, self.annotation[start_pos:end_pos])
 
@@ -517,6 +524,7 @@ class Transcript:
                 speakers_to_remove.append(speaker)
 
         for speaker in speakers_to_remove:
+            logger.warning("Removing speaker %s", speaker)
             del self.speakers[speaker]
 
     def find_overlaps(self, duration_threshold=0):
@@ -539,45 +547,64 @@ class Transcript:
                         end = min(tu1.end, tu2.end)
                         duration = min(tu1.end, tu2.end)-max(tu1.start, tu2.start)
 
-                        if duration < duration_threshold:
-                            duration1 = tu1.end-tu1.start
-                            duration2 = tu2.end-tu2.start
-
-                            if duration1 > duration2:
-                                tu1.end = tu1.end - duration_threshold
-                                tu1.warnings["MOVED_BOUNDARIES"] += 1
-
-                            else:
-                                tu2.start = tu2.start + duration_threshold
-                                tu2.warnings["MOVED_BOUNDARIES"] += 1
-
-                        else:
-
-                            G.add_edge(tu1.tu_id, tu2.tu_id,
-                                        start = start,
-                                        end = end,
-                                        duration = duration,
-                                        spans = {tu1.tu_id:None, tu2.tu_id:None})
+                        G.add_edge(tu1.tu_id, tu2.tu_id,
+                                    start = start,
+                                    end = end,
+                                    duration = duration,
+                                    spans = {tu1.tu_id:None, tu2.tu_id:None})
 
         self.time_based_overlaps = G
 
 
-    def check_overlaps(self, relations_to_ignore = []):
+    def check_overlaps(self, relations_to_ignore = [], duration_threshold=0):
+
+        logger.debug("Graph at beginning: %s", self.time_based_overlaps.number_of_edges())
 
         to_remove = []
         for u, v in self.time_based_overlaps.edges():
-            if all(df.tokentype.metalinguistic in tok.token_type for tok_id, tok in self.transcription_units_dict[u].tokens.items()) or \
-            all(df.tokentype.metalinguistic in tok.token_type for tok_id, tok in self.transcription_units_dict[v].tokens.items()):
+            if all(df.tokentype.metalinguistic in tok.token_type for _, tok in self.transcription_units_dict[u].tokens.items()) or \
+            all(df.tokentype.metalinguistic in tok.token_type for _, tok in self.transcription_units_dict[v].tokens.items()):
                 to_remove.append((u, v))
 
         for u, v in to_remove:
+            logger.warning("Removing edge %s-%s because of metalinguistic elements", u, v)
             self.time_based_overlaps.remove_edge(u, v)
+
+        logger.debug("Graph after removing metalinguistic elements: %s", self.time_based_overlaps.number_of_edges())
 
         if len(relations_to_ignore) > 0:
             for u, v in relations_to_ignore:
+                logger.warning("Removing edge %s-%s because of relations to ignore", u, v)
                 self.time_based_overlaps.remove_edge(u, v)
 
+        logger.debug("Graph after removing ignored elements: %s", self.time_based_overlaps.number_of_edges())
+
+        # REMOVE OVERLAPPING IF < DURATION THRESHOLD
+        for node in self.time_based_overlaps.nodes:
+            to_remove = []
+
+            for neigh_node in self.time_based_overlaps.neighbors(node):
+                if self.time_based_overlaps[node][neigh_node]["duration"] < duration_threshold:
+                    tu1 = self.transcription_units_dict[node]
+                    tu2 = self.transcription_units_dict[neigh_node]
+                    if len(tu1.overlapping_spans) + len(tu2.overlapping_spans) > 0:
+                        min_tu, max_tu = sorted([tu1, tu2], key=lambda x: x.tu_id)
+                        min_tu.end = min_tu.end - duration_threshold/2
+                        max_tu.start = max_tu.start + duration_threshold/2
+                        #TODO: check tu still exists!
+                        tu1.warnings["MOVED_BOUNDARIES"] += 1
+                        tu2.warnings["MOVED_BOUNDARIES"] += 1
+                        to_remove.append((node, neigh_node))
+
+            for u, v in to_remove:
+                logger.warning("Removing edge %s-%s because overlap is %.2f and no edge is present", u, v, self.time_based_overlaps[u][v]["duration"])
+                self.time_based_overlaps.remove_edge(u, v)
+
+        logger.debug("Graph after removing spurious overlaps: %s", self.time_based_overlaps.number_of_edges())
+
         cliques = sorted(nx.find_cliques(self.time_based_overlaps), key=lambda x: len(x))
+        logger.info("Found %d cliques", len(cliques))
+
 
         for clique in cliques:
 
@@ -593,30 +620,39 @@ class Transcript:
                 overlap_end = min(ends)
 
                 for node in clique:
+
                     clique_tup = tuple(x for x in clique if not x == node)
                     self.transcription_units_dict[node].overlapping_times[clique_tup] = (overlap_start, overlap_end)
 
-        for tu_id, tu  in self.transcription_units_dict.items():
+        for _, tu  in self.transcription_units_dict.items():
             spans = tu.overlapping_spans
             times = tu.overlapping_times
 
             if len(spans) == len(times):
+                logger.debug("Overlaps are consistent for TU %s", tu.tu_id)
+
                 sorted_overlaps = list(sorted(tu.overlapping_times.items(), key=lambda x: x[1][0]))
                 sorted_overlaps = ["+".join([str(el) for el in x]) for x, y in sorted_overlaps]
                 tu.overlapping_matches = dict(zip(tu.overlapping_spans, sorted_overlaps))
 
             elif len(spans) == 0:
+                logger.warning("TU %s has %d annotated spans and %d time overlaps", tu.tu_id, len(spans), len(times))
                 tu.errors["MISMATCHING_OVERLAPS"] = True
 
                 for el in tu.overlapping_times:
                     tu.overlap_duration["+".join([str(x) for x in el])] = tu.overlapping_times[el][1]-tu.overlapping_times[el][0]
+
             elif len(times) == 0:
+                logger.warning("TU %s has %d annotated spans and %d time overlaps", tu.tu_id, len(spans), len(times))
                 tu.errors["MISMATCHING_OVERLAPS"] = True
+                tu.errors["UNMATCHED_OVERLAPS"] = True
                 sorted_overlaps = ["?" for el in tu.overlapping_spans]
                 tu.overlapping_matches = dict(zip(tu.overlapping_spans, sorted_overlaps))
 
             else:
+                logger.warning("TU %s has %d annotated spans and %d time overlaps", tu.tu_id, len(spans), len(times))
                 tu.errors["MISMATCHING_OVERLAPS"] = True
+                tu.errors["UNMATCHED_OVERLAPS"] = True
 
                 sorted_overlaps = ["?" for el in tu.overlapping_spans]
                 tu.overlapping_matches = dict(zip(tu.overlapping_spans, sorted_overlaps))
@@ -626,6 +662,7 @@ class Transcript:
 
     # Statistic calculations
     def get_stats (self, annotators_data_csv="data/data_description.csv", split_size=60):
+
         stats = {}
 
         stats["num_speakers"] = len(self.speakers) # number of speakers

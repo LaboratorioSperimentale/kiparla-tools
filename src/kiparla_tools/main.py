@@ -50,7 +50,7 @@ def process_transcript(filename, annotations, duration_threshold = 0.1):
 		tu.tokenize()
 
 	logger.debug("Checking overlaps")
-	transcript.check_overlaps(relations_to_ignore)
+	transcript.check_overlaps(relations_to_ignore, duration_threshold)
 
 	logger.debug("Adding token features")
 	for tu in transcript:

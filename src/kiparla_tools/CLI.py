@@ -4,6 +4,7 @@ import tqdm
 import pathlib
 import collections
 import logging
+import json
 
 
 import spacy_udpipe
@@ -63,7 +64,10 @@ def _csv2eaf(args):
 		basename = filename.stem
 		if basename.endswith(".tus"):
 			basename = basename[:-4]
-		output_fname = args.output_dir.joinpath(f"{basename}.eaf")
+		if args.include_ids:
+			output_fname = args.output_dir.joinpath(f"{basename}.ids.eaf")
+		else:
+			output_fname = args.output_dir.joinpath(f"{basename}.eaf")
 		audio_fname = args.audio_dir.joinpath(f"{basename}.wav")
 		serialize.csv2eaf(filename, str(audio_fname), output_fname,
 						args.delimiter, args.multiplier_factor,
@@ -85,6 +89,8 @@ def _process(args):
 				content = serialize.load_annotations(supposed_annotation_path)
 				annotations[file.stem] = content
 
+	output_json = args.output_dir.joinpath("summary.json")
+	full_data = []
 	transcripts = {}
 	pbar = tqdm.tqdm(input_files)
 	for filename in pbar:
@@ -98,12 +104,18 @@ def _process(args):
 		logger.info("Successfully processed %s", transcript_name)
 
 		output_filename_vert = args.output_dir.joinpath(f"{transcript_name}.conll")
-		output_filename_tus = args.output_dir.joinpath(f"{transcript_name}.tus.csv")
+		output_filename_tus = args.output_dir.joinpath(f"{transcript_name}.csv")
 		logger.debug("Writing CoNLL output to %s", output_filename_vert)
 		logger.debug("Writing TUs output to %s", output_filename_tus)
 
+
+		full_data.append(serialize.build_json(transcript))
 		serialize.conversation_to_conll(transcript, output_filename_vert)
 		serialize.conversation_to_linear(transcript, output_filename_tus)
+
+	with open(output_json, 'w', encoding="utf-8") as json_file:
+		print(json.dumps(full_data, indent=2, ensure_ascii=False), file=json_file)
+		# logger.info("Successfully wrote %s", output_json)
 
 	if args.produce_stats:
 		serialize.print_full_statistics(transcripts, args.output_dir.joinpath("stats.csv"))

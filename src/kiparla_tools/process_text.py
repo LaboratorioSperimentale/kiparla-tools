@@ -434,6 +434,19 @@ def meta_tag(transcription):
 	return subs, transcription
 
 
+def space_prosodiclink(transcription):
+	tot_subs = 0
+	new_string, subs_made = re.subn(r" =|= ",
+									r"=",
+									transcription)
+
+	if subs_made > 0:
+		tot_subs += subs_made
+		transcription = new_string
+
+	return tot_subs, transcription.strip()
+
+
 def remove_prosodiclinks(transcription):
 	tot_subs = 0
 	new_string, subs_made = re.subn(r"^([\[\]()<>°]?)\s*=\s*|\s*=\s*([\[\]()<>°]?)$",

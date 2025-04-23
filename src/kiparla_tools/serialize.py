@@ -256,7 +256,7 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 	fieldnames = ["tu_id", "speaker", "start", "end", "duration", "include", "variation",
 				"W:normalized_spaces", "W:numbers", "W:accents", "W:non_jefferson", "W:pauses_trim", "W:prosodic_trim", "W:moved_boundaries", "W:switches",
 				"E:volume", "E:pace", "E:guess", "E:overlap", "E:overlap_mismatch",
-				"E:overlap_duration",
+				"E:overlap_duration", "E:unmatched_overlaps",
 				"T:shortpauses", "T:metalinguistic", "T:errors", "T:linguistic",
 				"original", "text", "orthographic"]
 
@@ -290,6 +290,7 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 						"E:guess": tu.errors["UNBALANCED_GUESS"],
 						"E:overlap": tu.errors["UNBALANCED_OVERLAP"],
 						"E:overlap_mismatch": tu.errors["MISMATCHING_OVERLAPS"],
+						"E:unmatched_overlaps": tu.errors["UNMATCHED_OVERLAPS"],
 						"T:shortpauses": sum([df.tokentype.shortpause in tok.token_type for _, tok in tu.tokens.items()]),
 						"T:metalinguistic": sum([df.tokentype.metalinguistic in tok.token_type for _, tok in tu.tokens.items()]),
 						"T:errors": sum([df.tokentype.error in tok.token_type for _, tok in tu.tokens.items()]),
@@ -342,7 +343,8 @@ def csv2eaf(input_filename, linked_file, output_filename,
 
 			value = annotation['text']
 			if include_ids:
-				value=f"id:{annotation['tu_id']} {annotation['correct']}"
+				value=f"id:{annotation['tu_id']} {annotation['text']}"
+			print(annotation["start"], annotation["end"], annotation["text"])
 			doc.add_annotation(id_tier = annotation["speaker"],
 								start=int(float(annotation["start"])*multiplier),
 								end=int(float(annotation["end"])*multiplier),
@@ -499,6 +501,46 @@ def load_annotations(fname):
 		ret = yaml.safe_load(file)
 
 	return ret
+
+def build_json(transcript):
+	ret = {}
+
+	ret["transcript"] = transcript.tr_id
+	ret["speakers"] = {x: {"TUs": 0, "time": 0, "tokens":0} for x in transcript.speakers}
+	ret["spoken time"] = 0
+	ret["tot tokens"] = 0
+	for unit in transcript:
+		ret["speakers"][unit.speaker]["TUs"] += 1
+		ret["speakers"][unit.speaker]["time"] += unit.duration
+		ret["speakers"][unit.speaker]["tokens"] += len(unit.tokens)
+
+		ret["spoken time"] += unit.duration
+		ret["tot tokens"] += len(unit.tokens)
+
+	ret["TUs"] = sum(1 for x in transcript.transcription_units if x.include)
+	ret["removed TUs"] = sum(1 for x in transcript.transcription_units if not x.include)
+
+	ret["WARNINGS"] = {}
+	ret["ERRORS"] = {}
+	# ret["ERRORS SPECS"] = {}
+
+	for unit in transcript:
+		for key, value in unit.warnings.items():
+			if not key in ret["WARNINGS"]:
+				ret["WARNINGS"][key] = 0
+			ret["WARNINGS"][key] += value
+
+	for unit in transcript:
+		for key, value in unit.errors.items():
+			if not key in ret["ERRORS"]:
+				# ret["ERRORS SPECS"][key] = []
+				ret["ERRORS"][key] = 0
+			if value:
+				# ret["ERRORS SPECS"][key].append(unit.tu_id)
+				ret["ERRORS"][key] += 1
+
+	return ret
+
 
 if __name__ == "__main__":
 	conll2conllu("/home/ludop/Documents/TREEBANK/kiparla-treebank/dati/current_tagged/BOA3017.conll", "./prova.txt")
