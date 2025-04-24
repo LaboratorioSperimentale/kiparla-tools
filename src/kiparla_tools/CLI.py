@@ -14,6 +14,7 @@ from wtpsplit import SaT
 
 from kiparla_tools import args_check as ac
 from kiparla_tools import serialize
+from kiparla_tools import alignment 
 from kiparla_tools import main as main_tools
 from kiparla_tools import linguistic_pipeline as pipeline
 from kiparla_tools import logging_utils as logging_utils
