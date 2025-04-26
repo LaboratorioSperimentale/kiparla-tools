@@ -17,9 +17,11 @@ from kiparla_tools import serialize
 from kiparla_tools import main as main_tools
 from kiparla_tools import linguistic_pipeline as pipeline
 from kiparla_tools import logging_utils as logging_utils
+from kiparla_tools import alignment
 
 logger = logging.getLogger(__name__)
 logging_utils.setup_logging(logger)
+
 
 def _eaf2csv(args):
 	input_files = []
@@ -190,7 +192,7 @@ def _align(args):
 		output_path = pathlib.Path("data/alignments") / fout
 		serialize.print_aligned(tokens_a, tokens_b, output_path)
 
-#	main_tools.align_transcripts(transcripts, args.output_dir)
+	main_tools.align_transcripts(transcripts, args.output_dir)
 
 
 def _cicle(args):
