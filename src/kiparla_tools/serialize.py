@@ -5,13 +5,19 @@ import pandas as pd
 import yaml
 from speach import elan
 from pympi import Elan as EL
+import logging
 
 from kiparla_tools import data
 from kiparla_tools import dataflags as df
+from kiparla_tools.logging_utils import setup_logging
 
 from kiparla_tools.config_parameters import (
 	CONLL_FIELDNAMES
 )
+
+logger = logging.getLogger(__name__)
+setup_logging(logger)
+
 
 
 def conll2conllu(filename, output_filename):
@@ -344,7 +350,13 @@ def csv2eaf(input_filename, linked_file, output_filename,
 			value = annotation['text']
 			if include_ids:
 				value=f"id:{annotation['tu_id']} {annotation['text']}"
-			print(annotation["start"], annotation["end"], annotation["text"])
+			# print(annotation["start"], annotation["end"], annotation["text"])
+			start = int(float(annotation["start"])*multiplier)
+			end = int(float(annotation["end"])*multiplier)
+			logger.debug(f"Adding annotation: {annotation['speaker']} {start} {end} {value}")
+			if end - start < 0:
+				logger.error(f"Negative duration for {annotation['speaker']} {start} {end} {value}")
+
 			doc.add_annotation(id_tier = annotation["speaker"],
 								start=int(float(annotation["start"])*multiplier),
 								end=int(float(annotation["end"])*multiplier),
