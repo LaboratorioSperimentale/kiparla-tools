@@ -14,7 +14,7 @@ from wtpsplit import SaT
 
 from kiparla_tools import args_check as ac
 from kiparla_tools import serialize
-from kiparla_tools import alignment 
+from kiparla_tools import alignment
 from kiparla_tools import main as main_tools
 from kiparla_tools import linguistic_pipeline as pipeline
 from kiparla_tools import logging_utils as logging_utils
@@ -67,10 +67,12 @@ def _csv2eaf(args):
 		basename = filename.stem
 		if basename.endswith(".tus"):
 			basename = basename[:-4]
+
+		output_fname = args.output_dir.joinpath(f"{basename}.eaf")
 		if args.include_ids:
 			output_fname = args.output_dir.joinpath(f"{basename}.ids.eaf")
-		else:
-			output_fname = args.output_dir.joinpath(f"{basename}.eaf")
+
+		logger.info("Writing EAF output to %s", output_fname)
 		audio_fname = args.audio_dir.joinpath(f"{basename}.wav")
 		serialize.csv2eaf(filename, str(audio_fname), output_fname,
 						args.delimiter, args.multiplier_factor,
@@ -344,7 +346,7 @@ def main():
 								help="") #TODO: ADD HELP
 	parser_csv2eaf.add_argument("-m", "--multiplier-factor", type=int, default=1000,
 								help="") #TODO: ADD HELP
-	parser_csv2eaf.add_argument("-i", "--include-ids", action="store_true",
+	parser_csv2eaf.add_argument("--include-ids", action="store_true",
 								help="") #TODO write help
 	parser_csv2eaf.set_defaults(func=_csv2eaf)
 
