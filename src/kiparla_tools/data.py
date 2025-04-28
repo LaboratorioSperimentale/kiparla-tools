@@ -74,7 +74,7 @@ class Token:
             if self.text == "{P}":
                 self.token_type = df.tokentype.shortpause
                 return
-            elif self.text[0] == "{":
+            elif self.text.startswith("{"):
                 self.token_type = df.tokentype.metalinguistic
                 return
             elif matching_po is None:
@@ -589,8 +589,16 @@ class Transcript:
                     tu2 = self.transcription_units_dict[neigh_node]
                     if len(tu1.overlapping_spans) + len(tu2.overlapping_spans) > 0:
                         min_tu, max_tu = sorted([tu1, tu2], key=lambda x: x.tu_id)
-                        min_tu.end = min_tu.end - duration_threshold/2
-                        max_tu.start = max_tu.start + duration_threshold/2
+                        min_tu.end = min_tu.end - self.time_based_overlaps[node][neigh_node]["duration"]/2
+                        max_tu.start = max_tu.start + self.time_based_overlaps[node][neigh_node]["duration"]/2
+
+                        if min_tu.end <= min_tu.start:
+                            logger.error("TU %s has end <= start, %.2f, %.2f", min_tu.tu_id, min_tu.end, min_tu.start)
+                            input()
+                        if max_tu.end <= max_tu.start:
+                            logger.error("TU %s has end <= start, %.2f, %.2f", max_tu.tu_id, max_tu.end, max_tu.start)
+                            input()
+
                         #TODO: check tu still exists!
                         tu1.warnings["MOVED_BOUNDARIES"] += 1
                         tu2.warnings["MOVED_BOUNDARIES"] += 1
