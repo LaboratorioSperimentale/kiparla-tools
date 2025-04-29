@@ -7,8 +7,8 @@ import logging
 import json
 
 
-import spacy_udpipe
-import spacy_conll
+#import spacy_udpipe
+#import spacy_conll
 import yaml
 from wtpsplit import SaT
 
@@ -162,7 +162,7 @@ def _align(args):
 		transcript = serialize.transcript_from_csv(filename)
 
 		transcripts[transcript_name] = transcript
-
+	
 # impostare l'ordine trascrittore (01) / whi (20) - gold (03)
 # 1. creare le coppie di file allineati in base alla tipologia di file
 	pairs = []
@@ -170,10 +170,11 @@ def _align(args):
 		for t2 in transcripts:
 			if t1 == t2:
 				continue
-			base1 = "_".join(t1.split("_")[1:])
-			base2 = "_".join(t2.split("_")[1:])
+			base1 = t1.split(".")[0].split("_")[1]
+			base2 = t2.split(".")[0].split("_")[1]
 			if base1 == base2:
 				pairs.append((t1, t2))
+	
  # 2. ordinare le coppie
 	ordered_alignment = []
 	for t1, t2 in pairs:
@@ -183,11 +184,11 @@ def _align(args):
 			ordered = [t1, t2]
 		else:
 			ordered = [t2, t1]
-
+	
  # 3. evitare i duplicati
 		if tuple(ordered) not in ordered_alignment:
 			ordered_alignment.append(tuple(ordered))
-
+	print(ordered_alignment)
 # 4. esecuxione dell'allineamento + stampa file
 	for t1, t2 in tqdm.tqdm(ordered_alignment, desc="Allineamento"):
 		tokens_a, tokens_b = alignment.align_transcripts(transcripts[t1], transcripts[t2])
@@ -195,7 +196,7 @@ def _align(args):
 		output_path = pathlib.Path("data/alignments") / fout
 		serialize.print_aligned(tokens_a, tokens_b, output_path)
 
-	main_tools.align_transcripts(transcripts, args.output_dir)
+	# main_tools.align_transcripts(transcripts, args.output_dir)
 
 
 def _cicle(args):
