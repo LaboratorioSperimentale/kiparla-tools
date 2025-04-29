@@ -4,6 +4,8 @@ from sequence_align.pairwise import needleman_wunsch
 #hirschberg
 from typing import List
 import csv
+import re
+import pathlib
 
 from kiparla_tools import data
 
@@ -108,7 +110,7 @@ def count_mismatch(filenames):
 
 	sorted_frequenze = sorted(frequenze.items())
 
-	with open(f"data/output_{filename.rsplit('/', 1)[-1]}", "w") as fout:
+	with open(f"data/output_{filename.name.rsplit('/', 1)[-1]}", "w") as fout:
 
 		writer = csv.DictWriter(fout, fieldnames=["TOK_GOLD"]+ list(voc_trascrittore),
 						restval=0)
@@ -125,5 +127,10 @@ def count_mismatch(filenames):
 
 #TODO creare una sola tabella finale (una per fs e una per gold)
 if __name__ == "__main__":
-	count_mismatch("data/alignments/01_ParlaBOA_E_03_ParlaBOA.tsv")
-	count_mismatch("data/alignments/03_ParlaBOA_01_ParlaBOA_M.tsv")
+    fs_files_list = list(p for p in pathlib.Path("data/alignments").iterdir() if re.match(r"01.*03",p.name))
+    whi_files_list = list(p for p in pathlib.Path("data/alignments").iterdir() if re.match(r"02.*03",p.name)) 
+    count_mismatch(fs_files_list) 
+    count_mismatch(whi_files_list)
+	
+ 
+	
