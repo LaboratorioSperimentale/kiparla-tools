@@ -6,6 +6,7 @@ import yaml
 from speach import elan
 from pympi import Elan as EL
 import logging
+import collections
 
 from kiparla_tools import data
 from kiparla_tools import dataflags as df
@@ -518,17 +519,36 @@ def build_json(transcript):
 	ret = {}
 
 	ret["transcript"] = transcript.tr_id
-	ret["speakers"] = {x: {"TUs": 0, "time": 0, "tokens":0} for x in transcript.speakers}
+	ret["speakers"] = {x: collections.defaultdict(int) for x in transcript.speakers}
 	ret["spoken time"] = 0
 	ret["tot tokens"] = 0
+	ret["tot tokens-ling"] = 0
+	ret["tot tokens-unk"] = 0
+	ret["tot tokens-anonym"] = 0
+	ret["tot tokens-meta"] = 0
+	ret["tot tokens-pause"] = 0
+	ret["tot tokens-err"] = 0
+
 	for unit in transcript:
 		ret["speakers"][unit.speaker]["TUs"] += 1
 		ret["speakers"][unit.speaker]["time"] += unit.duration
-		ret["speakers"][unit.speaker]["tokens"] += len(unit.tokens)
+		ret["speakers"][unit.speaker]["tokens-ling"] += len([x for x in unit.tokens.values() if df.tokentype.linguistic in x.token_type])
+		ret["speakers"][unit.speaker]["tokens-unk"] += len([x for x in unit.tokens.values() if df.tokentype.unknown in x.token_type])
+		ret["speakers"][unit.speaker]["tokens-anonym"] += len([x for x in unit.tokens.values() if df.tokentype.anonymized in x.token_type])
+		ret["speakers"][unit.speaker]["tokens-meta"] += len([[x for x in unit.tokens.values() if df.tokentype.metalinguistic in x.token_type]])
+		ret["speakers"][unit.speaker]["tokens-pause"] += len([x for x in unit.tokens.values() if df.tokentype.shortpause in x.token_type])
+		ret["speakers"][unit.speaker]["tokens-err"] += len([x for x in unit.tokens.values() if df.tokentype.error in x.token_type])
 
 		ret["spoken time"] += unit.duration
 		ret["tot tokens"] += len(unit.tokens)
+		ret["tot tokens-ling"] += len([x for x in unit.tokens.values() if df.tokentype.linguistic in x.token_type])
+		ret["tot tokens-unk"] += len([x for x in unit.tokens.values() if df.tokentype.unknown in x.token_type])
+		ret["tot tokens-anonym"] += len([x for x in unit.tokens.values() if df.tokentype.anonymized in x.token_type])
+		ret["tot tokens-meta"] += len([[x for x in unit.tokens.values() if df.tokentype.metalinguistic in x.token_type]])
+		ret["tot tokens-pause"] += len([x for x in unit.tokens.values() if df.tokentype.shortpause in x.token_type])
+		ret["tot tokens-err"] += len([x for x in unit.tokens.values() if df.tokentype.error in x.token_type])
 
+	ret["overlaps"] = transcript.overlap_events
 	ret["TUs"] = sum(1 for x in transcript.transcription_units if x.include)
 	ret["removed TUs"] = sum(1 for x in transcript.transcription_units if not x.include)
 

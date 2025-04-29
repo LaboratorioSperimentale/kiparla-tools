@@ -503,6 +503,7 @@ class Transcript:
     # turns: List[Turn] = field(default_factory=lambda: [])
     time_based_overlaps: nx.Graph = field(default_factory=lambda: nx.Graph())
     statistics: pd.DataFrame = None
+    overlap_events: int = 0
 
     def add(self, tu:TranscriptionUnit):
 
@@ -611,6 +612,7 @@ class Transcript:
         logger.debug("Graph after removing spurious overlaps: %s", self.time_based_overlaps.number_of_edges())
 
         cliques = sorted(nx.find_cliques(self.time_based_overlaps), key=lambda x: len(x))
+        self.overlap_events = len(cliques)
         logger.info("Found %d cliques", len(cliques))
 
 
