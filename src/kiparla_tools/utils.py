@@ -13,3 +13,9 @@ def compute_stats_per_minute(tus_list, split_size, f1_tu=lambda x: True, f2_tu=l
 	ret_list.append(n_curr)
 
 	return ret_list
+
+def find_ngrams(inlist,n):
+	return zip(*list(inlist[i:] for i in range(n)))
+
+def feats2dict(s):
+	return dict(el.split("=") for el in s.split("|")) if len(s)>0 and s != "_" else {}

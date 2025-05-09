@@ -116,7 +116,7 @@ def conll2conllu(filename, output_filename):
 				print(f"{tok['ID']}\t{tok['FORM']}\t{tok['LEMMA']}\t{tok['UPOS']}\t{tok['XPOS']}\t{tok['FEATS']}\t{tok['HEAD']}\t{tok['DEPREL']}\t{tok['DEPS']}\t{tok['MISC']}", file=fout)
 			print("", file=fout)
 
-def units_from_conll(fobj):
+def units_from_conll(fobj, source_col="unit"):
 	curr_sent = []
 	curr_unit = "0"
 	reader = csv.DictReader(fobj, delimiter="\t")
@@ -124,7 +124,7 @@ def units_from_conll(fobj):
 		token_id = row["token_id"]
 		type = row["type"]
 		text = row["form"]
-		unit = row["unit"]
+		unit = row[source_col]
 
 		if unit == curr_unit or unit == "_":
 			curr_sent.append(row)
