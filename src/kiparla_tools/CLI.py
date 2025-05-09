@@ -414,13 +414,13 @@ def main():
 	command_group = group.add_mutually_exclusive_group(required=True)
 	command_group.add_argument("--input-files", nargs="+",
 								type=ac.valid_filepath,
-								help="path(s) to conllu file(s)")
+								help="path(s) to conll file(s)")
 	command_group.add_argument("--input-dir",
 								type=ac.valid_dirpath,
-								help="path to input directory. All .conllu files will be transformed")
+								help="path to input directory. All .conll files will be transformed")
 	parser_split.add_argument("-o", "--output-dir",
 							type=ac.valid_dirpath,
-							help="path to directory containing csv and conllu files")
+							help="path to directory containing csv and conll files")
 	parser_split.add_argument("--remove-metalinguistic", action="store_true",
 								help="") #TODO write help
 	parser_split.set_defaults(func=_segment)
