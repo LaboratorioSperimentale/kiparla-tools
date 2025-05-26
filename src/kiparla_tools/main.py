@@ -42,6 +42,7 @@ def process_transcript(filename, annotations, duration_threshold = 0.1):
 
 	logger.debug("Sorting transcript")
 	transcript.sort()
+
 	logger.debug("Finding overlaps")
 	transcript.find_overlaps(duration_threshold=duration_threshold)
 

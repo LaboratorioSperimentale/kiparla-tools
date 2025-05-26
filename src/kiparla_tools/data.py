@@ -487,8 +487,9 @@ class TranscriptionUnit:
 
         # add position of token in TU
         if len(self.tokens) > 0:
-            self.tokens[0].position_in_tu = df.position.start
-            self.tokens[max(self.tokens.keys())].position_in_tu = df.position.end
+            first_token, last_token = self.tokens[0], self.tokens[max(self.tokens.keys())]
+            first_token.position_in_tu = first_token.position_in_tu | df.position.start
+            last_token.position_in_tu = last_token.position_in_tu | df.position.end
 
 
 @dataclass
@@ -503,7 +504,7 @@ class Transcript:
     # turns: List[Turn] = field(default_factory=lambda: [])
     time_based_overlaps: nx.Graph = field(default_factory=lambda: nx.Graph())
     statistics: pd.DataFrame = None
-    overlap_events: int = 0
+    overlap_events: Dict[int, Tuple[float, float, int]] = field(default_factory=lambda: {})
 
     def add(self, tu:TranscriptionUnit):
 
@@ -595,10 +596,10 @@ class Transcript:
 
                         if min_tu.end <= min_tu.start:
                             logger.error("TU %s has end <= start, %.2f, %.2f", min_tu.tu_id, min_tu.end, min_tu.start)
-                            input()
+
                         if max_tu.end <= max_tu.start:
                             logger.error("TU %s has end <= start, %.2f, %.2f", max_tu.tu_id, max_tu.end, max_tu.start)
-                            input()
+
 
                         #TODO: check tu still exists!
                         tu1.warnings["MOVED_BOUNDARIES"] += 1
@@ -612,11 +613,10 @@ class Transcript:
         logger.debug("Graph after removing spurious overlaps: %s", self.time_based_overlaps.number_of_edges())
 
         cliques = sorted(nx.find_cliques(self.time_based_overlaps), key=lambda x: len(x))
-        self.overlap_events = len(cliques)
+        self.overlap_events = {}
         logger.info("Found %d cliques", len(cliques))
 
-
-        for clique in cliques:
+        for clique_id, clique in enumerate(cliques):
 
             if len(clique)>1:
                 starts = []
@@ -629,10 +629,18 @@ class Transcript:
                 overlap_start = max(starts)
                 overlap_end = min(ends)
 
-                for node in clique:
+                self.overlap_events[clique_id] = (overlap_start, overlap_end)
 
+                for node in clique:
                     clique_tup = tuple(x for x in clique if not x == node)
-                    self.transcription_units_dict[node].overlapping_times[clique_tup] = (overlap_start, overlap_end)
+                    self.transcription_units_dict[node].overlapping_times[clique_tup] = (overlap_start, overlap_end, clique_id)
+
+        sorted_cliques = list(sorted(self.overlap_events.items(), key=lambda x: x[1][0]))
+        cliques_map = {}
+        i=1
+        for clique_id, clique in sorted_cliques:
+            cliques_map[clique_id] = i
+            i+=1
 
         for _, tu  in self.transcription_units_dict.items():
             spans = tu.overlapping_spans
@@ -642,7 +650,8 @@ class Transcript:
                 logger.debug("Overlaps are consistent for TU %s", tu.tu_id)
 
                 sorted_overlaps = list(sorted(tu.overlapping_times.items(), key=lambda x: x[1][0]))
-                sorted_overlaps = ["+".join([str(el) for el in x]) for x, y in sorted_overlaps]
+                # sorted_overlaps = ["+".join([str(el) for el in x]) for x, y in sorted_overlaps]
+                sorted_overlaps = [cliques_map[x[2]] for _, x in sorted_overlaps]
                 tu.overlapping_matches = dict(zip(tu.overlapping_spans, sorted_overlaps))
 
             elif len(spans) == 0:

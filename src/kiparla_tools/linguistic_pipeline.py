@@ -138,6 +138,7 @@ def parse(model, filename, output_filename, ignore_meta):
 						if token["deprel"] == "_":
 							token["deprel"] = "dep:" + str(root_id)
 						else:
+							# print(token)
 							token["deprel"] = ":".join([token["deprel"].rsplit(":", 1)[0], str(ids_map[token["deprel"].rsplit(":", 1)[1]])])
 					if "-" in token["id"]:
 						token["id"] = "-".join([str(ids_map[x]) for x in token["id"].split("-")])

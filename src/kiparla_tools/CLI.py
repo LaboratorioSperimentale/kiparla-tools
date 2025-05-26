@@ -7,8 +7,8 @@ import logging
 import json
 
 
-#import spacy_udpipe
-#import spacy_conll
+import spacy_udpipe
+import spacy_conll
 import yaml
 from wtpsplit import SaT
 
@@ -31,8 +31,8 @@ def _eaf2csv(args):
 	else:
 		input_files = list(args.input_files)
 
+	annotations_fpaths = {}
 	if args.units_annotations_dir:
-		annotations_fpaths = {}
 		for file in input_files:
 			supposed_annotation_path = pathlib.Path(args.units_annotations_dir).joinpath(f"{file.stem}.yml")
 			content = {}
@@ -45,7 +45,9 @@ def _eaf2csv(args):
 		pbar.set_description(f"Processing {filename.stem}")
 		logger.info("Processing %s", filename.stem)
 		output_fname = args.output_dir.joinpath(f"{filename.stem}.csv")
-		annotations = annotations_fpaths[filename.stem]
+		annotations = {}
+		if filename.stem in annotations_fpaths:
+			annotations = annotations_fpaths[filename.stem]
 		serialize.eaf2csv(filename, output_fname, annotations)
 
 		if len(annotations):
@@ -162,7 +164,7 @@ def _align(args):
 		transcript = serialize.transcript_from_csv(filename)
 
 		transcripts[transcript_name] = transcript
-	
+
 # impostare l'ordine trascrittore (01) / whi (20) - gold (03)
 # 1. creare le coppie di file allineati in base alla tipologia di file
 	pairs = []
@@ -174,7 +176,7 @@ def _align(args):
 			base2 = t2.split(".")[0].split("_")[1]
 			if base1 == base2:
 				pairs.append((t1, t2))
-	
+
  # 2. ordinare le coppie
 	ordered_alignment = []
 	for t1, t2 in pairs:
@@ -184,7 +186,7 @@ def _align(args):
 			ordered = [t1, t2]
 		else:
 			ordered = [t2, t1]
-	
+
  # 3. evitare i duplicati
 		if tuple(ordered) not in ordered_alignment:
 			ordered_alignment.append(tuple(ordered))
