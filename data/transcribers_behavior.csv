@@ -1,0 +1,23 @@
+Trascrittore,Tipo,Pauses,Prolongations,Intonation Patterns,Volume,Interruptions,Pace,Overlaps,Hypotheses,Incomprehensible,Metalinguistic
+A,From-Scratch,16,54,0,24,11,3,30,2,0,1
+A,Whisper-Assisted,34,18,0,40,12,2,20,0,1,1
+E,From-Scratch,1,151,0,1,12,0,44,2,7,12
+E,Whisper-Assisted,4,90,0,5,12,0,44,2,4,13
+I,From-Scratch,42,47,0,67,13,2,31,4,1,5
+I,Whisper-Assisted,28,63,0,29,3,1,17,4,0,9
+L,From-Scratch,8,20,0,10,7,0,28,0,0,1
+L,Whisper-Assisted,12,52,0,13,2,0,21,0,0,5
+M,From-Scratch,6,71,0,7,3,4,20,2,0,7
+M,Whisper-Assisted,7,76,0,7,8,0,18,4,0,8
+N,From-Scratch,8,44,0,10,2,12,6,0,0,1
+N,Whisper-Assisted,15,26,0,16,15,2,22,1,0,4
+O,From-Scratch,3,27,0,5,9,1,11,11,0,7
+O,Whisper-Assisted,6,44,0,8,13,1,27,0,0,4
+R,From-Scratch,0,6,0,1,9,1,10,0,0,4
+R,Whisper-Assisted,1,15,0,1,6,3,17,0,0,0
+S,From-Scratch,6,32,0,9,9,2,11,0,0,3
+S,Whisper-Assisted,6,49,0,6,7,0,2,0,0,14
+U,From-Scratch,0,32,0,1,5,0,14,2,0,5
+U,Whisper-Assisted,0,14,0,0,5,0,7,2,2,6
+V,From-Scratch,18,19,0,29,12,1,11,4,0,7
+V,Whisper-Assisted,25,15,0,32,16,0,16,2,0,2
