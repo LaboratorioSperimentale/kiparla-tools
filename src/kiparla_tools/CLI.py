@@ -132,7 +132,6 @@ def _process(args):
 
 def _align(args):
 
-
  	# caricare data_description e filtrare solo le due colonne che ci interessano
 	# transcriptors_data = pd.read_csv("data/data_description.csv", sep="\t")
 	# transcriptors_data["Esperto"] = transcriptors_data["Esperto"]
@@ -154,7 +153,7 @@ def _align(args):
 
 	input_files = []
 	if args.input_dir:
-		input_files = list(args.input_dir.glob("*.tus.csv"))
+		input_files = list(args.input_dir.glob("*.csv"))
 	else:
 		input_files = args.input_files
 
@@ -167,7 +166,7 @@ def _align(args):
 
 		transcripts[transcript_name] = transcript
 
-# impostare l'ordine trascrittore (01) / whi (20) - gold (03)
+# impostare l'ordine trascrittore (01) / whi (02) - gold (03)
 # 1. creare le coppie di file allineati in base alla tipologia di file
 	pairs = []
 	for t1 in transcripts:
@@ -184,7 +183,8 @@ def _align(args):
 	for t1, t2 in pairs:
 		first_num = int(t1.split("_")[0])
 		second_num = int(t2.split("_")[0])
-		if first_num < second_num:
+		# if first_num < second_num:
+		if first_num > second_num:
 			ordered = [t1, t2]
 		else:
 			ordered = [t2, t1]
@@ -197,7 +197,7 @@ def _align(args):
 	for t1, t2 in tqdm.tqdm(ordered_alignment, desc="Allineamento"):
 		tokens_a, tokens_b = alignment.align_transcripts(transcripts[t1], transcripts[t2])
 		fout = f"{t1}_{t2}.tsv"
-		output_path = pathlib.Path("data/alignments") / fout
+		output_path = pathlib.Path(args.output_dir) / fout
 		serialize.print_aligned(tokens_a, tokens_b, output_path)
 
 	# main_tools.align_transcripts(transcripts, args.output_dir)

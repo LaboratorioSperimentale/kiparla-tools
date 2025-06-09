@@ -90,10 +90,10 @@ def align(seq_a, seq_b, match_score=1, mismatch_score=-1, indel_score=-1.0):
 	return aligned_seq_a, aligned_seq_b, score_seq, tot_score
 
 
-def count_mismatch(filenames): 
+def count_mismatch(filenames):
 	voc_gold = set()
 	voc_trascrittore = set()
-	
+
 	frequenze = collections.defaultdict(lambda: collections.defaultdict(int))
 
 	for filename in filenames:
@@ -104,7 +104,7 @@ def count_mismatch(filenames):
 				linesplit = line.strip().split("\t")
 
 				match, _, tok_trascrittore, _, tok_gold = linesplit
-				
+
 				if not match == "0":
 					frequenze[tok_gold][tok_trascrittore] += 1
 					voc_gold.add(tok_gold)
@@ -116,7 +116,7 @@ def count_mismatch(filenames):
 
 		writer = csv.DictWriter(fout, fieldnames=["TOK_GOLD"]+ list(voc_trascrittore),
 						restval=0)
-		
+
 		writer.writeheader()
 
 		for tok_gold, substitutions in sorted_frequenze:
@@ -127,7 +127,7 @@ def count_mismatch(filenames):
 			writer.writerow(substitutions)
 
 def compute_wer(file_path): # computes wer from alignment
-	substitutions = insertions = deletions = 0 
+	substitutions = insertions = deletions = 0
 	N = 0 # wer denominator
 
 	with open(file_path, encoding="utf-8") as f:
@@ -138,30 +138,29 @@ def compute_wer(file_path): # computes wer from alignment
 				N +=1 # no error, so number of reference words increases
 			elif match == "1":
 				if token_A == "_": # that token is not present in the reference Gold
-					insertions +=1 
-			elif token_B == "_":
-					deletions +=1 # that token is not present in the hypothesis 
+					insertions +=1
+				elif token_B == "_":
+					deletions +=1 # that token is not present in the hypothesis
 			elif match == "2":
 				substitutions += 1 #different but aligned tokens
 				N += 1
-    
+
 	wer = (substitutions + deletions + insertions) / N if N > 0 else 0.0
 	return wer
-
-alignment_dir = pathlib.Path("/Users/martinasimonotti/asr-assisted-transcription/asr-assisted-transcription/data/alignments")
-for file in alignment_dir.glob("*.tsv"):
-	wer = compute_wer(file)
-	print(f"{file.name}: WER = {wer:.2%}")
-
-
 
 
 #TODO creare una sola tabella finale (una per fs e una per gold)
 if __name__ == "__main__":
-    fs_files_list = list(p for p in pathlib.Path("data/alignments").iterdir() if re.match(r"01.*03",p.name))
-    whi_files_list = list(p for p in pathlib.Path("data/alignments").iterdir() if re.match(r"02.*03",p.name)) 
-    count_mismatch(fs_files_list) 
-    count_mismatch(whi_files_list)
-	
- 
-	
+	import sys
+    # fs_files_list = list(p for p in pathlib.Path("data/alignments").iterdir() if re.match(r"01.*03",p.name))
+    # whi_files_list = list(p for p in pathlib.Path("data/alignments").iterdir() if re.match(r"02.*03",p.name))
+    # count_mismatch(fs_files_list)
+    # count_mismatch(whi_files_list)
+
+
+	alignment_dir = pathlib.Path(sys.argv[1])
+	for file in alignment_dir.glob("*.tsv"):
+		wer = compute_wer(file)
+		print(f"{file.name}: WER = {wer:.2%}")
+
+

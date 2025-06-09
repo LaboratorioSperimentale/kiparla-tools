@@ -465,12 +465,16 @@ def transcript_from_csv(input_filename, sep="\t"):
 		reader = csv.DictReader(csvfile, delimiter=sep)
 
 		for row in reader:
+			if not "tu_id" in row:
+				print(input_filename)
+				print(row)
+				input()
 			new_tu = data.TranscriptionUnit(row["tu_id"],
 											row["speaker"],
 											float(row["start"]),
 											float(row["end"]),
 											float(row["duration"]),
-											row["correct"])
+											row["text"])
 			transcript.add(new_tu)
 
 	transcript.sort()
