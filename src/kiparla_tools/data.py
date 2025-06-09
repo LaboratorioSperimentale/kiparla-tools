@@ -25,7 +25,7 @@ class Token:
     token_type: df.tokentype = df.tokentype.linguistic
     orig_text: str = ""
     unknown: bool = False
-    intonation_pattern: df.intonation = None
+    intonation_pattern: df.intonation = df.intonation.plain
     position_in_tu: df.position = df.position.inner
     volume: df.volume = None
     overlaps: Dict[int, Tuple[int, int]] = field(default_factory=lambda: {})
@@ -577,7 +577,8 @@ class Transcript:
         if len(relations_to_ignore) > 0:
             for u, v in relations_to_ignore:
                 logger.warning("Removing edge %s-%s because of relations to ignore", u, v)
-                self.time_based_overlaps.remove_edge(u, v)
+                if self.time_based_overlaps.has_edge(u, v):
+                    self.time_based_overlaps.remove_edge(u, v)
 
         logger.debug("Graph after removing ignored elements: %s", self.time_based_overlaps.number_of_edges())
 
@@ -589,7 +590,12 @@ class Transcript:
                 if self.time_based_overlaps[node][neigh_node]["duration"] < duration_threshold:
                     tu1 = self.transcription_units_dict[node]
                     tu2 = self.transcription_units_dict[neigh_node]
-                    if len(tu1.overlapping_spans) + len(tu2.overlapping_spans) > 0:
+                    # print(tu1)
+                    # print(tu2)
+                    # print(tu1.overlapping_spans)
+                    # print(tu2.overlapping_spans)
+                    # input()
+                    if len(tu1.overlapping_spans) + len(tu2.overlapping_spans) == 0:
                         min_tu, max_tu = sorted([tu1, tu2], key=lambda x: x.tu_id)
                         min_tu.end = min_tu.end - self.time_based_overlaps[node][neigh_node]["duration"]/2
                         max_tu.start = max_tu.start + self.time_based_overlaps[node][neigh_node]["duration"]/2

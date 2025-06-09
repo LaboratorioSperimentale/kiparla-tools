@@ -75,7 +75,9 @@ def _csv2eaf(args):
 			output_fname = args.output_dir.joinpath(f"{basename}.ids.eaf")
 
 		logger.info("Writing EAF output to %s", output_fname)
-		audio_fname = args.audio_dir.joinpath(f"{basename}.wav")
+		audio_fname = f"{basename}.wav"
+		if args.audio_dir:
+			audio_fname = args.audio_dir.joinpath(f"{basename}.wav")
 		serialize.csv2eaf(filename, str(audio_fname), output_fname,
 						args.delimiter, args.multiplier_factor,
 						args.include_ids)
@@ -272,9 +274,9 @@ def _parse(args):
 		input_files = args.input_files
 
 	nlp = spacy_udpipe.load_from_path(lang="it",
-                                path=args.udpipe_model,
-                                meta={"description": "Custom 'it' model"})
-
+								   path=args.udpipe_model,
+								   meta={"description": "Custom 'it' model"})
+	nlp.add_pipe("conll_formatter", last=True)
 	# nlp.add_pipe("conll_formatter", last=True)
 
 	pbar = tqdm.tqdm(input_files)
@@ -334,7 +336,7 @@ def main():
 	parser_csv2eaf.add_argument("-o", "--output-dir", default="output_eaf/",
 								type=ac.valid_dirpath,
 								help="path to output directory")
-	parser_csv2eaf.add_argument("-a", "--audio-dir", default="audio/",
+	parser_csv2eaf.add_argument("-a", "--audio-dir",
 								type=ac.valid_dirpath,
 								help="path to directory containing audio files")
 	group = parser_csv2eaf.add_argument_group('Input files')

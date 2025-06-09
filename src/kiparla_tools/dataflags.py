@@ -6,6 +6,7 @@ class position(Flag):
 	inner = auto()
 
 class intonation(Flag):
+	plain = auto()
 	weakly_ascending = auto()
 	descending = auto()
 	ascending = auto()

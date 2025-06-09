@@ -211,6 +211,8 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 									"volume": f"Volume={tok.volume.name}" if tok.volume else "_"}
 
 				to_write["jefferson_feats"] = "|".join([x for x in jefferson_feats.values() if not x == "_"]) #TODO: rewrite
+				if to_write["jefferson_feats"] == "":
+					to_write["jefferson_feats"] = "_"
 
 				to_write["span"] = tu.annotation[tok.span[0]:tok.span[1]]
 
@@ -222,7 +224,10 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 				if len(align):
 					to_write["align"] = "|".join([f"{x[0]}={x[1]}" for x in align])
 
+				#TODO rewrite
 				to_write["prolongations"] = ",".join([f"{x[0]}x{x[1]}" for x in tok.prolongations.items()])
+				if to_write["prolongations"] == "":
+					to_write["prolongations"] = "_"
 
 				slow_pace = []
 				for span_id, span in tok.slow_pace.items():
@@ -528,6 +533,9 @@ def build_json(transcript):
 	ret["tot tokens-meta"] = 0
 	ret["tot tokens-pause"] = 0
 	ret["tot tokens-err"] = 0
+	ret["tot tokens-rising"] = 0
+	ret["tot tokens-weaklyrising"] = 0
+	ret["tot tokens-falling"] = 0
 
 	for unit in transcript:
 		ret["speakers"][unit.speaker]["TUs"] += 1
@@ -538,6 +546,9 @@ def build_json(transcript):
 		ret["speakers"][unit.speaker]["tokens-meta"] += len([[x for x in unit.tokens.values() if df.tokentype.metalinguistic in x.token_type]])
 		ret["speakers"][unit.speaker]["tokens-pause"] += len([x for x in unit.tokens.values() if df.tokentype.shortpause in x.token_type])
 		ret["speakers"][unit.speaker]["tokens-err"] += len([x for x in unit.tokens.values() if df.tokentype.error in x.token_type])
+		ret["speakers"][unit.speaker]["tokens-rising"] += len([x for x in unit.tokens.values() if df.intonation.ascending in x.intonation_pattern])
+		ret["speakers"][unit.speaker]["tokens-weaklyrising"] += len([x for x in unit.tokens.values() if df.intonation.weakly_ascending in x.intonation_pattern])
+		ret["speakers"][unit.speaker]["tokens-falling"] += len([x for x in unit.tokens.values() if df.intonation.descending in x.intonation_pattern])
 
 		ret["spoken time"] += unit.duration
 		ret["tot tokens"] += len(unit.tokens)
@@ -547,6 +558,9 @@ def build_json(transcript):
 		ret["tot tokens-meta"] += len([[x for x in unit.tokens.values() if df.tokentype.metalinguistic in x.token_type]])
 		ret["tot tokens-pause"] += len([x for x in unit.tokens.values() if df.tokentype.shortpause in x.token_type])
 		ret["tot tokens-err"] += len([x for x in unit.tokens.values() if df.tokentype.error in x.token_type])
+		ret["tot tokens-rising"] += len([x for x in unit.tokens.values() if df.intonation.ascending in x.intonation_pattern])
+		ret["tot tokens-weaklyrising"] += len([x for x in unit.tokens.values() if df.intonation.weakly_ascending in x.intonation_pattern])
+		ret["tot tokens-falling"] += len([x for x in unit.tokens.values() if df.intonation.descending in x.intonation_pattern])
 
 	ret["overlaps"] = transcript.overlap_events
 	ret["TUs"] = sum(1 for x in transcript.transcription_units if x.include)

@@ -45,6 +45,7 @@ def parse(model, filename, output_filename, ignore_meta):
 				doc = [token for token in doc]
 				doc_text = [token.text for token in doc]
 
+
 				# unit_full = il gatto ((sbadiglio)) dorme sul divano
 				# unit_text = il gatto dorme sul divano
 				# doc_text = il gatto dorme su il divano
@@ -53,14 +54,50 @@ def parse(model, filename, output_filename, ignore_meta):
 
 				aligned_orig, aligned_proces, _, _ = alignment.align(unit_full, doc_text)
 
+				for a, b in zip(aligned_orig, aligned_proces):
+					print(a, b)
 
-				i=len(aligned_orig)-1
-				while i>0:
-					j = i-1
-					prev_element = aligned_orig[j]
-					if prev_element == "_":
-						aligned_orig[i], aligned_orig[j] = aligned_orig[j], aligned_orig[i]
-					i-=1
+				subparts = []
+				i=0
+				part = []
+				while i<len(aligned_orig):
+					while i<len(aligned_orig) and aligned_orig[i] == aligned_proces[i]:
+						part.append(i)
+						i+=1
+					if len(part)>0:
+						subparts.append(["ALIGNED", part])
+						part = []
+
+					while i<len(aligned_orig) and aligned_orig[i] != aligned_proces[i]:
+						part.append(i)
+						i+=1
+					if len(part)>0:
+						subparts.append(["MISMATCH", part])
+						part = []
+					i+=1
+					# print("PARTIAL", subparts)
+					# input()
+
+				for element in subparts:
+					label, element_ids = element
+					if label == "MISMATCH":
+						orig_elements = [aligned_orig[i] for i in element_ids if not aligned_orig[i] == "_"]
+						proces_elements = [aligned_proces[i] for i in element_ids if not aligned_proces[i] == "_"]
+						assert(len(orig_elements)>0)
+
+						# orig_elements_len = []
+						# for el in orig_elements:
+						# 	if el.startswith("{"):
+						# 		orig_elements_len.append((el, 1))
+						# 	elif el in _
+
+				# i=len(aligned_orig)-1
+				# while i>0:
+				# 	j = i-1
+				# 	prev_element = aligned_orig[j]
+				# 	if prev_element == "_":
+				# 		aligned_orig[i], aligned_orig[j] = aligned_orig[j], aligned_orig[i]
+				# 	i-=1
 
 				idx_unit, idx_doc = 0, 0
 				ids = []
