@@ -34,8 +34,6 @@ def replace_po(transcription):
 
 	return tot_subs, transcription.strip()
 
-# transform "chè" into "ché" (keep count)
-# TODO: fix it to handle also pero'>però, perche'>perché and stuff like this
 def replace_che(transcription):
 
 	words_to_replace = {"perchè": "perché",
@@ -57,9 +55,11 @@ def replace_che(transcription):
 		new_word = "\\b"
 		sub_word = ""
 		for char_id, char in enumerate(word):
-			new_word += "([^ =]*)" + char
+			new_word += "([^ =']*)" + char
 			sub_word = sub_word + "\\" + str(char_id+1) + char
 		new_word += "\\b"
+		print(sub_word, new_word)
+		input()
 
 		sub_word = sub_word[:-1] + "é"
 
@@ -374,7 +374,6 @@ def matches_angular(transcription):
 
 	return matches_left_ret, matches_right_ret
 
-
 def check_numbers(transcription):
 
 	matches = list(re.finditer(r"\b[0-9]+\b", transcription))
@@ -412,7 +411,6 @@ def check_numbers(transcription):
 
 	return len(matches), new_transcription
 
-
 def replace_spaces(match):
 	return '{' + match.group(1).replace(' ', '_') + '}'
 
@@ -433,7 +431,6 @@ def meta_tag(transcription):
 
 	return subs, transcription
 
-
 def space_prosodiclink(transcription):
 	tot_subs = 0
 	new_string, subs_made = re.subn(r" =|= ",
@@ -445,7 +442,6 @@ def space_prosodiclink(transcription):
 		transcription = new_string
 
 	return tot_subs, transcription.strip()
-
 
 def remove_prosodiclinks(transcription):
 	tot_subs = 0
@@ -460,4 +456,4 @@ def remove_prosodiclinks(transcription):
 	return tot_subs, transcription.strip()
 
 if __name__ == "__main__":
-	print(overlap_prolongations("questo:[::]"))
+	print(replace_che("n'è"))
