@@ -141,6 +141,7 @@ def compute_wer(file_path): # computes wer from alignment
 					insertions +=1
 				elif token_B == "_":
 					deletions +=1 # that token is not present in the hypothesis
+					N+=1
 			elif match == "2":
 				substitutions += 1 #different but aligned tokens
 				N += 1

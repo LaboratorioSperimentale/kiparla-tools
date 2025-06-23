@@ -7,9 +7,9 @@ class position(Flag):
 
 class intonation(Flag):
 	plain = auto()
-	weakly_ascending = auto()
-	descending = auto()
-	ascending = auto()
+	weakly_rising = auto()
+	falling = auto()
+	rising = auto()
 
 class pace(Flag):
 	fast = auto()
@@ -23,7 +23,13 @@ class volume(Flag):
 class tokentype(Flag):
 	linguistic = auto()
 	shortpause = auto()
-	metalinguistic = auto()
+	nonverbalbehavior = auto()
 	error = auto()
 	unknown = auto()
 	anonymized = auto()
+
+
+class languagevariation(Flag):
+	none = auto()
+	some = auto()
+	all = auto()

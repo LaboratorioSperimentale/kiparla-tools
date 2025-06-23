@@ -12,7 +12,8 @@ from kiparla_tools.logging_utils import setup_logging
 logger = logging.getLogger(__name__)
 setup_logging(logger)
 
-def process_transcript(filename, annotations, duration_threshold = 0.1):
+def process_transcript(filename, annotations,
+					duration_threshold = 0.1, tiers_to_ignore = ["Traduzione"]):
 	"""
 	The function `process_transcript` reads a CSV file containing transcript data, creates transcription
 	units, tokenizes them, and adds token features before returning the processed transcript.
@@ -36,9 +37,12 @@ def process_transcript(filename, annotations, duration_threshold = 0.1):
 	transcript = data.Transcript(transcript_name)
 
 	for tu_id, speaker, start, end, duration, annotation in serialize.read_csv(filename):
-		logger.debug("Initializing TU %s", tu_id)
-		new_tu = data.TranscriptionUnit(tu_id, speaker, start, end, duration, annotation)
-		transcript.add(new_tu)
+		if speaker not in tiers_to_ignore:
+			logger.debug("Initializing TU %s", tu_id)
+			new_tu = data.TranscriptionUnit(tu_id, speaker, start, end, duration, annotation)
+			transcript.add(new_tu)
+		else:
+			logger.info("Ignoring TU %s because of speaker %s", tu_id, speaker)
 
 	logger.debug("Sorting transcript")
 	transcript.sort()
@@ -51,7 +55,7 @@ def process_transcript(filename, annotations, duration_threshold = 0.1):
 		tu.tokenize()
 
 	logger.debug("Checking overlaps")
-	transcript.check_overlaps(relations_to_ignore, duration_threshold)
+	transcript.check_overlaps(duration_threshold, relations_to_ignore)
 
 	logger.debug("Adding token features")
 	for tu in transcript:
@@ -104,7 +108,7 @@ def process_all_transcripts(input_dir="data/curr_csv", output_dir="data/output")
 			for tu in transcript:
 				tu.add_token_features()
 
-			output_filename = os.path.join(output_dir,f"{transcript_name}.conll")
+			output_filename = os.path.join(output_dir,f"{transcript_name}.vert.tsv")
 			serialize.conversation_to_conll(transcript, output_filename)
 			serialize.conversation_to_linear(transcript, os.path.join(output_dir,f"{transcript_name}.tsv"))
 			transcripts_dict[transcript_name] = transcript

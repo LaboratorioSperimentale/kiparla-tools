@@ -108,11 +108,12 @@ def _process(args):
 		logger.debug("Processing %s", transcript_name)
 
 		transcript = main_tools.process_transcript(filename, annotations[transcript_name],
-												duration_threshold=args.duration_threshold)
+												duration_threshold=args.duration_threshold,
+												tiers_to_ignore=["Traduzione"])
 		transcripts[transcript_name] = transcript
 		logger.info("Successfully processed %s", transcript_name)
 
-		output_filename_vert = args.output_dir.joinpath(f"{transcript_name}.conll")
+		output_filename_vert = args.output_dir.joinpath(f"{transcript_name}.vert.tsv")
 		output_filename_tus = args.output_dir.joinpath(f"{transcript_name}.csv")
 		logger.debug("Writing CoNLL output to %s", output_filename_vert)
 		logger.debug("Writing TUs output to %s", output_filename_tus)
@@ -225,7 +226,7 @@ def _cicle(args):
 		transcript = main_tools.process_transcript(filename)
 		transcripts[transcript_name] = transcript
 
-		output_filename_vert = args.output_dir.joinpath(f"{transcript_name}.conll")
+		output_filename_vert = args.output_dir.joinpath(f"{transcript_name}.vert.tsv")
 		output_filename_tus = args.output_dir.joinpath(f"{transcript_name}.tus.csv")
 		serialize.conversation_to_conll(transcript, output_filename_vert)
 		serialize.conversation_to_linear(transcript, output_filename_tus)
@@ -251,7 +252,7 @@ def _cicle(args):
 def _segment(args):
 	input_files = []
 	if args.input_dir:
-		input_files = list(args.input_dir.glob("*.conll"))
+		input_files = list(args.input_dir.glob("*vert.csv"))
 	else:
 		input_files = args.input_files
 
@@ -261,7 +262,7 @@ def _segment(args):
 	for filename in pbar:
 		pbar.set_description(f"Processing {filename.stem}")
 		basename = filename.stem
-		output_fname = args.output_dir.joinpath(f"{basename}.conll")
+		output_fname = args.output_dir.joinpath(f"{basename}.vert.tsv")
 
 		pipeline.segment(sat_sm, filename, output_fname, args.remove_metalinguistic)
 
@@ -269,7 +270,7 @@ def _segment(args):
 def _parse(args):
 	input_files = []
 	if args.input_dir:
-		input_files = list(args.input_dir.glob("*.conll"))
+		input_files = list(args.input_dir.glob("*.vert.tsv"))
 	else:
 		input_files = args.input_files
 
@@ -283,7 +284,7 @@ def _parse(args):
 	for filename in pbar:
 		pbar.set_description(f"Processing {filename.stem}")
 		basename = filename.stem
-		output_fname = args.output_dir.joinpath(f"{basename}.conll")
+		output_fname = args.output_dir.joinpath(f"{basename}.vert.tsv")
 		pipeline.parse(nlp, filename, output_fname, args.remove_metalinguistic)
 
 
@@ -291,7 +292,7 @@ def _conll2conllu(args):
 
 	input_files = []
 	if args.input_dir:
-		input_files = args.input_dir.glob("*.conll")
+		input_files = args.input_dir.glob("*.vert.tsv")
 	else:
 		input_files = args.input_files
 
@@ -299,7 +300,7 @@ def _conll2conllu(args):
 	for filename in pbar:
 		pbar.set_description(f"Processing {filename.stem}")
 		basename = filename.stem
-		output_fname = args.output_dir.joinpath(f"{basename}.conllu")
+		output_fname = args.output_dir.joinpath(f"{basename}.vert.tsv")
 		serialize.conll2conllu(filename, output_fname)
 
 

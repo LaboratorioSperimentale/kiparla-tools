@@ -37,7 +37,9 @@ class Token:
     truncation: bool = False
     prosodiclink: bool = False
     spaceafter: bool = True
-    dialect: bool = False
+    non_ita: bool = False
+    iso_code: str = "ita"
+    non_ortho: bool = False
     prolongations: Dict[int, int] = field(default_factory=lambda: {})
     warnings: Dict[str, int] = field(default_factory=lambda: collections.defaultdict(int))
     errors: List[str] = field(default_factory=lambda: collections.defaultdict(int))
@@ -45,6 +47,9 @@ class Token:
     def __post_init__(self):
 
         self.orig_text = self.text
+
+        if len(self.text.strip()) == 0:
+            return
 
         chars = ["[","]", "(", ")", "<", ">", "°"]
 
@@ -56,10 +61,17 @@ class Token:
             self.text = "x"
             return
 
-        if self.text[0] == "#":
-            logger.debug("Dialect detected in token %s", self.text)
-            self.dialect = True
+        if self.text[0] == "$":
+            logger.debug("Not existing in italian detected in token %s", self.text)
+            self.non_ortho = True
             self.text = self.text[1:]
+
+        if self.text[0] == "#":
+            logger.debug("Different language detected in token %s", self.text)
+            self.non_ita = True
+            self.iso_code = "NO_ISO_CODE"
+            self.text = self.text[1:]
+
 
         # ! STEP 1: check that token has shape '?([a-z]+:*)+[-']?[.,?]
         matching_po = re.fullmatch(r"po':*[.,?]?", self.text)
@@ -75,7 +87,7 @@ class Token:
                 self.token_type = df.tokentype.shortpause
                 return
             elif self.text.startswith("{"):
-                self.token_type = df.tokentype.metalinguistic
+                self.token_type = df.tokentype.nonverbalbehavior
                 return
             elif matching_po is None:
                 self.token_type = df.tokentype.error
@@ -88,20 +100,21 @@ class Token:
 
         # ! STEP2: find final prosodic features: intonation, truncation and interruptions
         if self.text.endswith("."):
-            self.intonation_pattern = df.intonation.descending
+            self.intonation_pattern = df.intonation.falling
             self.text = self.text[:-1] # this line removes the last character of the string (".")
         elif self.text.endswith(","):
-            self.intonation_pattern = df.intonation.weakly_ascending
+            self.intonation_pattern = df.intonation.weakly_rising
             self.text = self.text[:-1]
         elif self.text.endswith("?"):
-            self.intonation_pattern = df.intonation.ascending
+            self.intonation_pattern = df.intonation.rising
             self.text = self.text[:-1]
         elif self.text.endswith("-") or self.text.endswith("~"):
             self.interruption = True
         elif self.text.startswith("-") or self.text.startswith("~"):
             self.interruption = True
         elif self.text.endswith("'") or self.text.startswith("'"):
-            if self.text not in {"po'"}:
+            alpha_text = [x for x in self.text if x.isalpha()]
+            if "".join(alpha_text) not in ["po"]:
                 self.truncation = True
 
         # ! STEP3: at this point we should be left with the bare word with only prolongations
@@ -177,8 +190,10 @@ class Token:
             if self.truncation:
                 self.truncation = False
 
-        if field_name == "Dialect":
-            self.dialect = True
+        if field_name == "Language":
+            self.non_ita = True
+            self.iso_code = field_value
+
 
 
 @dataclass
@@ -191,9 +206,10 @@ class TranscriptionUnit:
     annotation: str
     orig_annotation: str = ""
     include: bool = True
-    dialect: bool = False
+    non_ita: df.languagevariation = df.languagevariation.none
     overlapping_spans: List[Tuple[int, int]] = field(default_factory=lambda: [])
     overlapping_times: Dict[str, Tuple[float, float]] = field(default_factory=lambda: {})
+    nvb_in_overlap: Dict[str, bool] = field(default_factory=lambda: {})
     overlapping_matches: Dict[Tuple[int, int], str] = field(default_factory=lambda: [])
     overlap_duration: Dict[str, float] = field(default_factory=lambda: {})
 
@@ -220,11 +236,22 @@ class TranscriptionUnit:
 
         self.annotation = self.annotation.strip()
 
-        if self.annotation[0] == "#":
-            logger.debug("Dialect detected in TU %s", self.tu_id)
+        if self.annotation[:2] == "# ":
+            # print(self.annotation)
+            logger.debug("Different language detected in TU %s", self.tu_id)
             logger.debug("%s >> %s", self.annotation, self.annotation[1:])
-            self.dialect = True
-            self.annotation = self.annotation[1:]
+            self.non_ita = df.languagevariation.some
+            self.annotation = self.annotation[1:].strip()
+            # print(self.annotation)
+            # input()
+
+        if self.annotation[:2] == "#_":
+            logger.debug("Different language detected in TU %s", self.tu_id)
+            logger.debug("%s >> %s", self.annotation, self.annotation[1:])
+            self.non_ita = df.languagevariation.all
+            self.annotation = self.annotation[2:].strip()
+            return
+
 
         warning_functions_to_apply = [
             ("SYMBOL_NOT_ALLOWED", pt.clean_non_jefferson_symbols),   # remove non jefferson symbols
@@ -326,6 +353,14 @@ class TranscriptionUnit:
         self.warnings["SWITCHES"] += substitutions
         self.annotation = new_transcription
 
+        # invert NVB and parentheses
+        substitutions, new_transcription = pt.switch_NVB(self.annotation)
+        if substitutions > 0:
+            logger.debug("Applied %d substitution(s) with function switch_NVB", substitutions)
+            logger.debug("%s >> %s", self.annotation, new_transcription)
+        self.warnings["SWITCHES"] += substitutions
+        self.annotation = new_transcription
+
         # remove unit if it only includes non-alphabetic symbols or is empty
         if all(c in ["[", "]", "(", ")", "°", ">", "<", "-", "'", "#"] for c in self.annotation):
             logger.info("Removing TU %s", self.tu_id)
@@ -414,10 +449,25 @@ class TranscriptionUnit:
 
             start_pos = end_pos
 
-        if self.dialect:
+        if df.languagevariation.all in self.non_ita:
             logger.debug("Adding dialectal variation to all tokens in TU")
             for _, tok in self.tokens.items():
-                tok.add_info("OrigLang", "dialect")
+                tok.add_info("Language", "NO_ISO_CODE")
+
+        all_variation = True
+        some_variation = False
+        for _, tok in self.tokens.items():
+
+            if tok.non_ita:
+                some_variation = True
+            else:
+                all_variation = False
+
+        if some_variation:
+            self.non_ita = df.languagevariation.some
+        if all_variation:
+            self.non_ita = df.languagevariation.all
+
 
     def add_token_features(self):
 
@@ -558,14 +608,14 @@ class Transcript:
         self.time_based_overlaps = G
 
 
-    def check_overlaps(self, relations_to_ignore = [], duration_threshold=0):
+    def check_overlaps(self, duration_threshold, relations_to_ignore = []):
 
         logger.debug("Graph at beginning: %s", self.time_based_overlaps.number_of_edges())
 
         to_remove = []
         for u, v in self.time_based_overlaps.edges():
-            if all(df.tokentype.metalinguistic in tok.token_type for _, tok in self.transcription_units_dict[u].tokens.items()) or \
-            all(df.tokentype.metalinguistic in tok.token_type for _, tok in self.transcription_units_dict[v].tokens.items()):
+            if all(df.tokentype.nonverbalbehavior in tok.token_type for _, tok in self.transcription_units_dict[u].tokens.items()) or \
+            all(df.tokentype.nonverbalbehavior in tok.token_type for _, tok in self.transcription_units_dict[v].tokens.items()):
                 to_remove.append((u, v))
 
         for u, v in to_remove:
@@ -582,7 +632,7 @@ class Transcript:
 
         logger.debug("Graph after removing ignored elements: %s", self.time_based_overlaps.number_of_edges())
 
-        # REMOVE OVERLAPPING IF < DURATION THRESHOLD
+        # REMOVE OVERLAPPING IF OVERLAP_DURATION < DURATION THRESHOLD AND NO SPAN ANNOTATED
         for node in self.time_based_overlaps.nodes:
             to_remove = []
 
@@ -590,11 +640,6 @@ class Transcript:
                 if self.time_based_overlaps[node][neigh_node]["duration"] < duration_threshold:
                     tu1 = self.transcription_units_dict[node]
                     tu2 = self.transcription_units_dict[neigh_node]
-                    # print(tu1)
-                    # print(tu2)
-                    # print(tu1.overlapping_spans)
-                    # print(tu2.overlapping_spans)
-                    # input()
                     if len(tu1.overlapping_spans) + len(tu2.overlapping_spans) == 0:
                         min_tu, max_tu = sorted([tu1, tu2], key=lambda x: x.tu_id)
                         min_tu.end = min_tu.end - self.time_based_overlaps[node][neigh_node]["duration"]/2
@@ -618,35 +663,44 @@ class Transcript:
 
         logger.debug("Graph after removing spurious overlaps: %s", self.time_based_overlaps.number_of_edges())
 
+
         cliques = sorted(nx.find_cliques(self.time_based_overlaps), key=lambda x: len(x))
+        cliques = list(filter(lambda x: len(x) > 1, cliques))
+
         self.overlap_events = {}
         logger.info("Found %d cliques", len(cliques))
 
         for clique_id, clique in enumerate(cliques):
+            # if len(clique)>1:
+            starts = []
+            ends = []
+            nvb_in_clique = False
 
-            if len(clique)>1:
-                starts = []
-                ends = []
+            for node in clique:
+                starts.append(self.transcription_units_dict[node].start)
+                ends.append(self.transcription_units_dict[node].end)
+                nvb_in_clique = nvb_in_clique or any(df.tokentype.nonverbalbehavior in tok.token_type for _, tok in self.transcription_units_dict[node].tokens.items())
 
-                for node in clique:
-                    starts.append(self.transcription_units_dict[node].start)
-                    ends.append(self.transcription_units_dict[node].end)
+            overlap_start = max(starts)
+            overlap_end = min(ends)
 
-                overlap_start = max(starts)
-                overlap_end = min(ends)
+            self.overlap_events[clique_id] = (overlap_start, overlap_end)
 
-                self.overlap_events[clique_id] = (overlap_start, overlap_end)
 
-                for node in clique:
-                    clique_tup = tuple(x for x in clique if not x == node)
-                    self.transcription_units_dict[node].overlapping_times[clique_tup] = (overlap_start, overlap_end, clique_id)
+            for node in clique:
+                clique_tup = tuple(x for x in clique if not x == node)
+                self.transcription_units_dict[node].overlapping_times[clique_tup] = (overlap_start,
+                                                                                    overlap_end,
+                                                                                    clique_id,
+                                                                                    nvb_in_clique)
+
 
         sorted_cliques = list(sorted(self.overlap_events.items(), key=lambda x: x[1][0]))
-        cliques_map = {}
-        i=1
-        for clique_id, clique in sorted_cliques:
-            cliques_map[clique_id] = i
-            i+=1
+        # cliques_map = {}
+        # i=1
+        # for clique_id, clique in sorted_cliques:
+        #     cliques_map[clique_id] = i
+        #     i+=1
 
         for _, tu  in self.transcription_units_dict.items():
             spans = tu.overlapping_spans
@@ -657,27 +711,70 @@ class Transcript:
 
                 sorted_overlaps = list(sorted(tu.overlapping_times.items(), key=lambda x: x[1][0]))
                 # sorted_overlaps = ["+".join([str(el) for el in x]) for x, y in sorted_overlaps]
-                sorted_overlaps = [cliques_map[x[2]] for _, x in sorted_overlaps]
+                sorted_overlaps = [x[2] for _, x in sorted_overlaps]
                 tu.overlapping_matches = dict(zip(tu.overlapping_spans, sorted_overlaps))
 
             elif len(spans) == 0:
-                logger.warning("TU %s has %d annotated spans and %d time overlaps", tu.tu_id, len(spans), len(times))
-                tu.errors["MISMATCHING_OVERLAPS"] = True
+                logger.warning("TU %s has NO annotated spans and %d time overlaps", tu.tu_id, len(times))
 
+                removables = []
                 for el in tu.overlapping_times:
+                    clique_id =  tu.overlapping_times[el][2]
+                    nvb_in_overlap = tu.overlapping_times[el][3]
                     tu.overlap_duration["+".join([str(x) for x in el])] = tu.overlapping_times[el][1]-tu.overlapping_times[el][0]
 
+                    if nvb_in_overlap or tu.overlapping_times[el][1]-tu.overlapping_times[el][0] < duration_threshold:
+                        removables.append(el)
+
+                    # if nvb_in_overlap:
+                    #     logger.warning("Ignoring issue because of nonverbal behavior")
+                    #     tu.warnings["MISMATCHING_OVERLAPS"] = True
+                    # else:
+                    #     tu.errors["OVERLAPS:MISSING_ANNOTATION"] = True
+
+                if len(removables) == len(times):
+                    logger.warning("Ignoring issue because of nonverbal behavior")
+                    tu.warnings["MISMATCHING_OVERLAPS"] = True
+                else:
+                    tu.errors["OVERLAPS:MISSING_ANNOTATION"] = True
+
+
             elif len(times) == 0:
-                logger.warning("TU %s has %d annotated spans and %d time overlaps", tu.tu_id, len(spans), len(times))
-                tu.errors["MISMATCHING_OVERLAPS"] = True
-                tu.errors["UNMATCHED_OVERLAPS"] = True
+                logger.warning("TU %s has %d annotated spans and NO time overlaps", tu.tu_id, len(spans))
+                tu.errors["OVERLAPS:MISSING_TIME"] = True
+
                 sorted_overlaps = ["?" for el in tu.overlapping_spans]
                 tu.overlapping_matches = dict(zip(tu.overlapping_spans, sorted_overlaps))
 
+            elif len(times) > len(spans):
+
+                difference = len(times) - len(spans)
+
+                removables = []
+                for el in tu.overlapping_times:
+                    duration = tu.overlapping_times[el][1]-tu.overlapping_times[el][0]
+                    nvb = tu.overlapping_times[el][3]
+
+                    if duration<duration_threshold or nvb:
+                        removables.append(el)
+
+                if len(removables) == difference:
+                    sorted_overlaps = list(sorted(tu.overlapping_times.items(), key=lambda x: x[1][0]))
+                    # sorted_overlaps = ["+".join([str(el) for el in x]) for x, y in sorted_overlaps]
+                    sorted_overlaps = [x[2] for _, x in sorted_overlaps if not x[2] in removables]
+                    tu.overlapping_matches = dict(zip(tu.overlapping_spans, sorted_overlaps)) #TODO
+                    tu.warnings["MISMATCHING_OVERLAPS"] = True
+
+                else:
+                    tu.errors["MISMATCHING_OVERLAPS"] = True
+                    sorted_overlaps = ["?" for el in tu.overlapping_spans]
+                    tu.overlapping_matches = dict(zip(tu.overlapping_spans, sorted_overlaps))
+
+                    for el in tu.overlapping_times:
+                        tu.overlap_duration["+".join([str(x) for x in el])] = tu.overlapping_times[el][1]-tu.overlapping_times[el][0]
             else:
                 logger.warning("TU %s has %d annotated spans and %d time overlaps", tu.tu_id, len(spans), len(times))
                 tu.errors["MISMATCHING_OVERLAPS"] = True
-                tu.errors["UNMATCHED_OVERLAPS"] = True
 
                 sorted_overlaps = ["?" for el in tu.overlapping_spans]
                 tu.overlapping_matches = dict(zip(tu.overlapping_spans, sorted_overlaps))
@@ -711,7 +808,7 @@ class Transcript:
         # number of metalinguistic tokens per minute
         stats["metalinguistic_tokens_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                                         f2_tu=lambda x: sum(1 for token in x.tokens.values()
-                                                                        if token.token_type == df.tokentype.metalinguistic))
+                                                                        if token.token_type == df.tokentype.nonverbalbehavior))
         # number of shortpauses per minute
         stats["shortpauses_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                                 f2_tu=lambda x: sum(1 for token in x.tokens.values()
@@ -742,7 +839,7 @@ class Transcript:
 
         # intonation pattern al minuto
         stats["intonation_patterns_min"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
-                                                                        f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.intonation_pattern is not None))
+                                                                        f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.intonation_pattern != df.intonation.plain))
         # prolongations per minute
         stats["prolongations"] = utils.compute_stats_per_minute(self.transcription_units, split_size,
                                                                 f2_tu=lambda x: sum(1 for token in x.tokens.values() if token.prolongations))

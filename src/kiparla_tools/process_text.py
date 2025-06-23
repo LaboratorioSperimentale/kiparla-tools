@@ -58,8 +58,6 @@ def replace_che(transcription):
 			new_word += "([^ =']*)" + char
 			sub_word = sub_word + "\\" + str(char_id+1) + char
 		new_word += "\\b"
-		print(sub_word, new_word)
-		input()
 
 		sub_word = sub_word[:-1] + "é"
 
@@ -114,6 +112,27 @@ def remove_pauses(transcription):
 def switch_symbols(transcription):
 	tot_subs = 0
 	new_string, subs_made = re.subn(r"([.,?])([:-~])",
+									r"\2\1",
+									transcription)
+
+	if subs_made > 0:
+		tot_subs += subs_made
+		transcription = new_string
+
+	return tot_subs, transcription.strip()
+
+
+def switch_NVB(transcription):
+	tot_subs = 0
+	new_string, subs_made = re.subn(r"([\[\(])(\{\w+\})",
+									r"\2\1",
+									transcription)
+
+	if subs_made > 0:
+		tot_subs += subs_made
+		transcription = new_string
+
+	new_string, subs_made = re.subn(r"(\{\w+\})([\]\)])",
 									r"\2\1",
 									transcription)
 
