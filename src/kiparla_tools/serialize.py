@@ -85,7 +85,7 @@ def conll2conllu(filename, output_filename):
 
 				if token["type"] in ["error", "shortpause", "unknown"]:
 					feats["Type"] = token["type"]
-				elif token["type"] == "metalinguistic":
+				elif token["type"] == "nonverbalbehavior":
 					feats["Type"] = token["meta_label"]
 
 				if len(token["align"]) and not token["align"] == "_":
@@ -116,14 +116,16 @@ def conll2conllu(filename, output_filename):
 				print(f"{tok['ID']}\t{tok['FORM']}\t{tok['LEMMA']}\t{tok['UPOS']}\t{tok['XPOS']}\t{tok['FEATS']}\t{tok['HEAD']}\t{tok['DEPREL']}\t{tok['DEPS']}\t{tok['MISC']}", file=fout)
 			print("", file=fout)
 
+
 def units_from_conll(fobj, source_col="unit"):
 	curr_sent = []
 	curr_unit = "0"
 	reader = csv.DictReader(fobj, delimiter="\t")
 	for row in reader:
-		token_id = row["token_id"]
-		type = row["type"]
-		text = row["form"]
+		# print(row)
+		# token_id = row["token_id"]
+		# type = row["type"]
+		# text = row["form"]
 		unit = row[source_col]
 
 		if unit == curr_unit or unit == "_":
@@ -192,22 +194,27 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 
 		for tu in transcript.transcription_units:
 			tu_id = tu.tu_id
+			# print(tu.orig_annotation)
+			# print(tu.non_ita)
+			# input()
 
 			for _, tok in tu.tokens.items():
 
 				to_write = {"token_id": tok.id,
 							"speaker": tu.speaker,
 							"tu_id": tu_id,
+							"unit": tu_id,
 							"form": tok.text,
 							"type": tok.token_type.name,
 							}
 
-				jefferson_feats = {"intonation": f"Intonation={tok.intonation_pattern.name}" if tok.intonation_pattern else "_",
+				jefferson_feats = {"intonation": f"Intonation={tok.intonation_pattern.name}" if tok.intonation_pattern != df.intonation.plain else "_",
 									"interruption": "Interrupted=Yes" if tok.interruption else "_",
 									"truncation": "Truncated=Yes" if tok.truncation else "_",
 									"prosodicLink": "ProsodicLink=Yes" if tok.prosodiclink else "_",
 									"spaceafter": "SpaceAfter=No" if not tok.spaceafter else "_",
-									"dialect": "Dialect=Yes" if tok.dialect else "_",
+									"non_ita": f"Language={tok.iso_code}" if tok.non_ita else "_",
+									"non_ortho": "Orthography=Yes" if tok.non_ortho else "_",
 									"volume": f"Volume={tok.volume.name}" if tok.volume else "_"}
 
 				to_write["jefferson_feats"] = "|".join([x for x in jefferson_feats.values() if not x == "_"]) #TODO: rewrite
@@ -266,10 +273,10 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 def conversation_to_linear(transcript, output_filename, sep = '\t'):
 
 	fieldnames = ["tu_id", "speaker", "start", "end", "duration", "include", "variation",
-				"W:normalized_spaces", "W:numbers", "W:accents", "W:non_jefferson", "W:pauses_trim", "W:prosodic_trim", "W:moved_boundaries", "W:switches",
-				"E:volume", "E:pace", "E:guess", "E:overlap", "E:overlap_mismatch",
-				"E:overlap_duration", "E:unmatched_overlaps",
-				"T:shortpauses", "T:metalinguistic", "T:errors", "T:linguistic",
+				"W:normalized_spaces", "W:numbers", "W:accents", "W:non_jefferson", "W:pauses_trim", "W:prosodic_trim", "W:moved_boundaries", "W:switches", "W:overlap_mismatch",
+				"E:volume", "E:pace", "E:guess", "E:overlap", "E:overlap_mismatch", "E:overlap_annotation", "E:overlap_time",
+				"E:overlap_duration",
+				"T:shortpauses", "T:nonverbalbehavior", "T:errors", "T:linguistic",
 				"original", "text", "orthographic"]
 
 	with open(output_filename, "w", encoding="utf-8") as fout:
@@ -277,7 +284,8 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 		writer.writeheader()
 
 		for tu in transcript.transcription_units:
-
+			if not tu.include:
+				continue
 			to_write = {
 						"tu_id": tu.tu_id,
 						"speaker": tu.speaker,
@@ -285,10 +293,10 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 						"end": tu.end,
 						"duration": tu.duration,
 						"include": tu.include,
-						"variation": tu.dialect,
+						"variation": tu.non_ita.name if df.languagevariation.some in tu.non_ita or df.languagevariation.all in tu.non_ita else "_",
 						"original": tu.orig_annotation,
-						"text": tu.annotation,
-						"orthographic": " ".join(str(tok) for _, tok in tu.tokens.items()),
+						"text": tu.annotation.replace("{P}", "(.)").replace("{", "((").replace("}", "))"),
+						"orthographic": " ".join(str(tok) for _, tok in tu.tokens.items()).replace("{P}", "(.)").replace("{", "((").replace("}", "))"),
 						"W:normalized_spaces": tu.warnings["UNEVEN_SPACES"],
 						"W:numbers": tu.warnings["NUMBERS"],
 						"W:accents": tu.warnings["ACCENTS"],
@@ -297,17 +305,26 @@ def conversation_to_linear(transcript, output_filename, sep = '\t'):
 						"W:prosodic_trim": tu.warnings["TRIM_PROSODICLINKS"],
 						"W:moved_boundaries": tu.warnings["MOVED_BOUNDARIES"],
 						"W:switches": tu.warnings["SWITCHES"],
+						"W:overlap_mismatch": tu.warnings["MISMATCHING_OVERLAPS"],
 						"E:volume": tu.errors["UNBALANCED_DOTS"],
 						"E:pace": tu.errors["UNBALANCED_PACE"],
 						"E:guess": tu.errors["UNBALANCED_GUESS"],
 						"E:overlap": tu.errors["UNBALANCED_OVERLAP"],
 						"E:overlap_mismatch": tu.errors["MISMATCHING_OVERLAPS"],
-						"E:unmatched_overlaps": tu.errors["UNMATCHED_OVERLAPS"],
+						"E:overlap_annotation": tu.errors["OVERLAPS:MISSING_ANNOTATION"],
+						"E:overlap_time": tu.errors["OVERLAPS:MISSING_TIME"],
+						# "E:unmatched_overlaps": tu.errors["UNMATCHED_OVERLAPS"],
 						"T:shortpauses": sum([df.tokentype.shortpause in tok.token_type for _, tok in tu.tokens.items()]),
-						"T:metalinguistic": sum([df.tokentype.metalinguistic in tok.token_type for _, tok in tu.tokens.items()]),
+						"T:nonverbalbehavior": sum([df.tokentype.nonverbalbehavior in tok.token_type for _, tok in tu.tokens.items()]),
 						"T:errors": sum([df.tokentype.error in tok.token_type for _, tok in tu.tokens.items()]),
 						"T:linguistic": sum([df.tokentype.linguistic in tok.token_type for _, tok in tu.tokens.items()])
 					}
+
+			if df.languagevariation.some in tu.non_ita:
+				to_write["text"] = "# "+to_write["text"]
+
+			if df.languagevariation.all in tu.non_ita:
+				to_write["text"] = "#_ "+to_write["text"]
 
 			errors = " ".join([tok.text for _, tok in tu.tokens.items() if df.tokentype.error in tok.token_type])
 			to_write["T:errors"] = f"{to_write['T:errors']}"
@@ -349,10 +366,10 @@ def csv2eaf(input_filename, linked_file, output_filename,
 
 	for tier_id in tiers:
 		doc.add_tier(tier_id=tier_id)
+		# doc.add_tier(tier_id=f"{tier_id}_gloss", parent=tier_id)
 
 	for annotation in tus:
 		if not "include" in annotation or literal_eval(annotation["include"]):
-
 			value = annotation['text']
 			if include_ids:
 				value=f"id:{annotation['tu_id']} {annotation['text']}"
@@ -368,6 +385,7 @@ def csv2eaf(input_filename, linked_file, output_filename,
 								end=int(float(annotation["end"])*multiplier),
 								value=value
 							)
+
 	doc.to_file(output_filename)
 
 
@@ -484,6 +502,7 @@ def transcript_from_csv(input_filename, sep="\t"):
 
 	return transcript
 
+
 def print_aligned(tokens_a, tokens_b, output_filename, sep="\t"):
 
 	fieldnames = ["match", "id_A", "token_A", "id_B", "token_B"]
@@ -524,6 +543,7 @@ def load_annotations(fname):
 
 	return ret
 
+
 def build_json(transcript):
 	ret = {}
 
@@ -540,6 +560,7 @@ def build_json(transcript):
 	ret["tot tokens-rising"] = 0
 	ret["tot tokens-weaklyrising"] = 0
 	ret["tot tokens-falling"] = 0
+	ret["tot code switching units"] = 0
 
 	for unit in transcript:
 		ret["speakers"][unit.speaker]["TUs"] += 1
@@ -547,26 +568,29 @@ def build_json(transcript):
 		ret["speakers"][unit.speaker]["tokens-ling"] += len([x for x in unit.tokens.values() if df.tokentype.linguistic in x.token_type])
 		ret["speakers"][unit.speaker]["tokens-unk"] += len([x for x in unit.tokens.values() if df.tokentype.unknown in x.token_type])
 		ret["speakers"][unit.speaker]["tokens-anonym"] += len([x for x in unit.tokens.values() if df.tokentype.anonymized in x.token_type])
-		ret["speakers"][unit.speaker]["tokens-meta"] += len([[x for x in unit.tokens.values() if df.tokentype.metalinguistic in x.token_type]])
+		ret["speakers"][unit.speaker]["tokens-meta"] += len([[x for x in unit.tokens.values() if df.tokentype.nonverbalbehavior in x.token_type]])
 		ret["speakers"][unit.speaker]["tokens-pause"] += len([x for x in unit.tokens.values() if df.tokentype.shortpause in x.token_type])
 		ret["speakers"][unit.speaker]["tokens-err"] += len([x for x in unit.tokens.values() if df.tokentype.error in x.token_type])
-		ret["speakers"][unit.speaker]["tokens-rising"] += len([x for x in unit.tokens.values() if df.intonation.ascending in x.intonation_pattern])
-		ret["speakers"][unit.speaker]["tokens-weaklyrising"] += len([x for x in unit.tokens.values() if df.intonation.weakly_ascending in x.intonation_pattern])
-		ret["speakers"][unit.speaker]["tokens-falling"] += len([x for x in unit.tokens.values() if df.intonation.descending in x.intonation_pattern])
+		ret["speakers"][unit.speaker]["tokens-rising"] += len([x for x in unit.tokens.values() if df.intonation.rising in x.intonation_pattern])
+		ret["speakers"][unit.speaker]["tokens-weaklyrising"] += len([x for x in unit.tokens.values() if df.intonation.weakly_rising in x.intonation_pattern])
+		ret["speakers"][unit.speaker]["tokens-falling"] += len([x for x in unit.tokens.values() if df.intonation.falling in x.intonation_pattern])
+		ret["speakers"][unit.speaker]["code-switching units"] += 1 if unit.non_ita else 0
 
 		ret["spoken time"] += unit.duration
 		ret["tot tokens"] += len(unit.tokens)
 		ret["tot tokens-ling"] += len([x for x in unit.tokens.values() if df.tokentype.linguistic in x.token_type])
 		ret["tot tokens-unk"] += len([x for x in unit.tokens.values() if df.tokentype.unknown in x.token_type])
 		ret["tot tokens-anonym"] += len([x for x in unit.tokens.values() if df.tokentype.anonymized in x.token_type])
-		ret["tot tokens-meta"] += len([[x for x in unit.tokens.values() if df.tokentype.metalinguistic in x.token_type]])
+		ret["tot tokens-meta"] += len([[x for x in unit.tokens.values() if df.tokentype.nonverbalbehavior in x.token_type]])
 		ret["tot tokens-pause"] += len([x for x in unit.tokens.values() if df.tokentype.shortpause in x.token_type])
 		ret["tot tokens-err"] += len([x for x in unit.tokens.values() if df.tokentype.error in x.token_type])
-		ret["tot tokens-rising"] += len([x for x in unit.tokens.values() if df.intonation.ascending in x.intonation_pattern])
-		ret["tot tokens-weaklyrising"] += len([x for x in unit.tokens.values() if df.intonation.weakly_ascending in x.intonation_pattern])
-		ret["tot tokens-falling"] += len([x for x in unit.tokens.values() if df.intonation.descending in x.intonation_pattern])
+		ret["tot tokens-rising"] += len([x for x in unit.tokens.values() if df.intonation.rising in x.intonation_pattern])
+		ret["tot tokens-weaklyrising"] += len([x for x in unit.tokens.values() if df.intonation.weakly_rising in x.intonation_pattern])
+		ret["tot tokens-falling"] += len([x for x in unit.tokens.values() if df.intonation.falling in x.intonation_pattern])
+		ret["tot code switching units"] = 1 if unit.non_ita else 0
 
-	ret["overlaps"] = transcript.overlap_events
+
+	ret["overlaps"] = len(transcript.overlap_events)
 	ret["TUs"] = sum(1 for x in transcript.transcription_units if x.include)
 	ret["removed TUs"] = sum(1 for x in transcript.transcription_units if not x.include)
 
