@@ -27,7 +27,7 @@ def parse(model, filename, output_filename, ignore_meta):
 
 		writer = csv.DictWriter(fout, delimiter="\t", fieldnames=fieldnames, restval="_")
 		writer.writeheader()
-		print("FILENAME", filename)
+		# print("FILENAME", filename)
 		for unit_id, unit in serialize.units_from_conll(fin):
 			unit_processed = []
 			unit_text = []
@@ -42,9 +42,9 @@ def parse(model, filename, output_filename, ignore_meta):
 
 			if len(unit_text):
 				doc = model(" ".join(unit_text))
-				print()
-				print()
-				print(doc)
+				# print()
+				# print()
+				# print(doc)
 
 				doc = [token for token in doc]
 				doc_text = [token.text for token in doc]
