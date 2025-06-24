@@ -42,8 +42,8 @@ def parse(model, filename, output_filename, ignore_meta):
 
 			if len(unit_text):
 				doc = model(" ".join(unit_text))
-				print()
-				print()
+				# print()
+				# print()
 				# print(doc)
 
 				doc = [token for token in doc]
