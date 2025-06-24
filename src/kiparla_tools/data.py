@@ -378,6 +378,7 @@ class TranscriptionUnit:
         tokens = re.split(r"( |=)", self.annotation)
         logger.debug("%s >> %s", self.annotation, tokens)
 
+
         start_pos = 0
         end_pos = 0
         token_id = -1
@@ -452,6 +453,7 @@ class TranscriptionUnit:
         if df.languagevariation.all in self.non_ita:
             logger.debug("Adding dialectal variation to all tokens in TU")
             for _, tok in self.tokens.items():
+                tok.token_type=df.tokentype.linguistic
                 tok.add_info("Language", "NO_ISO_CODE")
 
         all_variation = True
