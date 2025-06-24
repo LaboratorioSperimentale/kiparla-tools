@@ -42,8 +42,8 @@ def parse(model, filename, output_filename, ignore_meta):
 
 			if len(unit_text):
 				doc = model(" ".join(unit_text))
-				# print()
-				# print()
+				print()
+				print()
 				# print(doc)
 
 				doc = [token for token in doc]
@@ -83,8 +83,8 @@ def parse(model, filename, output_filename, ignore_meta):
 
 				for element in subparts:
 					label, element_ids = element
-					# print(label, [aligned_orig[i] for i in element_ids])
-					# print(label, [aligned_proces[i] for i in element_ids])
+					print(label, [aligned_orig[i] for i in element_ids])
+					print(label, [aligned_proces[i] for i in element_ids])
 
 					if label == "ALIGNED":
 						for i in element_ids:
@@ -95,6 +95,10 @@ def parse(model, filename, output_filename, ignore_meta):
 
 						orig_elements = [aligned_orig[i] for i in element_ids if not aligned_orig[i] == "_"]
 						proces_elements = [aligned_proces[i] for i in element_ids if not aligned_proces[i] == "_"]
+
+						# if "-" in proces_elements:
+						# 	aligned_sequence.append(("original", "".join(orig_elements)))
+						# 	continue
 
 						# print(orig_elements)
 						# print(proces_elements)
@@ -114,6 +118,7 @@ def parse(model, filename, output_filename, ignore_meta):
 								if tok.startswith("{"):
 									aligned_sequence.append(("nvb", tok))
 								else:
+									# TODO: turn into dynamic programming algorithm
 									# print(tok in MULTIWORDS, len(proces_elements), j)
 									if tok in MULTIWORDS:
 										if j+MULTIWORDS[tok]<len(proces_elements)+1:
@@ -130,12 +135,49 @@ def parse(model, filename, output_filename, ignore_meta):
 											aligned_sequence.append(("original", proces_elements[j]))
 											j+=1
 									else:
+										if tok.endswith("-") or tok.endswith("~") or tok.startswith("-") or tok.startswith("~"):
+											aligned_sequence.append(("multiword-B", tok))
+											aligned_sequence.append(("multiword-I", proces_elements[j]))
+											aligned_sequence.append(("multiword-I", proces_elements[j+1]))
+											j+=2
+
+										elif "-" in tok or "~" in tok:
+											prova = "".join(proces_elements[j:])
+											if prova == tok:
+												aligned_sequence.append(("multiword-B", tok))
+												while j<len(proces_elements):
+													aligned_sequence.append(("multiword-I", proces_elements[j]))
+													j+=1
+
+												# print(tok, prova)
+												# input()
+												# aligned_sequence.append(("original", tok))
+												# j+=len(proces_elements)-j+1
+											# aligned_sequence.append(("multiword-I", proces_elements[j]))
+											# aligned_sequence.append(("multiword-I", proces_elements[j+1]))
+											# aligned_sequence.append(("multiword-I", proces_elements[j+2]))
+											# j+=1
+
+										elif tok.endswith("gliene"):
+											aligned_sequence.append(("multiword-B", tok))
+											aligned_sequence.append(("multiword-I", proces_elements[j]))
+											aligned_sequence.append(("multiword-I", proces_elements[j+1]))
+											aligned_sequence.append(("multiword-I", proces_elements[j+2]))
+											j+=3
+
+										else:
+											aligned_sequence.append(("multiword-B", tok))
+											aligned_sequence.append(("multiword-I", proces_elements[j]))
+											aligned_sequence.append(("multiword-I", proces_elements[j+1]))
+											j+=2
+
 										# print("############# TOK ##############")
 										# print(tok)
-										#TODO
-										aligned_sequence.append(("original", proces_elements[j]))
-										aligned_sequence.append(("ignore", proces_elements[j+1]))
-										j+=2
+										# #TODO
+										# aligned_sequence.append(("original", proces_elements[j]))
+
+										# aligned_sequence.append(("ignore", proces_elements[j+1]))
+										# j+=2
 								i+=1
 
 				# print("ALIGNED SEQUENCE:")
