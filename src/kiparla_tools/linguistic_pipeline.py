@@ -83,8 +83,8 @@ def parse(model, filename, output_filename, ignore_meta):
 
 				for element in subparts:
 					label, element_ids = element
-					print(label, [aligned_orig[i] for i in element_ids])
-					print(label, [aligned_proces[i] for i in element_ids])
+					# print(label, [aligned_orig[i] for i in element_ids])
+					# print(label, [aligned_proces[i] for i in element_ids])
 
 					if label == "ALIGNED":
 						for i in element_ids:
@@ -114,7 +114,7 @@ def parse(model, filename, output_filename, ignore_meta):
 								if tok.startswith("{"):
 									aligned_sequence.append(("nvb", tok))
 								else:
-									print(tok in MULTIWORDS, len(proces_elements), j)
+									# print(tok in MULTIWORDS, len(proces_elements), j)
 									if tok in MULTIWORDS:
 										if j+MULTIWORDS[tok]<len(proces_elements)+1:
 											aligned_sequence.append(("multiword-B", tok))
@@ -130,16 +130,16 @@ def parse(model, filename, output_filename, ignore_meta):
 											aligned_sequence.append(("original", proces_elements[j]))
 											j+=1
 									else:
-										print("############# TOK ##############")
-										print(tok)
+										# print("############# TOK ##############")
+										# print(tok)
 										#TODO
 										aligned_sequence.append(("original", proces_elements[j]))
 										aligned_sequence.append(("ignore", proces_elements[j+1]))
 										j+=2
 								i+=1
 
-				print("ALIGNED SEQUENCE:")
-				print(aligned_sequence)
+				# print("ALIGNED SEQUENCE:")
+				# print(aligned_sequence)
 				# input()
 
 				# OLD VERSION, REMOVE
@@ -165,15 +165,15 @@ def parse(model, filename, output_filename, ignore_meta):
 				ptr = None
 
 				for alignment_type, token in aligned_sequence:
-					print(alignment_type, token)
+					# print(alignment_type, token)
 
 					if alignment_type == "nvb":
-						print("adding", unit[idx_unit])
+						# print("adding", unit[idx_unit])
 						unit_processed.append(unit[idx_unit])
 						idx_unit += 1
 
 					if alignment_type == "ignore":
-						print("adding nothing")
+						# print("adding nothing")
 						new_token = {"token_id": f"{unit_id}-X",
 									"unit": unit_id,
 									"form": "_"}
@@ -184,7 +184,7 @@ def parse(model, filename, output_filename, ignore_meta):
 
 					if alignment_type == "original":
 						add_info(unit[idx_unit], doc[idx_doc])
-						print("adding", unit[idx_unit])
+						# print("adding", unit[idx_unit])
 						unit_processed.append(unit[idx_unit])
 						idx_unit += 1
 						idx_doc += 1
@@ -203,7 +203,7 @@ def parse(model, filename, output_filename, ignore_meta):
 						last_mv_idx = 0
 						unit[idx_unit]["id"] = "100-0"
 						ptr = unit[idx_unit]
-						print("adding", unit[idx_unit])
+						# print("adding", unit[idx_unit])
 						unit_processed.append(unit[idx_unit])
 						idx_unit += 1
 
@@ -213,7 +213,7 @@ def parse(model, filename, output_filename, ignore_meta):
 									"form": doc[idx_doc].text}
 						last_mv_idx +=1
 						add_info(new_token, doc[idx_doc])
-						print("adding", new_token)
+						# print("adding", new_token)
 						unit_processed.append(new_token)
 						idx_doc += 1
 
@@ -226,8 +226,8 @@ def parse(model, filename, output_filename, ignore_meta):
 							id_max = curr_id
 						ptr["id"] = f"{id_min}-{id_max}"
 
-				for token in unit_processed:
-					print(token["token_id"], token["id"], token["form"], token["deprel"])
+				# for token in unit_processed:
+					# print(token["token_id"], token["id"], token["form"], token["deprel"])
 					# input()
 				# print(unit_processed)
 				# input("END")
@@ -314,8 +314,8 @@ def parse(model, filename, output_filename, ignore_meta):
 						token["id"] = "-".join([str(ids_map[x]) for x in token["id"].split("-")])
 						token["deprel"] = "_"
 
-				for token in unit_processed:
-					print(token["token_id"], token["id"], token["form"], token["deprel"])
+				# for token in unit_processed:
+					# print(token["token_id"], token["id"], token["form"], token["deprel"])
 					# input()
 				# print(unit_processed)
 				# input("END")
