@@ -83,8 +83,8 @@ def parse(model, filename, output_filename, ignore_meta):
 
 				for element in subparts:
 					label, element_ids = element
-					print(label, [aligned_orig[i] for i in element_ids])
-					print(label, [aligned_proces[i] for i in element_ids])
+					# print(label, [aligned_orig[i] for i in element_ids])
+					# print(label, [aligned_proces[i] for i in element_ids])
 
 					if label == "ALIGNED":
 						for i in element_ids:
@@ -135,19 +135,17 @@ def parse(model, filename, output_filename, ignore_meta):
 											aligned_sequence.append(("original", proces_elements[j]))
 											j+=1
 									else:
-										if tok.endswith("-") or tok.endswith("~") or tok.startswith("-") or tok.startswith("~"):
-											aligned_sequence.append(("multiword-B", tok))
-											aligned_sequence.append(("multiword-I", proces_elements[j]))
-											aligned_sequence.append(("multiword-I", proces_elements[j+1]))
-											j+=2
-
-										elif "-" in tok or "~" in tok:
+										if "-" in tok or "~" in tok:
 											prova = "".join(proces_elements[j:])
 											if prova == tok:
 												aligned_sequence.append(("multiword-B", tok))
 												while j<len(proces_elements):
 													aligned_sequence.append(("multiword-I", proces_elements[j]))
 													j+=1
+											else:
+												print("ERROR")
+												j+=len(proces_elements)
+
 
 												# print(tok, prova)
 												# input()
