@@ -16,7 +16,6 @@ def add_info(dict, spacy_tok):
 	dict["xpos"] = spacy_tok.tag_
 	dict["feats"] = str(spacy_tok.morph)
 	dict["deprel"] = f"{spacy_tok.dep_}:{spacy_tok.head.i + 1}" if spacy_tok.dep_ != "ROOT" else "root:0"
-	# token.text, token.lemma_, token.pos_, token.dep_
 
 
 def parse(model, filename, output_filename, ignore_meta):
@@ -27,7 +26,6 @@ def parse(model, filename, output_filename, ignore_meta):
 
 		writer = csv.DictWriter(fout, delimiter="\t", fieldnames=fieldnames, restval="_")
 		writer.writeheader()
-		# print("FILENAME", filename)
 		for unit_id, unit in serialize.units_from_conll(fin):
 			unit_processed = []
 			unit_text = []
@@ -35,16 +33,20 @@ def parse(model, filename, output_filename, ignore_meta):
 			for idx, token in enumerate(unit):
 				tok_type = token["type"]
 				text = token["form"]
+				if tok_type == "error":
+					text = "E+"+text
 
-				if ignore_meta and not tok_type in ["shortpause", "nonverbalbehavior"]:
+				if ignore_meta and not tok_type in ["shortpause", "nonverbalbehavior", "error"]:
 					unit_text.append(text) #TODO: handle spaceafter?
 				unit_full.append(text)
 
 			if len(unit_text):
 				doc = model(" ".join(unit_text))
 				# print()
-				# print()
 				# print(doc)
+
+				# for token in doc:
+				# 	print(token.i, token, token.dep_, token.head.i, )
 
 				doc = [token for token in doc]
 				doc_text = [token.text for token in doc]
@@ -56,6 +58,23 @@ def parse(model, filename, output_filename, ignore_meta):
 				# ---> il gatto ((sbadiglio)) dorme sul su il divano
 
 				aligned_orig, aligned_proces, _, _ = alignment.align(unit_full, doc_text)
+
+				new_aligned_orig = []
+				new_aligned_proces = []
+				for a, b in zip(aligned_orig, aligned_proces):
+					if (a.startswith("{") or a.startswith("E+")) and not b == "_":
+						new_aligned_orig.append(a)
+						new_aligned_proces.append("_")
+
+						new_aligned_orig.append("_")
+						new_aligned_proces.append(b)
+
+					else:
+						new_aligned_orig.append(a)
+						new_aligned_proces.append(b)
+
+				aligned_orig = new_aligned_orig
+				aligned_proces = new_aligned_proces
 
 				subparts = []
 				i=0
@@ -70,15 +89,15 @@ def parse(model, filename, output_filename, ignore_meta):
 						part = []
 
 					while i<len(aligned_orig) and aligned_orig[i] != aligned_proces[i]:
+						# print(aligned_orig[i], aligned_proces[i])
 						part.append(i)
 						i+=1
 
 					if len(part)>0:
 						subparts.append(["MISMATCH", part])
 						part = []
-					# i+=1
 
-				# print(subparts)
+
 				aligned_sequence = []
 
 				for element in subparts:
@@ -91,113 +110,71 @@ def parse(model, filename, output_filename, ignore_meta):
 							aligned_sequence.append(("original", aligned_orig[i]))
 
 					elif label == "MISMATCH":
-						# print("HERE")
 
 						orig_elements = [aligned_orig[i] for i in element_ids if not aligned_orig[i] == "_"]
 						proces_elements = [aligned_proces[i] for i in element_ids if not aligned_proces[i] == "_"]
-
-						# if "-" in proces_elements:
-						# 	aligned_sequence.append(("original", "".join(orig_elements)))
-						# 	continue
-
-						# print(orig_elements)
-						# print(proces_elements)
+						counts = []
 
 						if len(orig_elements) == 0:
-							aligned_sequence.append(("error", " ".join(proces_elements)))
+							for el in proces_elements:
+								aligned_sequence.append(("error", el))
 
-						else:
-							# print(orig_elements, proces_elements)
-							# print("HERE")
-							i=0
-							j=0
+						for tok in orig_elements:
+							if tok.startswith("{") or tok.startswith("E+"):
+								counts.append(0)
+							elif tok in MULTIWORDS:
+								counts.append(MULTIWORDS[tok])
+							elif (tok.endswith("gliene") or \
+								tok.endswith("glielo") or \
+								tok.endswith("gliela") or \
+								tok.endswith("mene") or \
+								tok.endswith("selo") or \
+								tok.endswith("sela")):
+								counts.append(3)
+							elif tok.endswith("-") or tok.endswith("~"):
+								counts.append(2)
+							elif "-" in tok or "~" in tok:
+								counts.append(3)
+							else:
+								counts.append(2)
 
-							while i<len(orig_elements):
-								tok = orig_elements[i]
-								# print(tok)
-								if tok.startswith("{"):
-									aligned_sequence.append(("nvb", tok))
-								else:
-									# TODO: turn into dynamic programming algorithm
-									# print(tok in MULTIWORDS, len(proces_elements), j)
-									if tok in MULTIWORDS:
-										if j+MULTIWORDS[tok]<len(proces_elements)+1:
-											aligned_sequence.append(("multiword-B", tok))
-											aligned_sequence.append(("multiword-I", proces_elements[j]))
-											# print("multi", proces_elements[j])
-											# print(tok, proces_elements[j])
-											for _ in range(MULTIWORDS[tok]-1):
-												j+=1
-												aligned_sequence.append(("multiword-I", proces_elements[j]))
-												# print("_", proces_elements[j])
-											j+=1
-										else:
-											aligned_sequence.append(("original", proces_elements[j]))
-											j+=1
-									else:
-										if "-" in tok or "~" in tok:
-											prova = "".join(proces_elements[j:])
-											if prova == tok:
-												aligned_sequence.append(("multiword-B", tok))
-												while j<len(proces_elements):
-													aligned_sequence.append(("multiword-I", proces_elements[j]))
-													j+=1
-											else:
-												print("ERROR")
-												j+=len(proces_elements)
+						if len(counts) > 0:
+							k=0
+							while k<len(counts) and sum(counts) < len(proces_elements):
+								if counts[k]>0:
+									counts[k]+=1
+								k+=1
+
+							k = len(counts)-1
+							while k>=0 and sum(counts) > len(proces_elements):
+								if counts[k]>0:
+									counts[k]-=1
+								k-=1
+
+						j=0
+						for count, tok in zip(counts, orig_elements):
+							if count == 0:
+								# if tok.startswith("{")
+								aligned_sequence.append(("nvb", tok))
+								# else:
+									# aligned_sequence.append(("transcription-error", tok[2:]))
+							else:
+								aligned_sequence.append(("multiword-B", tok))
+								for _ in range(count):
+									aligned_sequence.append(("multiword-I", proces_elements[j]))
+									j+=1
 
 
-												# print(tok, prova)
-												# input()
-												# aligned_sequence.append(("original", tok))
-												# j+=len(proces_elements)-j+1
-											# aligned_sequence.append(("multiword-I", proces_elements[j]))
-											# aligned_sequence.append(("multiword-I", proces_elements[j+1]))
-											# aligned_sequence.append(("multiword-I", proces_elements[j+2]))
-											# j+=1
+						while len(orig_elements) > 0 and j<len(proces_elements):
 
-										elif tok.endswith("gliene"):
-											aligned_sequence.append(("multiword-B", tok))
-											aligned_sequence.append(("multiword-I", proces_elements[j]))
-											aligned_sequence.append(("multiword-I", proces_elements[j+1]))
-											aligned_sequence.append(("multiword-I", proces_elements[j+2]))
-											j+=3
-
-										else:
-											aligned_sequence.append(("multiword-B", tok))
-											aligned_sequence.append(("multiword-I", proces_elements[j]))
-											aligned_sequence.append(("multiword-I", proces_elements[j+1]))
-											j+=2
-
-										# print("############# TOK ##############")
-										# print(tok)
-										# #TODO
-										# aligned_sequence.append(("original", proces_elements[j]))
-
-										# aligned_sequence.append(("ignore", proces_elements[j+1]))
-										# j+=2
-								i+=1
+							aligned_sequence.append(("error", proces_elements[j]))
+							j+=1
 
 				# print("ALIGNED SEQUENCE:")
 				# print(aligned_sequence)
 				# input()
 
-				# OLD VERSION, REMOVE
-						# orig_elements_len = []
-						# for el in orig_elements:
-						# 	if el.startswith("{"):
-						# 		orig_elements_len.append((el, 1))
-						# 	elif el in _
 
-				# i=len(aligned_orig)-1
-				# while i>0:
-				# 	j = i-1
-				# 	prev_element = aligned_orig[j]
-				# 	if prev_element == "_":
-				# 		aligned_orig[i], aligned_orig[j] = aligned_orig[j], aligned_orig[i]
-				# 	i-=1
-
-				# OLD VERSION, REMOVE
 				idx_unit, idx_doc = 0, 0
 				last_mw_id = ""
 				last_mv_idx = 0
@@ -211,16 +188,6 @@ def parse(model, filename, output_filename, ignore_meta):
 						# print("adding", unit[idx_unit])
 						unit_processed.append(unit[idx_unit])
 						idx_unit += 1
-
-					if alignment_type == "ignore":
-						# print("adding nothing")
-						new_token = {"token_id": f"{unit_id}-X",
-									"unit": unit_id,
-									"form": "_"}
-						add_info(new_token, doc[idx_doc])
-						unit_processed.append(new_token)
-						# idx_unit += 1
-						idx_doc += 1
 
 					if alignment_type == "original":
 						add_info(unit[idx_unit], doc[idx_doc])
@@ -267,68 +234,7 @@ def parse(model, filename, output_filename, ignore_meta):
 						ptr["id"] = f"{id_min}-{id_max}"
 
 				# for token in unit_processed:
-					# print(token["token_id"], token["id"], token["form"], token["deprel"])
-					# input()
-				# print(unit_processed)
-				# input("END")
 
-				# OLD VERSION, REMOVE
-				# idx_unit, idx_doc = 0, 0
-				# ids = []
-				# ptr = None
-				# for _, (orig_token, proces_token) in enumerate(zip(aligned_orig, aligned_proces)):
-				# 	updatable = True
-				# 	if orig_token == proces_token:
-				# 		add_info(unit[idx_unit], doc[idx_doc])
-				# 		unit_processed.append(unit[idx_unit])
-
-				# 		idx_unit += 1
-				# 		idx_doc += 1
-
-				# 	elif proces_token == "_":
-				# 		unit_processed.append(unit[idx_unit])
-				# 		idx_unit += 1
-
-				# 	elif orig_token == "_":
-				# 		updatable = False
-				# 		new_token = {"token_id":"_",
-				# 					"unit": unit_id,
-				# 					"form": doc[idx_doc].text}
-				# 		ids.append(doc[idx_doc].i+1)
-				# 		add_info(new_token, doc[idx_doc])
-				# 		unit_processed.append(new_token)
-				# 		idx_doc += 1
-
-				# 	else:
-				# 		updatable = False
-				# 		#TODO: aiutooooooo
-				# 		ids.append(doc[idx_doc].i+1)
-				# 		new_token = {"token_id":"_",
-				# 					"unit": unit_id,
-				# 					"form": doc[idx_doc].text}
-				# 		add_info(new_token, doc[idx_doc])
-
-				# 		if orig_token.startswith("{"):
-				# 			unit_processed.append(new_token)
-				# 			unit_processed.append(unit[idx_unit])
-				# 		else:
-				# 			# updatable = False
-				# 			ptr = unit[idx_unit]
-				# 			unit_processed.append(unit[idx_unit])
-				# 			unit_processed.append(new_token)
-
-				# 		idx_unit += 1
-				# 		idx_doc += 1
-
-				# 	if updatable and ptr:
-				# 		ptr["id"] = "-".join([str(x) for x in ids])
-				# 		ids = []
-				# 		ptr = None
-
-				# if updatable and ptr:
-				# 	ptr["id"] = "-".join([str(x) for x in ids])
-				# 	ids = []
-				# 	ptr = None
 
 				root_id = -1
 				ids_map = {}
@@ -342,23 +248,21 @@ def parse(model, filename, output_filename, ignore_meta):
 						if token["deprel"] == "root:0":
 							root_id = new_id
 						new_id += 1
-
+					# print(token["form"], ids_map)
+#
 				for token in unit_processed:
+					# print(token["token_id"], token["id"], token["form"], token["deprel"])
 					if not token["deprel"] == "root:0":
 						if token["deprel"] == "_":
 							token["deprel"] = "dep:" + str(root_id)
 						else:
-				# 			# print(token)
+							# print("before", token["deprel"])
 							token["deprel"] = ":".join([token["deprel"].rsplit(":", 1)[0], str(ids_map[token["deprel"].rsplit(":", 1)[1]])])
+
+							# print("after", token["deprel"])
 					if "-" in token["id"]:
 						token["id"] = "-".join([str(ids_map[x]) for x in token["id"].split("-")])
 						token["deprel"] = "_"
-
-				# for token in unit_processed:
-					# print(token["token_id"], token["id"], token["form"], token["deprel"])
-					# input()
-				# print(unit_processed)
-				# input("END")
 
 				final_list.extend(unit_processed)
 
@@ -366,15 +270,12 @@ def parse(model, filename, output_filename, ignore_meta):
 				final_list.extend(unit)
 
 		for token in final_list:
-			# print(token)
-			# input()
 			if "type" in token and token["type"] == "nonverbalbehavior":
 				if token["id"] == "_":
 					token["id"] = token["token_id"].split("-")[1]
 					token["upos"] = "X"
 					token["deprel"] = "root:0"
 
-			# if not token["token_id"] == "_":
 			writer.writerow(token)
 
 
