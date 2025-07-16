@@ -456,6 +456,7 @@ class TranscriptionUnit:
                 tok.token_type=df.tokentype.linguistic
                 tok.add_info("Language", "NO_ISO_CODE")
 
+
         all_variation = True
         some_variation = False
         for _, tok in self.tokens.items():

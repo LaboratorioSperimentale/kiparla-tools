@@ -206,6 +206,7 @@ def conversation_to_conll(transcript, output_filename, sep = '\t'):
 							"unit": tu_id,
 							"form": tok.text,
 							"type": tok.token_type.name,
+							"variation": tu.non_ita.name,
 							}
 
 				jefferson_feats = {"intonation": f"Intonation={tok.intonation_pattern.name}" if tok.intonation_pattern != df.intonation.plain else "_",

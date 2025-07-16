@@ -1,6 +1,6 @@
 CONLL_FIELDNAMES = ["token_id", "speaker", "tu_id", "unit", "id", "span",
 					"form", "lemma", "upos", "xpos", "feats", "deprel",
-					"type", "meta_label", "jefferson_feats",
+					"type", "meta_label", "variation", "jefferson_feats",
 					"align", "prolongations", "pace",
 					"guesses", "overlaps"]
 
